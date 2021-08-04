@@ -20,7 +20,7 @@ func NewStream(bs []byte) *Stream {
   implement io.Reader
  */
 func (s *Stream) Read(b []byte) (n int, err error) {
-	if s.current >= int64(len(s.bs)) {
+	if s.EOF() {
 		return 0, io.EOF
 	}
 	n = copy(b, s.bs[s.current:])
@@ -54,4 +54,12 @@ func (s *Stream) PeekN(n int) (bs []byte, err error) {
 	bs, err = s.ReadN(n)
 	s.current = oldCurrent
 	return
+}
+
+func (s *Stream) EOF() bool {
+	return s.current >= int64(len(s.bs))
+}
+
+func (s *Stream) CurrentIndex() int64 {
+	return s.current
 }

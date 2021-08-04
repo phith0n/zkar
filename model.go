@@ -80,3 +80,6 @@ var JAVA_SC_EXTERNALIZABLE byte = 0x04
 
 // JAVA_SC_ENUM Bit mask for ObjectStreamClass flag. Indicates class is an enum type.
 var JAVA_SC_ENUM byte = 0x10
+
+// Base handler
+var JAVA_BASE_HANDLER = 0x7e0000
