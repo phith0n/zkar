@@ -15,13 +15,13 @@ func main() {
 	}
 
 	os := javaserialize.NewObjectInputStream()
-	err = os.ReadObject(data)
+	err = os.Read(data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
 
-	for _, o := range os.Objects {
+	for _, o := range os.Contents {
 		fmt.Println(hex.EncodeToString(o.ToBytes()))
 	}
 }

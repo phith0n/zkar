@@ -68,15 +68,15 @@ var JAVA_BASE_WRITE_HANDLE int = 0x7e0000
 // Indicates a Serializable class defines its own writeObject method.
 var JAVA_SC_WRITE_METHOD byte = 0x01
 
-// JAVA_SC_BLOCK_DATA Bit mask for ObjectStreamClass flag.
-// Indicates Externalizable data written in Block Data mode. Added for PROTOCOL_VERSION_2.
-var JAVA_SC_BLOCK_DATA byte = 0x08
-
 // JAVA_SC_SERIALIZABLE Bit mask for ObjectStreamClass flag. Indicates class is Serializable.
 var JAVA_SC_SERIALIZABLE byte = 0x02
 
 // JAVA_SC_EXTERNALIZABLE Bit mask for ObjectStreamClass flag. Indicates class is Externalizable.
 var JAVA_SC_EXTERNALIZABLE byte = 0x04
+
+// JAVA_SC_BLOCK_DATA Bit mask for ObjectStreamClass flag.
+// Indicates Externalizable data written in Block Data mode. Added for PROTOCOL_VERSION_2.
+var JAVA_SC_BLOCK_DATA byte = 0x08
 
 // JAVA_SC_ENUM Bit mask for ObjectStreamClass flag. Indicates class is an enum type.
 var JAVA_SC_ENUM byte = 0x10
