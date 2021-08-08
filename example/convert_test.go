@@ -1,13 +1,14 @@
 package main
 
 import (
-	"encoding/hex"
+	"encoding/binary"
 	"fmt"
-	"github.com/phith0n/javaserialize"
 	"testing"
 )
 
 func TestConvert(t *testing.T) {
-	var i int16 = -2324
-	fmt.Println(hex.EncodeToString(javaserialize.NumberToBytes(i)))
+	var r rune = '你'
+	var bs = make([]byte, 4)
+	binary.BigEndian.PutUint32(bs, uint32(r))
+	fmt.Println(bs)
 }

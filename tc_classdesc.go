@@ -6,66 +6,40 @@ import (
 )
 
 type TCClassDesc struct {
-	Flag byte
-	Reference *TCReference
 	ClassName *TCString
 	SerialVersionUID int64
 	ClassDescFlags byte
-	Fields []*TCField
+	Fields []*TCFieldDesc
 	ClassAnnotation []*TCContent
-	SuperClassDesc *TCClassDesc
+	SuperClassPointer *TCClassPointer
 }
 
-func (cdo *TCClassDesc) ToBytes() []byte {
-	var result []byte
-	switch cdo.Flag {
-	case JAVA_TC_NULL:
-		result = []byte{JAVA_TC_NULL}
-	case JAVA_TC_REFERENCE:
-		result = cdo.Reference.ToBytes()
-	case JAVA_TC_CLASSDESC:
-		result = []byte{JAVA_TC_CLASSDESC}
-		result = append(result, cdo.ClassName.ToBytes()...)
-		result = append(result, NumberToBytes(cdo.SerialVersionUID)...)
-		result = append(result, cdo.ClassDescFlags)
-		result = append(result, NumberToBytes(uint16(len(cdo.Fields)))...)
-		for _, field := range cdo.Fields {
-			result = append(result, field.ToBytes()...)
-		}
-		for _, content := range cdo.ClassAnnotation {
-			result = append(result, content.ToBytes()...)
-		}
-		result = append(result, JAVA_TC_ENDBLOCKDATA)
-		result = append(result, cdo.SuperClassDesc.ToBytes()...)
+func (desc *TCClassDesc) ToBytes() []byte {
+	var result = []byte{JAVA_TC_CLASSDESC}
+	result = append(result, desc.ClassName.ToBytes()...)
+	result = append(result, NumberToBytes(desc.SerialVersionUID)...)
+	result = append(result, desc.ClassDescFlags)
+	result = append(result, NumberToBytes(uint16(len(desc.Fields)))...)
+	for _, field := range desc.Fields {
+		result = append(result, field.ToBytes()...)
 	}
+	for _, content := range desc.ClassAnnotation {
+		result = append(result, content.ToBytes()...)
+	}
+	result = append(result, JAVA_TC_ENDBLOCKDATA)
+	result = append(result, desc.SuperClassPointer.ToBytes()...)
 
 	return result
 }
 
-func readClassDesc(stream *Stream) (*TCClassDesc, error) {
-	// read JAVA_TC_CLASSDESC Flag
-	flag, _ := stream.PeekN(1)
-	if flag[0] == JAVA_TC_NULL {
-		_, _ = stream.ReadN(1)
-		return &TCClassDesc{Flag: JAVA_TC_NULL}, nil
-	} else if flag[0] == JAVA_TC_REFERENCE {
-		reference, err := readReference(stream)
-		if err != nil {
-			return nil, err
-		}
-
-		return &TCClassDesc{Flag: JAVA_TC_REFERENCE, Reference: reference}, nil
-	} else if flag[0] == JAVA_TC_CLASSDESC {
-		return readSimpleClassDesc(stream)
-	} else {
-		return nil, fmt.Errorf("read ClassDesc failed in index %v", stream.CurrentIndex())
-	}
+// HasFlag Check if a TCClassDesc object has a flag
+func (desc *TCClassDesc) HasFlag(flag byte) bool {
+	return (desc.ClassDescFlags & flag) == flag
 }
 
-func readSimpleClassDesc(stream *Stream) (*TCClassDesc, error) {
+func readTCClassDesc(stream *Stream) (*TCClassDesc, error) {
 	var err error
 	var classDesc = new(TCClassDesc)
-	classDesc.Flag = JAVA_TC_CLASSDESC
 
 	// read JAVA_TC_CLASSDESC flag
 	_, _ = stream.ReadN(1)
@@ -98,13 +72,13 @@ func readSimpleClassDesc(stream *Stream) (*TCClassDesc, error) {
 	}
 
 	// classAnnotation
-	classDesc.ClassAnnotation, err = readClassAnnotation(stream)
+	classDesc.ClassAnnotation, err = readTCAnnotation(stream)
 	if err != nil {
 		return nil, err
 	}
 
 	// superClassDesc
-	classDesc.SuperClassDesc, err = readClassDesc(stream)
+	classDesc.SuperClassPointer, err = readTCClassPointer(stream)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +86,7 @@ func readSimpleClassDesc(stream *Stream) (*TCClassDesc, error) {
 	return classDesc, nil
 }
 
-func readClassAnnotation(stream *Stream) ([]*TCContent, error) {
+func readTCAnnotation(stream *Stream) ([]*TCContent, error) {
 	var contents []*TCContent
 	for {
 		bs, err := stream.PeekN(1)
@@ -137,10 +111,10 @@ func readClassAnnotation(stream *Stream) ([]*TCContent, error) {
 	return contents, nil
 }
 
-func readTCFields(stream *Stream) ([]*TCField, error) {
+func readTCFields(stream *Stream) ([]*TCFieldDesc, error) {
 	var bs []byte
 	var err error
-	var fields []*TCField
+	var fields []*TCFieldDesc
 
 	bs, err = stream.ReadN(2)
 	if err != nil {

@@ -10,37 +10,54 @@ type TCString struct {
 }
 
 func (so *TCString) ToBytes() []byte {
-	var bs = []byte{JAVA_TC_STRING}
-	bs = append(bs, NumberToBytes(uint16(len(so.data)))...)
+	var bs []byte
+	length := len(so.data)
+	if length <= 0xFFFF {
+		bs = append(bs, JAVA_TC_STRING)
+		bs = append(bs, NumberToBytes(uint16(len(so.data)))...)
+	} else {
+		bs = append(bs, JAVA_TC_LONGSTRING)
+		bs = append(bs, NumberToBytes(uint64(len(so.data)))...)
+	}
+
 	return append(bs, so.data...)
 }
 
+func readTCString(stream *Stream) (*TCString, error) {
+	flag, err := stream.ReadN(1)
+	if err != nil {
+		return nil, fmt.Errorf("readTCString failed on index %v", stream.CurrentIndex())
+	}
 
-func NewTCString(data string) (*TCString, error) {
-	length := len(data)
-	if length > 0xFFFF {
-		return nil, fmt.Errorf("TCString length must be less than 0xFFFF, but %v is given", length)
+	if flag[0] != JAVA_TC_STRING && flag[0] != JAVA_TC_LONGSTRING {
+		return nil, fmt.Errorf("readTCString flag error on index %v", stream.CurrentIndex())
+	}
+
+	if flag[0] == JAVA_TC_STRING {
+		return readUTF(stream)
+	}
+
+	// read JAVA_TC_LONGSTRING object length, uint16
+	bs, err := stream.ReadN(8)
+	if err != nil {
+		sugar.Error(err)
+		return nil, fmt.Errorf("read JAVA_TC_LONGSTRING object failed on index %v", stream.CurrentIndex())
+	}
+
+	length := binary.BigEndian.Uint64(bs)
+	if length > 0xFFFFFFFF {
+		return nil, fmt.Errorf("javaserialize doesn't support JAVA_TC_LONGSTRING longer than 0xFFFFFFFF, but current length is %v", length)
+	}
+
+	data, err := stream.ReadN(int(length))
+	if err != nil {
+		sugar.Error(err)
+		return nil, fmt.Errorf("read JAVA_TC_LONGSTRING object failed on index %v", stream.CurrentIndex())
 	}
 
 	return &TCString{
-		data: []byte(data),
+		data: data,
 	}, nil
-}
-
-func NewSmartTCString(data string) (Object, error) {
-	length := len(data)
-	if length <= 0xFFFF {
-		return NewTCString(data)
-	} else {
-		return NewTCLongString(data), nil
-	}
-}
-
-func readTCString(stream *Stream) (*TCString, error) {
-	// read JAVA_TC_STRING Flag, 0x74
-	_, _ = stream.ReadN(1)
-
-	return readUTF(stream)
 }
 
 func readUTF(stream *Stream) (*TCString, error) {
