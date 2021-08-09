@@ -6,16 +6,17 @@ import (
 )
 
 type TCReference struct {
-	handler uint32
+	Handler uint32
+	ClassDesc *TCClassDesc
 }
 
 func (r *TCReference) ToBytes() []byte {
-	bs := NumberToBytes(r.handler)
+	bs := NumberToBytes(r.Handler)
 	result := []byte{JAVA_TC_REFERENCE}
 	return append(result, bs...)
 }
 
-func readReference(stream *Stream) (*TCReference, error) {
+func readReference(stream *ObjectStream) (*TCReference, error) {
 	// read JAVA_TC_REFERENCE flag
 	_, _ = stream.ReadN(1)
 
@@ -26,8 +27,16 @@ func readReference(stream *Stream) (*TCReference, error) {
 	}
 
 	handler := binary.BigEndian.Uint32(bs)
+	reference := &TCReference{
+		Handler: handler,
+	}
 
-	return &TCReference{
-		handler: handler,
-	}, nil
+	for pair := stream.GetBag().Oldest(); pair != nil; pair.Next() {
+		if pair.Key == handler {
+			reference.ClassDesc = pair.Value.(*TCClassDesc)
+			return reference, nil
+		}
+	}
+
+	return nil, fmt.Errorf("object reference %v is not found", handler)
 }

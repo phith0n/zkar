@@ -28,7 +28,7 @@ func NewBlockData(bs []byte) *TCBlockData {
 	}
 }
 
-func readTCBlockData(stream *Stream) (*TCBlockData, error) {
+func readTCBlockData(stream *ObjectStream) (*TCBlockData, error) {
 	// read JAVA_TC_BLOCKDATA or JAVA_TC_BLOCKDATALONG Flag
 	flag, _ := stream.ReadN(1)
 	var length int

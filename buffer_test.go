@@ -10,7 +10,7 @@ func TestStream_Read(t *testing.T) {
 	var bs []byte
 	var err error
 	var n int
-	s := NewStream([]byte("1111122222333334444455555"))
+	s := NewObjectStream([]byte("1111122222333334444455555"))
 	bs = make([]byte, 5)
 	n, err = s.Read(bs)
 	require.Equal(t, 5, n)
@@ -31,7 +31,7 @@ func TestStream_Read(t *testing.T) {
 func TestStream_ReadN(t *testing.T) {
 	var bs []byte
 	var err error
-	s := NewStream([]byte("1111122222333334444455555"))
+	s := NewObjectStream([]byte("1111122222333334444455555"))
 	bs, err = s.ReadN(5)
 	require.Nil(t, err)
 	require.Equal(t, []byte("11111"), bs)
@@ -46,7 +46,7 @@ func TestStream_ReadN(t *testing.T) {
 func TestStream_PeekN(t *testing.T) {
 	var bs []byte
 	var err error
-	s := NewStream([]byte("1111122222333334444455555"))
+	s := NewObjectStream([]byte("1111122222333334444455555"))
 	bs, err = s.PeekN(5)
 	require.Nil(t, err)
 	require.Equal(t, []byte("11111"), bs)

@@ -23,7 +23,7 @@ func (so *TCString) ToBytes() []byte {
 	return append(bs, so.data...)
 }
 
-func readTCString(stream *Stream) (*TCString, error) {
+func readTCString(stream *ObjectStream) (*TCString, error) {
 	flag, err := stream.ReadN(1)
 	if err != nil {
 		return nil, fmt.Errorf("readTCString failed on index %v", stream.CurrentIndex())
@@ -55,12 +55,14 @@ func readTCString(stream *Stream) (*TCString, error) {
 		return nil, fmt.Errorf("read JAVA_TC_LONGSTRING object failed on index %v", stream.CurrentIndex())
 	}
 
-	return &TCString{
+	obj := &TCString{
 		data: data,
-	}, nil
+	}
+	stream.BaseHandler++
+	return obj, nil
 }
 
-func readUTF(stream *Stream) (*TCString, error) {
+func readUTF(stream *ObjectStream) (*TCString, error) {
 	var bs []byte
 	var err error
 

@@ -17,19 +17,16 @@ type ObjectInputStream struct {
 	MagicNumber []byte
 	StreamVersion []byte
 	Contents []*TCContent
-	baseHandler int
 }
 
 func NewObjectInputStream() *ObjectInputStream {
-	return &ObjectInputStream{
-		baseHandler: JAVA_BASE_HANDLER,
-	}
+	return &ObjectInputStream{}
 }
 
 func (ois *ObjectInputStream) Read(data []byte) error {
 	var bs []byte
 	var err error
-	var stream = NewStream(data)
+	var stream = NewObjectStream(data)
 
 	// read magic number 0xACED
 	bs, err = stream.ReadN(2)
@@ -58,6 +55,3 @@ func (ois *ObjectInputStream) Read(data []byte) error {
 	return nil
 }
 
-func (ois *ObjectInputStream) createHandler() {
-	ois.baseHandler += 1
-}

@@ -9,7 +9,7 @@ func (cd *TCClassData) ToBytes() []byte {
 	return nil
 }
 
-func readTCClassData(stream *Stream, desc *TCClassDesc) (*TCClassData, error) {
+func readTCClassData(stream *ObjectStream, desc *TCClassDesc) (*TCClassData, error) {
 	var err error
 	var classData = new(TCClassData)
 	if desc.HasFlag(JAVA_SC_SERIALIZABLE) {
@@ -34,6 +34,6 @@ func readTCClassData(stream *Stream, desc *TCClassDesc) (*TCClassData, error) {
 	return classData, nil
 }
 
-func readTCFieldData(stream *Stream, field *TCFieldDesc) (*TCFieldData, error) {
+func readTCFieldData(stream *ObjectStream, field *TCFieldDesc) (*TCFieldData, error) {
 	return field.read(stream)
 }

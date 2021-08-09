@@ -3,6 +3,7 @@ package javaserialize
 import (
 	"encoding/binary"
 	"fmt"
+	orderedmap "github.com/wk8/go-ordered-map"
 )
 
 type TCClassDesc struct {
@@ -37,9 +38,11 @@ func (desc *TCClassDesc) HasFlag(flag byte) bool {
 	return (desc.ClassDescFlags & flag) == flag
 }
 
-func readTCClassDesc(stream *Stream) (*TCClassDesc, error) {
+func readTCClassDesc(stream *ObjectStream, bag *orderedmap.OrderedMap) (*TCClassDesc, error) {
 	var err error
 	var classDesc = new(TCClassDesc)
+	bag.Set(stream.BaseHandler, classDesc)
+	stream.BaseHandler++
 
 	// read JAVA_TC_CLASSDESC flag
 	_, _ = stream.ReadN(1)
@@ -78,7 +81,7 @@ func readTCClassDesc(stream *Stream) (*TCClassDesc, error) {
 	}
 
 	// superClassDesc
-	classDesc.SuperClassPointer, err = readTCClassPointer(stream)
+	classDesc.SuperClassPointer, err = readTCClassPointer(stream, bag)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +89,7 @@ func readTCClassDesc(stream *Stream) (*TCClassDesc, error) {
 	return classDesc, nil
 }
 
-func readTCAnnotation(stream *Stream) ([]*TCContent, error) {
+func readTCAnnotation(stream *ObjectStream) ([]*TCContent, error) {
 	var contents []*TCContent
 	for {
 		bs, err := stream.PeekN(1)
@@ -111,7 +114,7 @@ func readTCAnnotation(stream *Stream) ([]*TCContent, error) {
 	return contents, nil
 }
 
-func readTCFields(stream *Stream) ([]*TCFieldDesc, error) {
+func readTCFields(stream *ObjectStream) ([]*TCFieldDesc, error) {
 	var bs []byte
 	var err error
 	var fields []*TCFieldDesc
@@ -135,7 +138,7 @@ func readTCFields(stream *Stream) ([]*TCFieldDesc, error) {
 	return fields, nil
 }
 
-func readSerialVersionUID(stream *Stream) (int64, error) {
+func readSerialVersionUID(stream *ObjectStream) (int64, error) {
 	bs, err := stream.ReadN(8)
 	if err != nil {
 		sugar.Error(err)

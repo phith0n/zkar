@@ -1,6 +1,9 @@
 package javaserialize
 
-import "fmt"
+import (
+	"fmt"
+	orderedmap "github.com/wk8/go-ordered-map"
+)
 
 type TCClassPointer struct {
 	Flag byte
@@ -23,7 +26,7 @@ func (cp *TCClassPointer) ToBytes() []byte {
 	return result
 }
 
-func readTCClassPointer(stream *Stream) (*TCClassPointer, error) {
+func readTCClassPointer(stream *ObjectStream, bag *orderedmap.OrderedMap) (*TCClassPointer, error) {
 	// read JAVA_TC_CLASSDESC Flag
 	flag, _ := stream.PeekN(1)
 	if flag[0] == JAVA_TC_NULL {
@@ -42,7 +45,7 @@ func readTCClassPointer(stream *Stream) (*TCClassPointer, error) {
 			Reference: reference,
 		}, nil
 	} else if flag[0] == JAVA_TC_CLASSDESC {
-		desc, err := readTCClassDesc(stream)
+		desc, err := readTCClassDesc(stream, bag)
 		if err != nil {
 			return nil, err
 		}

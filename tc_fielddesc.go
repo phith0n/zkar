@@ -27,20 +27,6 @@ type TCFieldDesc struct {
 	ClassName *TCString
 }
 
-type TCFieldData struct {
-	TypeCode string
-	BData byte // byte in Java
-	CData uint32 // char in Java
-	DData float64 // double in Java
-	FData float32 // float in Java
-	IData int32 // int in Java
-	JData int64 // long in Java
-	SData int16 // short in Java
-	ZData bool // bool in Java
-	LData Object // object in Java
-	// TODO: array data
-}
-
 func (f *TCFieldDesc) ToBytes() []byte {
 	bs := []byte(f.TypeCode)
 	bs = append(bs, f.FieldName.ToBytes()...)
@@ -52,7 +38,7 @@ func (f *TCFieldDesc) ToBytes() []byte {
 	return bs
 }
 
-func (f *TCFieldDesc) read(stream *Stream) (*TCFieldData, error) {
+func (f *TCFieldDesc) read(stream *ObjectStream) (*TCFieldData, error) {
 	if funk.ContainsString(PRIMITIVE_TYPECODE, f.TypeCode) {
 		return f.readPrimitive(stream)
 	} else if f.TypeCode == "L" {
@@ -62,7 +48,7 @@ func (f *TCFieldDesc) read(stream *Stream) (*TCFieldData, error) {
 	}
 }
 
-func (f *TCFieldDesc) readPrimitive(stream *Stream) (*TCFieldData, error) {
+func (f *TCFieldDesc) readPrimitive(stream *ObjectStream) (*TCFieldData, error) {
 	var bs []byte
 	var err error
 
@@ -97,7 +83,7 @@ func (f *TCFieldDesc) readPrimitive(stream *Stream) (*TCFieldData, error) {
 	return fieldData, nil
 }
 
-func (f *TCFieldDesc) readObject(stream *Stream) (*TCFieldData, error) {
+func (f *TCFieldDesc) readObject(stream *ObjectStream) (*TCFieldData, error) {
 	flag, err := stream.PeekN(1)
 	if err != nil {
 		return nil, fmt.Errorf("read object field value failed on index %v", stream.CurrentIndex())
@@ -119,12 +105,12 @@ func (f *TCFieldDesc) readObject(stream *Stream) (*TCFieldData, error) {
 	return fieldData, nil
 }
 
-func (f *TCFieldDesc) readArray(stream *Stream) (*TCFieldData, error) {
+func (f *TCFieldDesc) readArray(stream *ObjectStream) (*TCFieldData, error) {
 	// TODO
 	return nil, nil
 }
 
-func readTCField(stream *Stream) (*TCFieldDesc, error) {
+func readTCField(stream *ObjectStream) (*TCFieldDesc, error) {
 	var fieldDesc = new(TCFieldDesc)
 	typeCode, err := stream.ReadN(1)
 	if err != nil {

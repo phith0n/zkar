@@ -10,7 +10,7 @@ func (c *TCContent) ToBytes() []byte {
 	return nil
 }
 
-func readTCContent(stream *Stream) (*TCContent, error) {
+func readTCContent(stream *ObjectStream) (*TCContent, error) {
 	var err error = nil
 	var content = new(TCContent)
 

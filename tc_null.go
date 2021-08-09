@@ -8,7 +8,7 @@ func (n *TCNull) ToBytes() []byte {
 	return []byte{JAVA_TC_NULL}
 }
 
-func readTCNull(stream *Stream) *TCNull {
+func readTCNull(stream *ObjectStream) *TCNull {
 	_, _ = stream.ReadN(1)
 	return new(TCNull)
 }

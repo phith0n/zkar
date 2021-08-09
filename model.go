@@ -60,7 +60,7 @@ var JAVA_TC_ENUM byte = 0x7E
 var JAVA_TC_MAX byte = 0x7F
 
 // JAVA_BASE_WRITE_HANDLE First wire handle to be assigned.
-var JAVA_BASE_WRITE_HANDLE int = 0x7e0000
+var JAVA_BASE_WRITE_HANDLE uint32 = 0x7e0000
 
 // =============== Bit Mask ===============
 
@@ -80,6 +80,3 @@ var JAVA_SC_BLOCK_DATA byte = 0x08
 
 // JAVA_SC_ENUM Bit mask for ObjectStreamClass flag. Indicates class is an enum type.
 var JAVA_SC_ENUM byte = 0x10
-
-// Base handler
-var JAVA_BASE_HANDLER = 0x7e0000
