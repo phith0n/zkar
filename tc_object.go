@@ -1,9 +1,5 @@
 package javaserialize
 
-import (
-	orderedmap "github.com/wk8/go-ordered-map"
-)
-
 type TCObject struct {
 	ClassPointer *TCClassPointer
 	ClassDatas []*TCClassData
@@ -22,14 +18,15 @@ func (oo *TCObject) ToBytes() []byte {
 func readTCObject(stream *ObjectStream) (*TCObject, error) {
 	var obj = new(TCObject)
 	var err error
-	var bag = orderedmap.New()
+	var classes []*TCClassDesc // save current TCClassDesc
 
 	_, _ = stream.ReadN(1)
-	obj.ClassPointer, err = readTCClassPointer(stream, bag)
+	obj.ClassPointer, err = readTCClassPointer(stream, classes)
 	if err != nil {
 		return nil, err
 	}
 
+	stream.AddReference(obj)
 	if obj.ClassPointer.Flag == JAVA_TC_NULL {
 		return obj, nil
 	} else if obj.ClassPointer.Flag == JAVA_TC_REFERENCE {
@@ -42,9 +39,8 @@ func readTCObject(stream *ObjectStream) (*TCObject, error) {
 		return obj, nil
 	}
 
-	stream.AddBag(bag)
-	for pair := bag.Newest(); pair != nil; pair = pair.Prev() {
-		classData, err := readTCClassData(stream, pair.Value.(*TCClassDesc))
+	for _, classDesc := range classes {
+		classData, err := readTCClassData(stream, classDesc)
 		if err != nil {
 			return nil, err
 		}

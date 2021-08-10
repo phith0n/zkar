@@ -3,7 +3,6 @@ package javaserialize
 import (
 	"encoding/binary"
 	"fmt"
-	orderedmap "github.com/wk8/go-ordered-map"
 )
 
 type TCClassDesc struct {
@@ -38,11 +37,10 @@ func (desc *TCClassDesc) HasFlag(flag byte) bool {
 	return (desc.ClassDescFlags & flag) == flag
 }
 
-func readTCClassDesc(stream *ObjectStream, bag *orderedmap.OrderedMap) (*TCClassDesc, error) {
+func readTCClassDesc(stream *ObjectStream, classes []*TCClassDesc) (*TCClassDesc, error) {
 	var err error
 	var classDesc = new(TCClassDesc)
-	bag.Set(stream.BaseHandler, classDesc)
-	stream.BaseHandler++
+	classes = append(classes, classDesc)
 
 	// read JAVA_TC_CLASSDESC flag
 	_, _ = stream.ReadN(1)
@@ -58,6 +56,9 @@ func readTCClassDesc(stream *ObjectStream, bag *orderedmap.OrderedMap) (*TCClass
 	if err != nil {
 		return nil, err
 	}
+
+	// add handle to reference
+	stream.AddReference(classDesc)
 
 	// ------ classDescInfo -------
 	// classDescFlags
@@ -81,7 +82,7 @@ func readTCClassDesc(stream *ObjectStream, bag *orderedmap.OrderedMap) (*TCClass
 	}
 
 	// superClassDesc
-	classDesc.SuperClassPointer, err = readTCClassPointer(stream, bag)
+	classDesc.SuperClassPointer, err = readTCClassPointer(stream, classes)
 	if err != nil {
 		return nil, err
 	}

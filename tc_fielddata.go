@@ -1,7 +1,7 @@
 package javaserialize
 
 
-type TCFieldData struct {
+type TCValue struct {
 	TypeCode string
 	BData byte // byte in Java
 	CData uint32 // char in Java
@@ -13,4 +13,8 @@ type TCFieldData struct {
 	ZData bool // bool in Java
 	LData Object // object in Java
 	// TODO: array data
+}
+
+func (t *TCValue) ToBytes() []byte {
+	return nil
 }

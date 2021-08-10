@@ -58,7 +58,7 @@ func readTCString(stream *ObjectStream) (*TCString, error) {
 	obj := &TCString{
 		data: data,
 	}
-	stream.BaseHandler++
+	stream.AddReference(obj)
 	return obj, nil
 }
 

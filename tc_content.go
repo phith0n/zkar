@@ -4,6 +4,9 @@ type TCContent struct {
 	Object *TCObject
 	String *TCString
 	BlockData *TCBlockData
+	Class *TCClass
+	Null *TCNull
+	Reference *TCReference
 }
 
 func (c *TCContent) ToBytes() []byte {
@@ -22,6 +25,12 @@ func readTCContent(stream *ObjectStream) (*TCContent, error) {
 		content.BlockData, err = readTCBlockData(stream)
 	case JAVA_TC_OBJECT:
 		content.Object, err = readTCObject(stream)
+	case JAVA_TC_CLASS:
+		content.Class, err = readTCClass(stream)
+	case JAVA_TC_NULL:
+		content.Null = readTCNull(stream)
+	case JAVA_TC_REFERENCE:
+		content.Reference, err = readTCReference(stream)
 	}
 
 	if err != nil {

@@ -1,7 +1,7 @@
 package javaserialize
 
 type TCClassData struct {
-	FieldDatas []*TCFieldData
+	FieldDatas []*TCValue
 	ObjectAnnotation []*TCContent
 }
 
@@ -34,6 +34,6 @@ func readTCClassData(stream *ObjectStream, desc *TCClassDesc) (*TCClassData, err
 	return classData, nil
 }
 
-func readTCFieldData(stream *ObjectStream, field *TCFieldDesc) (*TCFieldData, error) {
+func readTCFieldData(stream *ObjectStream, field *TCFieldDesc) (*TCValue, error) {
 	return field.read(stream)
 }

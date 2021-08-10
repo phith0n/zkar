@@ -7,7 +7,10 @@ import (
 
 type TCReference struct {
 	Handler uint32
+	Class *TCClass
 	ClassDesc *TCClassDesc
+	String *TCString
+	Array *TCArray
 }
 
 func (r *TCReference) ToBytes() []byte {
@@ -16,7 +19,7 @@ func (r *TCReference) ToBytes() []byte {
 	return append(result, bs...)
 }
 
-func readReference(stream *ObjectStream) (*TCReference, error) {
+func readTCReference(stream *ObjectStream) (*TCReference, error) {
 	// read JAVA_TC_REFERENCE flag
 	_, _ = stream.ReadN(1)
 
@@ -31,12 +34,27 @@ func readReference(stream *ObjectStream) (*TCReference, error) {
 		Handler: handler,
 	}
 
-	for pair := stream.GetBag().Oldest(); pair != nil; pair.Next() {
+	for pair := stream.References().Oldest(); pair != nil; pair.Next() {
+		// TODO: TC_PROXYCLASSDESC and TC_ENUM
 		if pair.Key == handler {
+			switch obj := pair.Value.(type) {
+			case *TCClass:
+				reference.Class = obj
+			case *TCClassDesc:
+				reference.ClassDesc = obj
+			case *TCString:
+				reference.String = obj
+			case *TCArray:
+				reference.Array = obj
+			default:
+				goto Failed
+			}
+
 			reference.ClassDesc = pair.Value.(*TCClassDesc)
 			return reference, nil
 		}
 	}
 
+Failed:
 	return nil, fmt.Errorf("object reference %v is not found", handler)
 }

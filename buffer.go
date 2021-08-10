@@ -8,16 +8,16 @@ import (
 type ObjectStream struct {
 	bs []byte
 	current int64
-	BaseHandler uint32
-	bag *orderedmap.OrderedMap
+	handler uint32
+	references *orderedmap.OrderedMap
 }
 
 func NewObjectStream(bs []byte) *ObjectStream {
 	return &ObjectStream{
 		bs: bs,
 		current: int64(0),
-		BaseHandler: JAVA_BASE_WRITE_HANDLE,
-		bag: orderedmap.New(),
+		handler: JAVA_BASE_WRITE_HANDLE,
+		references: orderedmap.New(),
 	}
 }
 
@@ -69,12 +69,11 @@ func (s *ObjectStream) CurrentIndex() int64 {
 	return s.current
 }
 
-func (s *ObjectStream) AddBag(bag *orderedmap.OrderedMap) {
-	for pair := bag.Oldest(); pair != nil; pair = pair.Next() {
-		s.bag.Set(pair.Key, pair.Value)
-	}
+func (s *ObjectStream) AddReference(obj Object) {
+	s.references.Set(s.handler, obj)
+	s.handler++
 }
 
-func (s *ObjectStream) GetBag() *orderedmap.OrderedMap {
-	return s.bag
+func (s *ObjectStream) References() *orderedmap.OrderedMap {
+	return s.references
 }

@@ -38,7 +38,7 @@ func (f *TCFieldDesc) ToBytes() []byte {
 	return bs
 }
 
-func (f *TCFieldDesc) read(stream *ObjectStream) (*TCFieldData, error) {
+func (f *TCFieldDesc) read(stream *ObjectStream) (*TCValue, error) {
 	if funk.ContainsString(PRIMITIVE_TYPECODE, f.TypeCode) {
 		return f.readPrimitive(stream)
 	} else if f.TypeCode == "L" {
@@ -48,7 +48,7 @@ func (f *TCFieldDesc) read(stream *ObjectStream) (*TCFieldData, error) {
 	}
 }
 
-func (f *TCFieldDesc) readPrimitive(stream *ObjectStream) (*TCFieldData, error) {
+func (f *TCFieldDesc) readPrimitive(stream *ObjectStream) (*TCValue, error) {
 	var bs []byte
 	var err error
 
@@ -58,7 +58,7 @@ func (f *TCFieldDesc) readPrimitive(stream *ObjectStream) (*TCFieldData, error) 
 		return nil, fmt.Errorf("read primitive field value failed on index %v", stream.CurrentIndex())
 	}
 
-	var fieldData = &TCFieldData{TypeCode: f.TypeCode}
+	var fieldData = &TCValue{TypeCode: f.TypeCode}
 	switch f.TypeCode {
 	case "B": // byte
 		fieldData.BData = bs[0]
@@ -83,18 +83,22 @@ func (f *TCFieldDesc) readPrimitive(stream *ObjectStream) (*TCFieldData, error) 
 	return fieldData, nil
 }
 
-func (f *TCFieldDesc) readObject(stream *ObjectStream) (*TCFieldData, error) {
+func (f *TCFieldDesc) readObject(stream *ObjectStream) (*TCValue, error) {
 	flag, err := stream.PeekN(1)
 	if err != nil {
 		return nil, fmt.Errorf("read object field value failed on index %v", stream.CurrentIndex())
 	}
 
-	var fieldData = &TCFieldData{TypeCode: f.TypeCode}
+	var fieldData = &TCValue{TypeCode: f.TypeCode}
 	switch flag[0] {
 	case JAVA_TC_OBJECT:
 		fieldData.LData, err = readTCObject(stream)
 	case JAVA_TC_NULL:
 		fieldData.LData = readTCNull(stream)
+	case JAVA_TC_STRING:
+		fieldData.LData, err = readTCString(stream)
+	case JAVA_TC_REFERENCE:
+		fieldData.LData, err = readTCReference(stream)
 		// TODO
 	}
 
@@ -105,7 +109,7 @@ func (f *TCFieldDesc) readObject(stream *ObjectStream) (*TCFieldData, error) {
 	return fieldData, nil
 }
 
-func (f *TCFieldDesc) readArray(stream *ObjectStream) (*TCFieldData, error) {
+func (f *TCFieldDesc) readArray(stream *ObjectStream) (*TCValue, error) {
 	// TODO
 	return nil, nil
 }
