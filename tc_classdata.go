@@ -6,7 +6,20 @@ type TCClassData struct {
 }
 
 func (cd *TCClassData) ToBytes() []byte {
-	return nil
+	var bs []byte
+	for _, value := range cd.FieldDatas {
+		bs = append(bs, value.ToBytes()...)
+	}
+
+	for _, content := range cd.ObjectAnnotation {
+		bs = append(bs, content.ToBytes()...)
+	}
+
+	if len(cd.ObjectAnnotation) > 0 {
+		bs = append(bs, JAVA_TC_ENDBLOCKDATA)
+	}
+
+	return bs
 }
 
 func readTCClassData(stream *ObjectStream, desc *TCClassDesc) (*TCClassData, error) {
@@ -35,5 +48,5 @@ func readTCClassData(stream *ObjectStream, desc *TCClassDesc) (*TCClassData, err
 }
 
 func readTCFieldData(stream *ObjectStream, field *TCFieldDesc) (*TCValue, error) {
-	return field.read(stream)
+	return readTCValue(stream, field.TypeCode)
 }

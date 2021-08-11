@@ -11,12 +11,11 @@ func (c *TCClass) ToBytes() []byte {
 }
 
 func readTCClass(stream *ObjectStream) (*TCClass, error) {
-	var classes []*TCClassDesc // current unused
 	var class = new(TCClass)
 	var err error
 
 	_, _ = stream.ReadN(1)
-	class.ClassPointer, err = readTCClassPointer(stream, classes)
+	class.ClassPointer, err = readTCClassPointer(stream, nil)
 	if err != nil {
 		return nil, err
 	}

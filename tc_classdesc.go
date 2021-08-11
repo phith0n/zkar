@@ -37,10 +37,13 @@ func (desc *TCClassDesc) HasFlag(flag byte) bool {
 	return (desc.ClassDescFlags & flag) == flag
 }
 
-func readTCClassDesc(stream *ObjectStream, classes []*TCClassDesc) (*TCClassDesc, error) {
+func readTCClassDesc(stream *ObjectStream, bag *ClassBag) (*TCClassDesc, error) {
 	var err error
 	var classDesc = new(TCClassDesc)
-	classes = append(classes, classDesc)
+
+	if bag != nil {
+		bag.Add(classDesc)
+	}
 
 	// read JAVA_TC_CLASSDESC flag
 	_, _ = stream.ReadN(1)
@@ -82,7 +85,7 @@ func readTCClassDesc(stream *ObjectStream, classes []*TCClassDesc) (*TCClassDesc
 	}
 
 	// superClassDesc
-	classDesc.SuperClassPointer, err = readTCClassPointer(stream, classes)
+	classDesc.SuperClassPointer, err = readTCClassPointer(stream, bag)
 	if err != nil {
 		return nil, err
 	}

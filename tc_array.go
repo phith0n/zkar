@@ -3,6 +3,7 @@ package javaserialize
 import (
 	"encoding/binary"
 	"fmt"
+	"strings"
 )
 
 type TCArray struct {
@@ -23,12 +24,11 @@ func (t *TCArray) ToBytes() []byte {
 }
 
 func readTCArray(stream *ObjectStream) (*TCArray, error) {
-	var classes []*TCClassDesc
 	var array = new(TCArray)
 	var err error
 
 	_, _ = stream.ReadN(1)
-	array.ClassPointer, err = readTCClassPointer(stream, classes)
+	array.ClassPointer, err = readTCClassPointer(stream, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -39,9 +39,24 @@ func readTCArray(stream *ObjectStream) (*TCArray, error) {
 		return nil, fmt.Errorf("read JAVA_TC_ARRAY object failed on index %v", stream.CurrentIndex())
 	}
 
+	classDesc, err := array.ClassPointer.GetClassDesc(stream)
+	if err != nil {
+		return nil, err
+	}
+
+	className := string(classDesc.ClassName.data)
+	if !strings.HasPrefix(className, "[") || len(className) < 2 {
+		return nil, fmt.Errorf("JAVA_TC_ARRAY ClassName %v is error in %v", className, stream.CurrentIndex())
+	}
+
 	size := binary.BigEndian.Uint32(bs)
 	for i := uint32(0); i < size; i++ {
-		// TODO
+		value, err := readTCValue(stream, className[1:2])
+		if err != nil {
+			return nil, err
+		}
+
+		array.ArrayData = append(array.ArrayData, value)
 	}
 
 	return array, nil

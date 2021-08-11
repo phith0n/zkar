@@ -1,14 +1,16 @@
 package main
 
 import (
-	"encoding/binary"
-	"fmt"
+	"github.com/k0kubun/pp"
 	"testing"
 )
 
 func TestConvert(t *testing.T) {
-	var r rune = '你'
-	var bs = make([]byte, 4)
-	binary.BigEndian.PutUint32(bs, uint32(r))
-	fmt.Println(bs)
+	var s = []string {"1", "2"}
+	sample(s)
+	pp.Println(s)
+}
+
+func sample(s []string) {
+	s = append(s, "3")
 }

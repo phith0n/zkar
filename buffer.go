@@ -74,6 +74,12 @@ func (s *ObjectStream) AddReference(obj Object) {
 	s.handler++
 }
 
-func (s *ObjectStream) References() *orderedmap.OrderedMap {
-	return s.references
+func (s *ObjectStream) GetReference(handler uint32) Object {
+	for pair := s.references.Oldest(); pair != nil; pair = pair.Next() {
+		if pair.Key == handler {
+			return pair.Value.(Object)
+		}
+	}
+
+	return nil
 }

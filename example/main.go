@@ -1,14 +1,14 @@
 package main
 
 import (
-	"encoding/hex"
 	"fmt"
+	"github.com/k0kubun/pp"
 	"github.com/phith0n/javaserialize"
 	"io/ioutil"
 )
 
 func main() {
-	data, err := ioutil.ReadFile("example/string.poc")
+	data, err := ioutil.ReadFile("example/object.poc")
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -21,7 +21,5 @@ func main() {
 		return
 	}
 
-	for _, o := range os.Contents {
-		fmt.Println(hex.EncodeToString(o.ToBytes()))
-	}
+	pp.Println(os)
 }

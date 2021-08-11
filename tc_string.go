@@ -24,6 +24,7 @@ func (so *TCString) ToBytes() []byte {
 }
 
 func readTCString(stream *ObjectStream) (*TCString, error) {
+	var obj *TCString
 	flag, err := stream.ReadN(1)
 	if err != nil {
 		return nil, fmt.Errorf("readTCString failed on index %v", stream.CurrentIndex())
@@ -34,30 +35,15 @@ func readTCString(stream *ObjectStream) (*TCString, error) {
 	}
 
 	if flag[0] == JAVA_TC_STRING {
-		return readUTF(stream)
+		obj, err = readUTF(stream)
+	} else {
+		obj, err = readLongUTF(stream)
 	}
 
-	// read JAVA_TC_LONGSTRING object length, uint16
-	bs, err := stream.ReadN(8)
 	if err != nil {
-		sugar.Error(err)
-		return nil, fmt.Errorf("read JAVA_TC_LONGSTRING object failed on index %v", stream.CurrentIndex())
+		return nil, err
 	}
 
-	length := binary.BigEndian.Uint64(bs)
-	if length > 0xFFFFFFFF {
-		return nil, fmt.Errorf("javaserialize doesn't support JAVA_TC_LONGSTRING longer than 0xFFFFFFFF, but current length is %v", length)
-	}
-
-	data, err := stream.ReadN(int(length))
-	if err != nil {
-		sugar.Error(err)
-		return nil, fmt.Errorf("read JAVA_TC_LONGSTRING object failed on index %v", stream.CurrentIndex())
-	}
-
-	obj := &TCString{
-		data: data,
-	}
 	stream.AddReference(obj)
 	return obj, nil
 }
@@ -79,6 +65,30 @@ func readUTF(stream *ObjectStream) (*TCString, error) {
 	if err != nil {
 		sugar.Error(err)
 		return nil, fmt.Errorf("read JAVA_TC_STRING object failed on index %v", stream.CurrentIndex())
+	}
+
+	return &TCString{
+		data: data,
+	}, nil
+}
+
+func readLongUTF(stream *ObjectStream) (*TCString, error) {
+	// read JAVA_TC_LONGSTRING object length, uint16
+	bs, err := stream.ReadN(8)
+	if err != nil {
+		sugar.Error(err)
+		return nil, fmt.Errorf("read JAVA_TC_LONGSTRING object failed on index %v", stream.CurrentIndex())
+	}
+
+	length := binary.BigEndian.Uint64(bs)
+	if length > 0xFFFFFFFF {
+		return nil, fmt.Errorf("javaserialize doesn't support JAVA_TC_LONGSTRING longer than 0xFFFFFFFF, but current length is %v", length)
+	}
+
+	data, err := stream.ReadN(int(length))
+	if err != nil {
+		sugar.Error(err)
+		return nil, fmt.Errorf("read JAVA_TC_LONGSTRING object failed on index %v", stream.CurrentIndex())
 	}
 
 	return &TCString{

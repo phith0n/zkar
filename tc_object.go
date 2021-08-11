@@ -18,10 +18,10 @@ func (oo *TCObject) ToBytes() []byte {
 func readTCObject(stream *ObjectStream) (*TCObject, error) {
 	var obj = new(TCObject)
 	var err error
-	var classes []*TCClassDesc // save current TCClassDesc
+	var bag = new(ClassBag) // save current TCClassDesc
 
 	_, _ = stream.ReadN(1)
-	obj.ClassPointer, err = readTCClassPointer(stream, classes)
+	obj.ClassPointer, err = readTCClassPointer(stream, bag)
 	if err != nil {
 		return nil, err
 	}
@@ -39,8 +39,8 @@ func readTCObject(stream *ObjectStream) (*TCObject, error) {
 		return obj, nil
 	}
 
-	for _, classDesc := range classes {
-		classData, err := readTCClassData(stream, classDesc)
+	for i := len(bag.Classes) - 1; i >= 0; i-- {
+		classData, err := readTCClassData(stream, bag.Classes[i])
 		if err != nil {
 			return nil, err
 		}
