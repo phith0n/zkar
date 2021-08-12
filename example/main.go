@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	data, err := ioutil.ReadFile("example/object2.poc")
+	data, err := ioutil.ReadFile("example/proxy.poc")
 	if err != nil {
 		fmt.Println(err.Error())
 		return

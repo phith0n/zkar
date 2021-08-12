@@ -7,16 +7,18 @@ import (
 
 type TCReference struct {
 	Handler uint32
+	Flag byte
 	Class *TCClass
-	ClassDesc *TCClassDesc
+	NormalClassDesc *TCNormalClassDesc
+	ProxyClassDesc *TCProxyClassDesc
 	String *TCString
 	Array *TCArray
 	Enum *TCEnum
 }
 
 func (r *TCReference) ToBytes() []byte {
-	bs := NumberToBytes(r.Handler)
 	result := []byte{JAVA_TC_REFERENCE}
+	bs := NumberToBytes(r.Handler)
 	return append(result, bs...)
 }
 
@@ -37,17 +39,24 @@ func readTCReference(stream *ObjectStream) (*TCReference, error) {
 
 	obj := stream.GetReference(handler)
 	if obj != nil {
-		// TODO: TC_PROXYCLASSDESC
 		switch obj := obj.(type) {
 		case *TCClass:
+			reference.Flag = JAVA_TC_CLASS
 			reference.Class = obj
-		case *TCClassDesc:
-			reference.ClassDesc = obj
+		case *TCNormalClassDesc:
+			reference.Flag = JAVA_TC_CLASSDESC
+			reference.NormalClassDesc = obj
+		case *TCProxyClassDesc:
+			reference.Flag = JAVA_TC_PROXYCLASSDESC
+			reference.ProxyClassDesc = obj
 		case *TCString:
+			reference.Flag = JAVA_TC_STRING
 			reference.String = obj
 		case *TCArray:
+			reference.Flag = JAVA_TC_ARRAY
 			reference.Array = obj
 		case *TCEnum:
+			reference.Flag = JAVA_TC_ENUM
 			reference.Enum = obj
 		default:
 			goto Failed

@@ -18,49 +18,43 @@ func (cp *TCClassPointer) ToBytes() []byte {
 		result = cp.Null.ToBytes()
 	case JAVA_TC_REFERENCE:
 		result = cp.Reference.ToBytes()
-	case JAVA_TC_CLASSDESC:
+	case JAVA_TC_CLASSDESC, JAVA_TC_PROXYCLASSDESC:
 		result = cp.ClassDesc.ToBytes()
 	}
 
 	return result
 }
 
-func (cp *TCClassPointer) GetClassDesc(stream *ObjectStream) (*TCClassDesc, error) {
-	if cp.Flag == JAVA_TC_NULL {
-		return nil, fmt.Errorf("JAVA_TC_NULL is not allowed here")
-	} else if cp.Flag == JAVA_TC_CLASSDESC {
-		return cp.ClassDesc, nil
-	} else {
-		obj := stream.GetReference(cp.Reference.Handler)
-		if obj == nil {
-			return nil, fmt.Errorf("JAVA_TC_REFERENCE handler not found")
-		}
-
-		if obj, ok := obj.(*TCClassDesc); ok {
-			return obj, nil
-		}
-
-		return nil, fmt.Errorf("JAVA_TC_REFERENCE handler not found")
-	}
-}
-
 func (cp *TCClassPointer) FindClassBag(stream *ObjectStream) (*ClassBag, error) {
-	var desc *TCClassDesc
+	var normalClassDesc *TCNormalClassDesc
+	var proxyClassDesc *TCProxyClassDesc
 	var err error
 	if cp.Flag == JAVA_TC_NULL {
 		return nil, nil
+	} else if cp.Flag == JAVA_TC_PROXYCLASSDESC {
+		proxyClassDesc = cp.ClassDesc.ProxyClassDesc
+	} else if cp.Flag == JAVA_TC_CLASSDESC {
+		normalClassDesc = cp.ClassDesc.NormalClassDesc
+	} else {
+		if cp.Reference.Flag == JAVA_TC_CLASSDESC {
+			normalClassDesc = cp.Reference.NormalClassDesc
+		} else if cp.Reference.Flag == JAVA_TC_PROXYCLASSDESC {
+			proxyClassDesc = cp.Reference.ProxyClassDesc
+		} else {
+			return nil, fmt.Errorf("reference must be a JAVA_TC_CLASSDESC or JAVA_TC_PROXYCLASSDESC")
+		}
 	}
 
-	desc, err = cp.GetClassDesc(stream)
-	if err != nil {
-		return nil, err
+	var super *TCClassPointer
+	var bag = new(ClassBag)
+	if normalClassDesc != nil {
+		bag.Add(normalClassDesc)
+		super = normalClassDesc.SuperClassPointer
+	} else {
+		super = proxyClassDesc.SuperClassPointer
 	}
 
-	var bag = &ClassBag{
-		Classes: []*TCClassDesc{desc},
-	}
-
-	newBag, err := desc.SuperClassPointer.FindClassBag(stream)
+	newBag, err := super.FindClassBag(stream)
 	if err != nil {
 		return nil, err
 	}
@@ -90,18 +84,17 @@ func readTCClassPointer(stream *ObjectStream) (*TCClassPointer, error) {
 			Flag: JAVA_TC_REFERENCE,
 			Reference: reference,
 		}, nil
-	} else if flag[0] == JAVA_TC_CLASSDESC {
+	} else if flag[0] == JAVA_TC_CLASSDESC || flag[0] == JAVA_TC_PROXYCLASSDESC {
 		desc, err := readTCClassDesc(stream)
 		if err != nil {
 			return nil, err
 		}
 
 		return &TCClassPointer{
-			Flag: JAVA_TC_CLASSDESC,
+			Flag:      flag[0],
 			ClassDesc: desc,
 		}, nil
 	} else {
-		// TODO: TC_PROXYCLASSDESC
 		return nil, fmt.Errorf("read ClassDesc failed in index %v", stream.CurrentIndex())
 	}
 }

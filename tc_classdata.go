@@ -22,7 +22,7 @@ func (cd *TCClassData) ToBytes() []byte {
 	return bs
 }
 
-func readTCClassData(stream *ObjectStream, desc *TCClassDesc) (*TCClassData, error) {
+func readTCClassData(stream *ObjectStream, desc *TCNormalClassDesc) (*TCClassData, error) {
 	var err error
 	var classData = new(TCClassData)
 	if desc.HasFlag(JAVA_SC_SERIALIZABLE) {

@@ -1,10 +1,10 @@
 package javaserialize
 
 type ClassBag struct {
-	Classes []*TCClassDesc
+	Classes []*TCNormalClassDesc
 }
 
-func (bag *ClassBag) Add(classDesc *TCClassDesc) {
+func (bag *ClassBag) Add(classDesc *TCNormalClassDesc) {
 	bag.Classes = append(bag.Classes, classDesc)
 }
 

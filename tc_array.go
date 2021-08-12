@@ -40,12 +40,19 @@ func readTCArray(stream *ObjectStream) (*TCArray, error) {
 		return nil, fmt.Errorf("read JAVA_TC_ARRAY object failed on index %v", stream.CurrentIndex())
 	}
 
-	classDesc, err := array.ClassPointer.GetClassDesc(stream)
-	if err != nil {
-		return nil, err
+	var className string
+	if array.ClassPointer.Flag == JAVA_TC_NULL || array.ClassPointer.Flag == JAVA_TC_PROXYCLASSDESC {
+		return nil, fmt.Errorf("JAVA_TC_NULL and JAVA_TC_PROXYCLASSDESC is not allowed on index %v", stream.CurrentIndex())
+	} else if array.ClassPointer.Flag == JAVA_TC_CLASSDESC {
+		className = string(array.ClassPointer.ClassDesc.NormalClassDesc.ClassName.data)
+	} else {
+		if array.ClassPointer.Reference.Flag == JAVA_TC_CLASSDESC {
+			className = string(array.ClassPointer.Reference.NormalClassDesc.ClassName.data)
+		} else {
+			return nil, fmt.Errorf("JAVA_TC_PROXYCLASSDESC is not allowed on index %v", stream.CurrentIndex())
+		}
 	}
 
-	className := string(classDesc.ClassName.data)
 	if !strings.HasPrefix(className, "[") || len(className) < 2 {
 		return nil, fmt.Errorf("JAVA_TC_ARRAY ClassName %v is error in %v", className, stream.CurrentIndex())
 	}
