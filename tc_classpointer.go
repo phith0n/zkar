@@ -6,7 +6,8 @@ import (
 
 type TCClassPointer struct {
 	Flag byte
-	ClassDesc *TCClassDesc
+	NormalClassDesc *TCNormalClassDesc
+	ProxyClassDesc *TCProxyClassDesc
 	Null *TCNull
 	Reference *TCReference
 }
@@ -18,8 +19,10 @@ func (cp *TCClassPointer) ToBytes() []byte {
 		result = cp.Null.ToBytes()
 	case JAVA_TC_REFERENCE:
 		result = cp.Reference.ToBytes()
-	case JAVA_TC_CLASSDESC, JAVA_TC_PROXYCLASSDESC:
-		result = cp.ClassDesc.ToBytes()
+	case JAVA_TC_CLASSDESC:
+		result = cp.NormalClassDesc.ToBytes()
+	case JAVA_TC_PROXYCLASSDESC:
+		result = cp.ProxyClassDesc.ToBytes()
 	}
 
 	return result
@@ -32,9 +35,9 @@ func (cp *TCClassPointer) FindClassBag(stream *ObjectStream) (*ClassBag, error) 
 	if cp.Flag == JAVA_TC_NULL {
 		return nil, nil
 	} else if cp.Flag == JAVA_TC_PROXYCLASSDESC {
-		proxyClassDesc = cp.ClassDesc.ProxyClassDesc
+		proxyClassDesc = cp.ProxyClassDesc
 	} else if cp.Flag == JAVA_TC_CLASSDESC {
-		normalClassDesc = cp.ClassDesc.NormalClassDesc
+		normalClassDesc = cp.NormalClassDesc
 	} else {
 		if cp.Reference.Flag == JAVA_TC_CLASSDESC {
 			normalClassDesc = cp.Reference.NormalClassDesc
@@ -84,15 +87,25 @@ func readTCClassPointer(stream *ObjectStream) (*TCClassPointer, error) {
 			Flag: JAVA_TC_REFERENCE,
 			Reference: reference,
 		}, nil
-	} else if flag[0] == JAVA_TC_CLASSDESC || flag[0] == JAVA_TC_PROXYCLASSDESC {
-		desc, err := readTCClassDesc(stream)
+	} else if flag[0] == JAVA_TC_CLASSDESC {
+		desc, err := readTCNormalClassDesc(stream)
 		if err != nil {
 			return nil, err
 		}
 
 		return &TCClassPointer{
-			Flag:      flag[0],
-			ClassDesc: desc,
+			Flag:      JAVA_TC_CLASSDESC,
+			NormalClassDesc: desc,
+		}, nil
+	} else if flag[0] == JAVA_TC_PROXYCLASSDESC {
+		desc, err := readTCProxyClassDesc(stream)
+		if err != nil {
+			return nil, err
+		}
+
+		return &TCClassPointer{
+			Flag:      JAVA_TC_PROXYCLASSDESC,
+			ProxyClassDesc: desc,
 		}, nil
 	} else {
 		return nil, fmt.Errorf("read ClassDesc failed in index %v", stream.CurrentIndex())

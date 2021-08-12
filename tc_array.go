@@ -44,7 +44,7 @@ func readTCArray(stream *ObjectStream) (*TCArray, error) {
 	if array.ClassPointer.Flag == JAVA_TC_NULL || array.ClassPointer.Flag == JAVA_TC_PROXYCLASSDESC {
 		return nil, fmt.Errorf("JAVA_TC_NULL and JAVA_TC_PROXYCLASSDESC is not allowed on index %v", stream.CurrentIndex())
 	} else if array.ClassPointer.Flag == JAVA_TC_CLASSDESC {
-		className = string(array.ClassPointer.ClassDesc.NormalClassDesc.ClassName.data)
+		className = string(array.ClassPointer.NormalClassDesc.ClassName.data)
 	} else {
 		if array.ClassPointer.Reference.Flag == JAVA_TC_CLASSDESC {
 			className = string(array.ClassPointer.Reference.NormalClassDesc.ClassName.data)

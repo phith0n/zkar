@@ -32,7 +32,7 @@ func (desc *TCNormalClassDesc) ToBytes() []byte {
 	return result
 }
 
-// HasFlag Check if a TCClassDesc object has a flag
+// HasFlag Check if a TCNormalClassDesc object has a flag
 func (desc *TCNormalClassDesc) HasFlag(flag byte) bool {
 	return (desc.ClassDescFlags & flag) == flag
 }
