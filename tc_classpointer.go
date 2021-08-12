@@ -44,7 +44,35 @@ func (cp *TCClassPointer) GetClassDesc(stream *ObjectStream) (*TCClassDesc, erro
 	}
 }
 
-func readTCClassPointer(stream *ObjectStream, bag *ClassBag) (*TCClassPointer, error) {
+func (cp *TCClassPointer) FindClassBag(stream *ObjectStream) (*ClassBag, error) {
+	var desc *TCClassDesc
+	var err error
+	if cp.Flag == JAVA_TC_NULL {
+		return nil, nil
+	}
+
+	desc, err = cp.GetClassDesc(stream)
+	if err != nil {
+		return nil, err
+	}
+
+	var bag = &ClassBag{
+		Classes: []*TCClassDesc{desc},
+	}
+
+	newBag, err := desc.SuperClassPointer.FindClassBag(stream)
+	if err != nil {
+		return nil, err
+	}
+
+	if newBag != nil {
+		bag.Merge(newBag)
+	}
+
+	return bag, nil
+}
+
+func readTCClassPointer(stream *ObjectStream) (*TCClassPointer, error) {
 	// read JAVA_TC_CLASSDESC Flag
 	flag, _ := stream.PeekN(1)
 	if flag[0] == JAVA_TC_NULL {
@@ -63,7 +91,7 @@ func readTCClassPointer(stream *ObjectStream, bag *ClassBag) (*TCClassPointer, e
 			Reference: reference,
 		}, nil
 	} else if flag[0] == JAVA_TC_CLASSDESC {
-		desc, err := readTCClassDesc(stream, bag)
+		desc, err := readTCClassDesc(stream)
 		if err != nil {
 			return nil, err
 		}

@@ -55,7 +55,7 @@ func readTCContent(stream *ObjectStream) (*TCContent, error) {
 	case JAVA_TC_CLASS:
 		content.Class, err = readTCClass(stream)
 	case JAVA_TC_CLASSDESC:
-		content.ClassDesc, err = readTCClassDesc(stream, nil)
+		content.ClassDesc, err = readTCClassDesc(stream)
 	case JAVA_TC_NULL:
 		content.Null = readTCNull(stream)
 	case JAVA_TC_REFERENCE:

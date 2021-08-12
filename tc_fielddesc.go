@@ -12,7 +12,7 @@ var AllTypecode = append(PrimitiveTypecode, ObjectTypecode...)
 type TCFieldDesc struct {
 	TypeCode string
 	FieldName *TCString
-	ClassName *TCString
+	ClassName *TCStringPointer
 }
 
 func (f *TCFieldDesc) ToBytes() []byte {
@@ -47,7 +47,7 @@ func readTCField(stream *ObjectStream) (*TCFieldDesc, error) {
 	}
 
 	if funk.ContainsString(ObjectTypecode, fieldDesc.TypeCode) {
-		fieldDesc.ClassName, err = readTCString(stream)
+		fieldDesc.ClassName, err = readTCStringPointer(stream)
 		if err != nil {
 			return nil, err
 		}

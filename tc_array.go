@@ -28,11 +28,12 @@ func readTCArray(stream *ObjectStream) (*TCArray, error) {
 	var err error
 
 	_, _ = stream.ReadN(1)
-	array.ClassPointer, err = readTCClassPointer(stream, nil)
+	array.ClassPointer, err = readTCClassPointer(stream)
 	if err != nil {
 		return nil, err
 	}
 
+	stream.AddReference(array)
 	bs, err := stream.ReadN(4)
 	if err != nil {
 		sugar.Error(err)

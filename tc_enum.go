@@ -2,7 +2,7 @@ package javaserialize
 
 type TCEnum struct {
 	ClassPointer *TCClassPointer
-	ConstantName *TCString
+	ConstantName *TCStringPointer
 }
 
 func (e *TCEnum) ToBytes() []byte {
@@ -17,13 +17,13 @@ func readTCEnum(stream *ObjectStream) (*TCEnum, error) {
 	var err error
 
 	_, _ = stream.ReadN(1)
-	enum.ClassPointer, err = readTCClassPointer(stream, nil)
+	enum.ClassPointer, err = readTCClassPointer(stream)
 	if err != nil {
 		return nil, err
 	}
 
 	stream.AddReference(enum)
-	enum.ConstantName, err = readTCString(stream)
+	enum.ConstantName, err = readTCStringPointer(stream)
 	if err != nil {
 		return nil, err
 	}

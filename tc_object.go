@@ -18,10 +18,9 @@ func (oo *TCObject) ToBytes() []byte {
 func readTCObject(stream *ObjectStream) (*TCObject, error) {
 	var obj = new(TCObject)
 	var err error
-	var bag = new(ClassBag) // save current TCClassDesc
 
 	_, _ = stream.ReadN(1)
-	obj.ClassPointer, err = readTCClassPointer(stream, bag)
+	obj.ClassPointer, err = readTCClassPointer(stream)
 	if err != nil {
 		return nil, err
 	}
@@ -29,14 +28,11 @@ func readTCObject(stream *ObjectStream) (*TCObject, error) {
 	stream.AddReference(obj)
 	if obj.ClassPointer.Flag == JAVA_TC_NULL {
 		return obj, nil
-	} else if obj.ClassPointer.Flag == JAVA_TC_REFERENCE {
-		classData, err := readTCClassData(stream, obj.ClassPointer.Reference.ClassDesc)
-		if err != nil {
-			return nil, err
-		}
+	}
 
-		obj.ClassDatas = append(obj.ClassDatas, classData)
-		return obj, nil
+	bag, err := obj.ClassPointer.FindClassBag(stream)
+	if err != nil {
+		return nil, err
 	}
 
 	for i := len(bag.Classes) - 1; i >= 0; i-- {

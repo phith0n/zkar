@@ -57,5 +57,5 @@ func readTCReference(stream *ObjectStream) (*TCReference, error) {
 	}
 
 Failed:
-	return nil, fmt.Errorf("object reference %v is not found", handler)
+	return nil, fmt.Errorf("object reference %v is not found on index %v", handler, stream.CurrentIndex())
 }

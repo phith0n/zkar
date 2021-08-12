@@ -15,7 +15,7 @@ func readTCClass(stream *ObjectStream) (*TCClass, error) {
 	var err error
 
 	_, _ = stream.ReadN(1)
-	class.ClassPointer, err = readTCClassPointer(stream, nil)
+	class.ClassPointer, err = readTCClassPointer(stream)
 	if err != nil {
 		return nil, err
 	}
