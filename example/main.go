@@ -2,13 +2,15 @@ package main
 
 import (
 	"fmt"
-	"github.com/k0kubun/pp"
 	"github.com/phith0n/javaserialize"
+	"io/fs"
 	"io/ioutil"
 )
 
 func main() {
-	data, err := ioutil.ReadFile("testcases/ysoserial/BeanShell1.ser")
+	var filename = "testcases/ysoserial/C3P0.ser"
+	// var filename = "example/externalizable.poc"
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -21,5 +23,6 @@ func main() {
 		return
 	}
 
-	pp.Println(os)
+	// pp.Println(os)
+	ioutil.WriteFile("testcases/ysoserial/C3P01.ser", os.ToBytes(), fs.FileMode(755))
 }

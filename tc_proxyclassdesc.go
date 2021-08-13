@@ -6,13 +6,15 @@ import (
 )
 
 type TCProxyClassDesc struct {
-	InterfaceNames []*TCString
+	InterfaceNames []*TCUtf
 	ClassAnnotation []*TCContent
 	SuperClassPointer *TCClassPointer
 }
 
 func (pc *TCProxyClassDesc) ToBytes() []byte {
 	var bs = []byte{JAVA_TC_PROXYCLASSDESC}
+
+	bs = append(bs, NumberToBytes(uint32(len(pc.InterfaceNames)))...)
 	for _, s := range pc.InterfaceNames {
 		bs = append(bs, s.ToBytes()...)
 	}

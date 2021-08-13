@@ -1,16 +1,14 @@
 package main
 
 import (
-	"github.com/k0kubun/pp"
+	"fmt"
 	"testing"
 )
 
 func TestConvert(t *testing.T) {
-	var s = []string {"1", "2"}
-	sample(s)
-	pp.Println(s)
-}
+	var i int8 = -55
+	var bs = make([]byte, 1)
+	bs[0] = uint8(i)
 
-func sample(s []string) {
-	s = append(s, "3")
+	fmt.Println(bs, int8(bs[0]))
 }

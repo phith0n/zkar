@@ -23,6 +23,15 @@ func NewObjectInputStream() *ObjectInputStream {
 	return &ObjectInputStream{}
 }
 
+func (ois *ObjectInputStream) ToBytes() []byte {
+	var bs = append(ois.MagicNumber, ois.StreamVersion...)
+	for _, content := range ois.Contents {
+		bs = append(bs, content.ToBytes()...)
+	}
+
+	return bs
+}
+
 func (ois *ObjectInputStream) Read(data []byte) error {
 	var bs []byte
 	var err error

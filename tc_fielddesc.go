@@ -11,7 +11,7 @@ var AllTypecode = append(PrimitiveTypecode, ObjectTypecode...)
 
 type TCFieldDesc struct {
 	TypeCode string
-	FieldName *TCString
+	FieldName *TCUtf
 	ClassName *TCStringPointer
 }
 
@@ -19,7 +19,6 @@ func (f *TCFieldDesc) ToBytes() []byte {
 	bs := []byte(f.TypeCode)
 	bs = append(bs, f.FieldName.ToBytes()...)
 	if f.TypeCode == "L" || f.TypeCode == "[" {
-		bs = append(bs, JAVA_TC_STRING)
 		bs = append(bs, f.ClassName.ToBytes()...)
 	}
 

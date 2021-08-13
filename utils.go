@@ -7,6 +7,12 @@ const uintSize = 32 << (^uint(0) >> 32 & 1) // 32 or 64
 func NumberToBytes(data interface{}) []byte {
 	var bs []byte
 	switch i := data.(type) {
+	case int8:
+		bs = make([]byte, 1)
+		bs[0] = uint8(i)
+	case uint8:
+		bs = make([]byte, 1)
+		bs[0] = i
 	case uint16:
 		bs = make([]byte, 2)
 		binary.BigEndian.PutUint16(bs, i)

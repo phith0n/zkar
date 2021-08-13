@@ -7,6 +7,7 @@ import (
 	"math"
 )
 
+var NoFieldError = fmt.Errorf("Oops!")
 var SizeTable = map[string]int {
 	"B": 1,
 	"C": 2,
@@ -128,6 +129,8 @@ func readTCValueFromObject(stream *ObjectStream, typeCode string) (*TCValue, err
 		fieldData.LData, err = readTCArray(stream)
 	case JAVA_TC_ENUM:
 		fieldData.LData, err = readTCEnum(stream)
+	default:
+		err = NoFieldError
 	}
 
 	if err != nil {

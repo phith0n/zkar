@@ -11,21 +11,15 @@ type TCBlockData struct {
 
 func (bd *TCBlockData) ToBytes() []byte {
 	var bs []byte
-	if len(bd.data) > 0xFFFF {
+	if len(bd.data) > 0xFF {
 		bs = append(bs, JAVA_TC_BLOCKDATALONG)
-		bs = append(bs, NumberToBytes(uint64(len(bs)))...)
+		bs = append(bs, NumberToBytes(uint32(len(bd.data)))...)
 	} else {
 		bs = append(bs, JAVA_TC_BLOCKDATA)
-		bs = append(bs, NumberToBytes(uint16(len(bs)))...)
+		bs = append(bs, NumberToBytes(uint8(len(bd.data)))...)
 	}
 
 	return append(bs, bd.data...)
-}
-
-func NewBlockData(bs []byte) *TCBlockData {
-	return &TCBlockData{
-		data: bs,
-	}
 }
 
 func readTCBlockData(stream *ObjectStream) (*TCBlockData, error) {
@@ -57,5 +51,7 @@ func readTCBlockData(stream *ObjectStream) (*TCBlockData, error) {
 		return nil, fmt.Errorf("read JAVA_TC_BLOCKDATA|JAVA_TC_BLOCKDATALONG object failed on index %v", stream.CurrentIndex())
 	}
 
-	return NewBlockData(data), nil
+	return &TCBlockData{
+		data: data,
+	}, nil
 }

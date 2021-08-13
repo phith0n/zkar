@@ -9,14 +9,11 @@ type TCStringPointer struct {
 }
 
 func (sp *TCStringPointer) ToBytes() []byte {
-	var bs = []byte{JAVA_TC_STRING}
 	if sp.IsRef {
-		bs = append(bs, sp.Reference.ToBytes()...)
+		return sp.Reference.ToBytes()
 	} else {
-		bs = append(bs, sp.String.ToBytes()...)
+		return sp.String.ToBytes()
 	}
-
-	return bs
 }
 
 func readTCStringPointer(stream *ObjectStream) (*TCStringPointer, error) {

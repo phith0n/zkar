@@ -6,7 +6,7 @@ import (
 )
 
 type TCClassDesc struct {
-	ClassName *TCString
+	ClassName *TCUtf
 	SerialVersionUID int64
 	ClassDescFlags byte
 	Fields []*TCFieldDesc

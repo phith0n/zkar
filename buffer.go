@@ -61,6 +61,10 @@ func (s *ObjectStream) PeekN(n int) (bs []byte, err error) {
 	return
 }
 
+func (s *ObjectStream) Seek(pos int64) {
+	s.current = pos
+}
+
 func (s *ObjectStream) EOF() bool {
 	return s.current >= int64(len(s.bs))
 }
