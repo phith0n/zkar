@@ -6,24 +6,24 @@ import (
 )
 
 type ObjectStream struct {
-	bs []byte
-	current int64
-	handler uint32
+	bs         []byte
+	current    int64
+	handler    uint32
 	references *orderedmap.OrderedMap
 }
 
 func NewObjectStream(bs []byte) *ObjectStream {
 	return &ObjectStream{
-		bs: bs,
-		current: int64(0),
-		handler: JAVA_BASE_WRITE_HANDLE,
+		bs:         bs,
+		current:    int64(0),
+		handler:    JAVA_BASE_WRITE_HANDLE,
 		references: orderedmap.New(),
 	}
 }
 
 /**
   implement io.Reader
- */
+*/
 func (s *ObjectStream) Read(b []byte) (n int, err error) {
 	if s.EOF() {
 		return 0, io.EOF
@@ -36,7 +36,7 @@ func (s *ObjectStream) Read(b []byte) (n int, err error) {
 // ReadN
 /**
   读取N个字节的内容，如果n大于剩余的字符数，则返回空数组和错误，且指针恢复原状
- */
+*/
 func (s *ObjectStream) ReadN(n int) (bs []byte, err error) {
 	oldCurrent := s.current
 	bs = make([]byte, n)
@@ -53,7 +53,7 @@ func (s *ObjectStream) ReadN(n int) (bs []byte, err error) {
 /**
   读取N个字节的内容，如果n大于剩余的字符数，则返回空数组和错误，且指针恢复原状
   与Read的区别是Peek不移动指针位置
- */
+*/
 func (s *ObjectStream) PeekN(n int) (bs []byte, err error) {
 	oldCurrent := s.current
 	bs, err = s.ReadN(n)

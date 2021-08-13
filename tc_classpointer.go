@@ -5,11 +5,11 @@ import (
 )
 
 type TCClassPointer struct {
-	Flag byte
+	Flag            byte
 	NormalClassDesc *TCClassDesc
-	ProxyClassDesc *TCProxyClassDesc
-	Null *TCNull
-	Reference *TCReference
+	ProxyClassDesc  *TCProxyClassDesc
+	Null            *TCNull
+	Reference       *TCReference
 }
 
 func (cp *TCClassPointer) ToBytes() []byte {
@@ -84,7 +84,7 @@ func readTCClassPointer(stream *ObjectStream) (*TCClassPointer, error) {
 		}
 
 		return &TCClassPointer{
-			Flag: JAVA_TC_REFERENCE,
+			Flag:      JAVA_TC_REFERENCE,
 			Reference: reference,
 		}, nil
 	} else if flag[0] == JAVA_TC_CLASSDESC {
@@ -94,7 +94,7 @@ func readTCClassPointer(stream *ObjectStream) (*TCClassPointer, error) {
 		}
 
 		return &TCClassPointer{
-			Flag:      JAVA_TC_CLASSDESC,
+			Flag:            JAVA_TC_CLASSDESC,
 			NormalClassDesc: desc,
 		}, nil
 	} else if flag[0] == JAVA_TC_PROXYCLASSDESC {
@@ -104,7 +104,7 @@ func readTCClassPointer(stream *ObjectStream) (*TCClassPointer, error) {
 		}
 
 		return &TCClassPointer{
-			Flag:      JAVA_TC_PROXYCLASSDESC,
+			Flag:           JAVA_TC_PROXYCLASSDESC,
 			ProxyClassDesc: desc,
 		}, nil
 	} else {

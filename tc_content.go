@@ -3,17 +3,17 @@ package javaserialize
 import "fmt"
 
 type TCContent struct {
-	Flag byte
-	Object *TCObject
-	String *TCString
-	Array *TCArray
-	BlockData *TCBlockData
-	Class *TCClass
+	Flag            byte
+	Object          *TCObject
+	String          *TCString
+	Array           *TCArray
+	BlockData       *TCBlockData
+	Class           *TCClass
 	NormalClassDesc *TCClassDesc
-	ProxyClassDesc *TCProxyClassDesc
-	Null *TCNull
-	Enum *TCEnum
-	Reference *TCReference
+	ProxyClassDesc  *TCProxyClassDesc
+	Null            *TCNull
+	Enum            *TCEnum
+	Reference       *TCReference
 }
 
 func (c *TCContent) ToBytes() []byte {

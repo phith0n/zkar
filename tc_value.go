@@ -8,7 +8,7 @@ import (
 )
 
 var NoFieldError = fmt.Errorf("Oops!")
-var SizeTable = map[string]int {
+var SizeTable = map[string]int{
 	"B": 1,
 	"C": 2,
 	"D": 8,
@@ -21,15 +21,15 @@ var SizeTable = map[string]int {
 
 type TCValue struct {
 	TypeCode string
-	BData byte // byte in Java
-	CData uint16 // char in Java
-	DData float64 // double in Java
-	FData float32 // float in Java
-	IData int32 // int in Java
-	JData int64 // long in Java
-	SData int16 // short in Java
-	ZData bool // bool in Java
-	LData Object // object in Java
+	BData    byte    // byte in Java
+	CData    uint16  // char in Java
+	DData    float64 // double in Java
+	FData    float32 // float in Java
+	IData    int32   // int in Java
+	JData    int64   // long in Java
+	SData    int16   // short in Java
+	ZData    bool    // bool in Java
+	LData    Object  // object in Java
 }
 
 func (t *TCValue) ToBytes() []byte {
@@ -70,7 +70,6 @@ func readTCValue(stream *ObjectStream, typeCode string) (*TCValue, error) {
 		return readTCValueFromObject(stream, typeCode)
 	}
 }
-
 
 func readTCValueFromPrimitive(stream *ObjectStream, typeCode string) (*TCValue, error) {
 	var bs []byte

@@ -1,10 +1,10 @@
 package javaserialize
 
 // JAVA_STREAM_MAGIC Magic Number
-var JAVA_STREAM_MAGIC = []byte {0xAC, 0xED}
+var JAVA_STREAM_MAGIC = []byte{0xAC, 0xED}
 
 // JAVA_STREAM_VERSION Version number that is written to the stream header.
-var JAVA_STREAM_VERSION = []byte {0x00, 0x05}
+var JAVA_STREAM_VERSION = []byte{0x00, 0x05}
 
 // =============== TC_* ===============
 

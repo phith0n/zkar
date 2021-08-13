@@ -3,8 +3,8 @@ package javaserialize
 import "fmt"
 
 type TCStringPointer struct {
-	IsRef bool
-	String *TCString
+	IsRef     bool
+	String    *TCString
 	Reference *TCReference
 }
 
@@ -22,7 +22,7 @@ func readTCStringPointer(stream *ObjectStream) (*TCStringPointer, error) {
 		return nil, fmt.Errorf("read JAVA_TC_STRING pointer failed on index %v", stream.CurrentIndex())
 	}
 
-	var sp = TCStringPointer {
+	var sp = TCStringPointer{
 		IsRef: flag[0] != JAVA_TC_STRING,
 	}
 	if flag[0] == JAVA_TC_STRING {

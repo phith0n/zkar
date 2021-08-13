@@ -6,11 +6,11 @@ import (
 )
 
 type TCClassDesc struct {
-	ClassName *TCUtf
-	SerialVersionUID int64
-	ClassDescFlags byte
-	Fields []*TCFieldDesc
-	ClassAnnotation []*TCContent
+	ClassName         *TCUtf
+	SerialVersionUID  int64
+	ClassDescFlags    byte
+	Fields            []*TCFieldDesc
+	ClassAnnotation   []*TCContent
 	SuperClassPointer *TCClassPointer
 }
 

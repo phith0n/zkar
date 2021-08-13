@@ -14,9 +14,9 @@ type Object interface {
 }
 
 type ObjectInputStream struct {
-	MagicNumber []byte
+	MagicNumber   []byte
 	StreamVersion []byte
-	Contents []*TCContent
+	Contents      []*TCContent
 }
 
 func NewObjectInputStream() *ObjectInputStream {
@@ -63,4 +63,3 @@ func (ois *ObjectInputStream) Read(data []byte) error {
 
 	return nil
 }
-

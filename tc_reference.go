@@ -6,15 +6,15 @@ import (
 )
 
 type TCReference struct {
-	Handler uint32
-	Flag byte
-	Object *TCObject
-	Class *TCClass
+	Handler         uint32
+	Flag            byte
+	Object          *TCObject
+	Class           *TCClass
 	NormalClassDesc *TCClassDesc
-	ProxyClassDesc *TCProxyClassDesc
-	String *TCString
-	Array *TCArray
-	Enum *TCEnum
+	ProxyClassDesc  *TCProxyClassDesc
+	String          *TCString
+	Array           *TCArray
+	Enum            *TCEnum
 }
 
 func (r *TCReference) ToBytes() []byte {

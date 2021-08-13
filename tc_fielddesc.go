@@ -10,7 +10,7 @@ var ObjectTypecode = []string{"[", "L"}
 var AllTypecode = append(PrimitiveTypecode, ObjectTypecode...)
 
 type TCFieldDesc struct {
-	TypeCode string
+	TypeCode  string
 	FieldName *TCUtf
 	ClassName *TCStringPointer
 }

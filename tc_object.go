@@ -2,7 +2,7 @@ package javaserialize
 
 type TCObject struct {
 	ClassPointer *TCClassPointer
-	ClassDatas []*TCClassData
+	ClassDatas   []*TCClassData
 }
 
 func (oo *TCObject) ToBytes() []byte {

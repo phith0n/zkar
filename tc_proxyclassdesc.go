@@ -6,8 +6,8 @@ import (
 )
 
 type TCProxyClassDesc struct {
-	InterfaceNames []*TCUtf
-	ClassAnnotation []*TCContent
+	InterfaceNames    []*TCUtf
+	ClassAnnotation   []*TCContent
 	SuperClassPointer *TCClassPointer
 }
 

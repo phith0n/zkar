@@ -7,9 +7,9 @@ import (
 )
 
 type TCArray struct {
-	TypeCode byte
+	TypeCode     byte
 	ClassPointer *TCClassPointer
-	ArrayData []*TCValue
+	ArrayData    []*TCValue
 }
 
 func (t *TCArray) ToBytes() []byte {

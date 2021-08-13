@@ -1,8 +1,8 @@
 package javaserialize
 
 type TCClassData struct {
-	HasAnnotation bool
-	FieldDatas []*TCValue
+	HasAnnotation    bool
+	FieldDatas       []*TCValue
 	ObjectAnnotation []*TCContent
 }
 
