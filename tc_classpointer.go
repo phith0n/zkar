@@ -6,7 +6,7 @@ import (
 
 type TCClassPointer struct {
 	Flag byte
-	NormalClassDesc *TCNormalClassDesc
+	NormalClassDesc *TCClassDesc
 	ProxyClassDesc *TCProxyClassDesc
 	Null *TCNull
 	Reference *TCReference
@@ -29,7 +29,7 @@ func (cp *TCClassPointer) ToBytes() []byte {
 }
 
 func (cp *TCClassPointer) FindClassBag(stream *ObjectStream) (*ClassBag, error) {
-	var normalClassDesc *TCNormalClassDesc
+	var normalClassDesc *TCClassDesc
 	var proxyClassDesc *TCProxyClassDesc
 	var err error
 	if cp.Flag == JAVA_TC_NULL {

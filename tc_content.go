@@ -1,5 +1,7 @@
 package javaserialize
 
+import "fmt"
+
 type TCContent struct {
 	Flag byte
 	Object *TCObject
@@ -7,7 +9,7 @@ type TCContent struct {
 	Array *TCArray
 	BlockData *TCBlockData
 	Class *TCClass
-	NormalClassDesc *TCNormalClassDesc
+	NormalClassDesc *TCClassDesc
 	ProxyClassDesc *TCProxyClassDesc
 	Null *TCNull
 	Enum *TCEnum
@@ -19,7 +21,7 @@ func (c *TCContent) ToBytes() []byte {
 	switch c.Flag {
 	case JAVA_TC_STRING, JAVA_TC_LONGSTRING:
 		bs = c.String.ToBytes()
-	case JAVA_TC_BLOCKDATA, JAVA_TC_LONGSTRING:
+	case JAVA_TC_BLOCKDATA, JAVA_TC_BLOCKDATALONG:
 		bs = c.BlockData.ToBytes()
 	case JAVA_TC_CLASS:
 		bs = c.Class.ToBytes()
@@ -67,6 +69,8 @@ func readTCContent(stream *ObjectStream) (*TCContent, error) {
 		content.Array, err = readTCArray(stream)
 	case JAVA_TC_ENUM:
 		content.Enum, err = readTCEnum(stream)
+	default:
+		err = fmt.Errorf("illegal character %v found on index %v", next, stream.CurrentIndex())
 	}
 
 	if err != nil {

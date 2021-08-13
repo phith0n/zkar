@@ -8,8 +8,9 @@ import (
 type TCReference struct {
 	Handler uint32
 	Flag byte
+	Object *TCObject
 	Class *TCClass
-	NormalClassDesc *TCNormalClassDesc
+	NormalClassDesc *TCClassDesc
 	ProxyClassDesc *TCProxyClassDesc
 	String *TCString
 	Array *TCArray
@@ -40,10 +41,13 @@ func readTCReference(stream *ObjectStream) (*TCReference, error) {
 	obj := stream.GetReference(handler)
 	if obj != nil {
 		switch obj := obj.(type) {
+		case *TCObject:
+			reference.Flag = JAVA_TC_OBJECT
+			reference.Object = obj
 		case *TCClass:
 			reference.Flag = JAVA_TC_CLASS
 			reference.Class = obj
-		case *TCNormalClassDesc:
+		case *TCClassDesc:
 			reference.Flag = JAVA_TC_CLASSDESC
 			reference.NormalClassDesc = obj
 		case *TCProxyClassDesc:

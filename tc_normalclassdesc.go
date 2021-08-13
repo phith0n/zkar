@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-type TCNormalClassDesc struct {
+type TCClassDesc struct {
 	ClassName *TCString
 	SerialVersionUID int64
 	ClassDescFlags byte
@@ -14,7 +14,7 @@ type TCNormalClassDesc struct {
 	SuperClassPointer *TCClassPointer
 }
 
-func (desc *TCNormalClassDesc) ToBytes() []byte {
+func (desc *TCClassDesc) ToBytes() []byte {
 	var result = []byte{JAVA_TC_CLASSDESC}
 	result = append(result, desc.ClassName.ToBytes()...)
 	result = append(result, NumberToBytes(desc.SerialVersionUID)...)
@@ -32,14 +32,14 @@ func (desc *TCNormalClassDesc) ToBytes() []byte {
 	return result
 }
 
-// HasFlag Check if a TCNormalClassDesc object has a flag
-func (desc *TCNormalClassDesc) HasFlag(flag byte) bool {
+// HasFlag Check if a TCClassDesc object has a flag
+func (desc *TCClassDesc) HasFlag(flag byte) bool {
 	return (desc.ClassDescFlags & flag) == flag
 }
 
-func readTCNormalClassDesc(stream *ObjectStream) (*TCNormalClassDesc, error) {
+func readTCNormalClassDesc(stream *ObjectStream) (*TCClassDesc, error) {
 	var err error
-	var classDesc = new(TCNormalClassDesc)
+	var classDesc = new(TCClassDesc)
 
 	// read JAVA_TC_CLASSDESC flag
 	_, _ = stream.ReadN(1)

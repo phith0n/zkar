@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	data, err := ioutil.ReadFile("example/enum.poc")
+	data, err := ioutil.ReadFile("testcases/ysoserial/BeanShell1.ser")
 	if err != nil {
 		fmt.Println(err.Error())
 		return
