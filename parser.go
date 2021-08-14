@@ -3,11 +3,8 @@ package javaserialize
 import (
 	"bytes"
 	"fmt"
-	"go.uber.org/zap"
+	"os"
 )
-
-var logger, _ = zap.NewProduction()
-var sugar = logger.Sugar()
 
 type Object interface {
 	ToBytes() []byte
@@ -26,9 +23,9 @@ func NewObjectInputStream() *ObjectInputStream {
 
 func (ois *ObjectInputStream) ToString() string {
 	var b = NewPrinter()
-	b.Printf("@magic - %s\n", Hexify(ois.MagicNumber))
-	b.Printf("@version - %s\n", Hexify(ois.StreamVersion))
-	b.Printf("@contents \n")
+	b.Printf("@Magic - %s\n", Hexify(ois.MagicNumber))
+	b.Printf("@Version - %s\n", Hexify(ois.StreamVersion))
+	b.Printf("@Contents \n")
 	b.IncreaseIndent()
 	for _, content := range ois.Contents {
 		b.Printf(content.ToString())
@@ -61,7 +58,7 @@ func (ois *ObjectInputStream) Read(data []byte) error {
 	// read stream version
 	bs, err = stream.ReadN(2)
 	if err != nil || !bytes.Equal(bs, JAVA_STREAM_VERSION) {
-		sugar.Warnf("invalid stream version %v", bs)
+		fmt.Fprintf(os.Stderr, "[warn] invalid stream version %v", bs)
 	}
 	ois.StreamVersion = bs
 

@@ -57,7 +57,6 @@ func readTCField(stream *ObjectStream) (*TCFieldDesc, error) {
 	var fieldDesc = new(TCFieldDesc)
 	typeCode, err := stream.ReadN(1)
 	if err != nil {
-		sugar.Error(err)
 		return nil, fmt.Errorf("read FieldDesc failed on index %v", stream.CurrentIndex())
 	}
 

@@ -57,7 +57,6 @@ func readTCArray(stream *ObjectStream) (*TCArray, error) {
 	stream.AddReference(array)
 	bs, err := stream.ReadN(4)
 	if err != nil {
-		sugar.Error(err)
 		return nil, fmt.Errorf("read JAVA_TC_ARRAY object failed on index %v", stream.CurrentIndex())
 	}
 

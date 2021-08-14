@@ -125,7 +125,6 @@ func readTCNormalClassDesc(stream *ObjectStream) (*TCClassDesc, error) {
 	// classDescFlags
 	bs, err := stream.ReadN(1)
 	if err != nil {
-		sugar.Error(err)
 		return nil, fmt.Errorf("read JAVA_TC_CLASSDESC failed on index %v", stream.CurrentIndex())
 	}
 	classDesc.ClassDescFlags = bs[0]
@@ -156,7 +155,6 @@ func readTCAnnotation(stream *ObjectStream) ([]*TCContent, error) {
 	for {
 		bs, err := stream.PeekN(1)
 		if err != nil {
-			sugar.Error(err)
 			return nil, fmt.Errorf("read classAnnotation failed on index %v", stream.CurrentIndex())
 		}
 
@@ -183,7 +181,6 @@ func readTCFields(stream *ObjectStream) ([]*TCFieldDesc, error) {
 
 	bs, err = stream.ReadN(2)
 	if err != nil {
-		sugar.Error(err)
 		return nil, fmt.Errorf("read JAVA_TC_CLASSDESC failed on index %v", stream.CurrentIndex())
 	}
 	fieldsLength := binary.BigEndian.Uint16(bs)
@@ -203,7 +200,6 @@ func readTCFields(stream *ObjectStream) ([]*TCFieldDesc, error) {
 func readSerialVersionUID(stream *ObjectStream) (int64, error) {
 	bs, err := stream.ReadN(8)
 	if err != nil {
-		sugar.Error(err)
 		return 0, fmt.Errorf("read SerialVersionUID failed on index %v", stream.CurrentIndex())
 	}
 

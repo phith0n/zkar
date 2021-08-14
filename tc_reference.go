@@ -37,7 +37,6 @@ func readTCReference(stream *ObjectStream) (*TCReference, error) {
 
 	bs, err := stream.ReadN(4)
 	if err != nil {
-		sugar.Error(err)
 		return nil, fmt.Errorf("read JAVA_TC_REFERENCE failed on index %v", stream.CurrentIndex())
 	}
 

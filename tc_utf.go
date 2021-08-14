@@ -31,8 +31,8 @@ func (u *TCUtf) ToString() string {
 		bs = NumberToBytes(uint64(len(u.Data)))
 	}
 
-	b.Printf("@length - %d - %s\n", len(u.Data), Hexify(bs))
-	b.Printf("@value - %s - %s", u.Data, Hexify(u.Data))
+	b.Printf("@Length - %d - %s\n", len(u.Data), Hexify(bs))
+	b.Printf("@Value - %s - %s", u.Data, Hexify(u.Data))
 	return b.String()
 }
 
@@ -43,7 +43,6 @@ func readUTF(stream *ObjectStream) (*TCUtf, error) {
 	// read JAVA_TC_STRING object length, uint16
 	bs, err = stream.ReadN(2)
 	if err != nil {
-		sugar.Error(err)
 		return nil, fmt.Errorf("read JAVA_TC_STRING object failed on index %v", stream.CurrentIndex())
 	}
 
@@ -51,7 +50,6 @@ func readUTF(stream *ObjectStream) (*TCUtf, error) {
 	length := binary.BigEndian.Uint16(bs)
 	data, err := stream.ReadN(int(length))
 	if err != nil {
-		sugar.Error(err)
 		return nil, fmt.Errorf("read JAVA_TC_STRING object failed on index %v", stream.CurrentIndex())
 	}
 
@@ -64,7 +62,6 @@ func readLongUTF(stream *ObjectStream) (*TCUtf, error) {
 	// read JAVA_TC_LONGSTRING object length, uint16
 	bs, err := stream.ReadN(8)
 	if err != nil {
-		sugar.Error(err)
 		return nil, fmt.Errorf("read JAVA_TC_LONGSTRING object failed on index %v", stream.CurrentIndex())
 	}
 
@@ -75,7 +72,6 @@ func readLongUTF(stream *ObjectStream) (*TCUtf, error) {
 
 	data, err := stream.ReadN(int(length))
 	if err != nil {
-		sugar.Error(err)
 		return nil, fmt.Errorf("read JAVA_TC_LONGSTRING object failed on index %v", stream.CurrentIndex())
 	}
 

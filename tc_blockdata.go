@@ -30,7 +30,7 @@ func (bd *TCBlockData) ToString() string {
 		b.Printf("TC_BLOCKDATA - %s\n", Hexify(JAVA_TC_BLOCKDATA))
 	}
 	b.IncreaseIndent()
-	b.Printf("@blockdata - %s", Hexify(bd.data))
+	b.Printf("@Blockdata - %s", Hexify(bd.data))
 	return b.String()
 }
 
@@ -41,7 +41,6 @@ func readTCBlockData(stream *ObjectStream) (*TCBlockData, error) {
 	if flag[0] == JAVA_TC_BLOCKDATA {
 		lengthBs, err := stream.ReadN(1)
 		if err != nil {
-			sugar.Error(err)
 			return nil, fmt.Errorf("read JAVA_TC_BLOCKDATA object failed on index %v", stream.CurrentIndex())
 		}
 
@@ -49,7 +48,6 @@ func readTCBlockData(stream *ObjectStream) (*TCBlockData, error) {
 	} else {
 		lengthBs, err := stream.ReadN(4)
 		if err != nil {
-			sugar.Error(err)
 			return nil, fmt.Errorf("read JAVA_TC_BLOCKDATALONG object failed on index %v", stream.CurrentIndex())
 		}
 
@@ -59,7 +57,6 @@ func readTCBlockData(stream *ObjectStream) (*TCBlockData, error) {
 
 	data, err := stream.ReadN(length)
 	if err != nil {
-		sugar.Error(err)
 		return nil, fmt.Errorf("read JAVA_TC_BLOCKDATA|JAVA_TC_BLOCKDATALONG object failed on index %v", stream.CurrentIndex())
 	}
 

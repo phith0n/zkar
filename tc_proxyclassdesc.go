@@ -69,7 +69,6 @@ func readTCProxyClassDesc(stream *ObjectStream) (*TCProxyClassDesc, error) {
 
 	bs, err := stream.ReadN(4)
 	if err != nil {
-		sugar.Error(err)
 		return nil, fmt.Errorf("read JAVA_TC_PROXYCLASSDESC failed on index %v", stream.CurrentIndex())
 	}
 
