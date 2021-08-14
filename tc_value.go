@@ -21,39 +21,39 @@ var SizeTable = map[string]int{
 
 type TCValue struct {
 	TypeCode string
-	BData    byte    // byte in Java
-	CData    uint16  // char in Java
-	DData    float64 // double in Java
-	FData    float32 // float in Java
-	IData    int32   // int in Java
-	JData    int64   // long in Java
-	SData    int16   // short in Java
-	ZData    bool    // bool in Java
-	LData    Object  // object in Java
+	Byte     byte    // byte in Java
+	Char     uint16  // char in Java
+	Double   float64 // double in Java
+	Float    float32 // float in Java
+	Integer  int32   // int in Java
+	Long     int64   // long in Java
+	Short    int16   // short in Java
+	Boolean  bool    // bool in Java
+	Object   Object  // object in Java
 }
 
 func (t *TCValue) ToBytes() []byte {
 	if t.TypeCode == "L" || t.TypeCode == "[" {
-		return t.LData.ToBytes()
+		return t.Object.ToBytes()
 	}
 
 	switch t.TypeCode {
 	case "B":
-		return []byte{t.BData}
+		return []byte{t.Byte}
 	case "C":
-		return NumberToBytes(t.CData)
+		return NumberToBytes(t.Char)
 	case "D":
-		return NumberToBytes(math.Float64bits(t.DData))
+		return NumberToBytes(math.Float64bits(t.Double))
 	case "F":
-		return NumberToBytes(math.Float32bits(t.FData))
+		return NumberToBytes(math.Float32bits(t.Float))
 	case "I":
-		return NumberToBytes(t.IData)
+		return NumberToBytes(t.Integer)
 	case "J":
-		return NumberToBytes(t.JData)
+		return NumberToBytes(t.Long)
 	case "S":
-		return NumberToBytes(t.SData)
+		return NumberToBytes(t.Short)
 	case "Z":
-		if t.ZData {
+		if t.Boolean {
 			return []byte{0x01}
 		} else {
 			return []byte{0x00}
@@ -84,23 +84,23 @@ func readTCValueFromPrimitive(stream *ObjectStream, typeCode string) (*TCValue, 
 	var fieldData = &TCValue{TypeCode: typeCode}
 	switch typeCode {
 	case "B": // byte
-		fieldData.BData = bs[0]
+		fieldData.Byte = bs[0]
 	case "C": // char
-		fieldData.CData = binary.BigEndian.Uint16(bs)
+		fieldData.Char = binary.BigEndian.Uint16(bs)
 	case "D": // double
 		bits := binary.BigEndian.Uint64(bs)
-		fieldData.DData = math.Float64frombits(bits)
+		fieldData.Double = math.Float64frombits(bits)
 	case "F": // float
 		bits := binary.BigEndian.Uint32(bs)
-		fieldData.FData = math.Float32frombits(bits)
+		fieldData.Float = math.Float32frombits(bits)
 	case "I": // int
-		fieldData.IData = int32(binary.BigEndian.Uint32(bs))
+		fieldData.Integer = int32(binary.BigEndian.Uint32(bs))
 	case "J": // long
-		fieldData.JData = int64(binary.BigEndian.Uint64(bs))
+		fieldData.Long = int64(binary.BigEndian.Uint64(bs))
 	case "S": // short
-		fieldData.SData = int16(binary.BigEndian.Uint16(bs))
+		fieldData.Short = int16(binary.BigEndian.Uint16(bs))
 	case "Z": // boolean
-		fieldData.ZData = bs[0] != 0x00
+		fieldData.Boolean = bs[0] != 0x00
 	}
 
 	return fieldData, nil
@@ -115,19 +115,19 @@ func readTCValueFromObject(stream *ObjectStream, typeCode string) (*TCValue, err
 	var fieldData = &TCValue{TypeCode: typeCode}
 	switch flag[0] {
 	case JAVA_TC_OBJECT:
-		fieldData.LData, err = readTCObject(stream)
+		fieldData.Object, err = readTCObject(stream)
 	case JAVA_TC_NULL:
-		fieldData.LData = readTCNull(stream)
+		fieldData.Object = readTCNull(stream)
 	case JAVA_TC_STRING:
-		fieldData.LData, err = readTCString(stream)
+		fieldData.Object, err = readTCString(stream)
 	case JAVA_TC_REFERENCE:
-		fieldData.LData, err = readTCReference(stream)
+		fieldData.Object, err = readTCReference(stream)
 	case JAVA_TC_CLASS:
-		fieldData.LData, err = readTCClass(stream)
+		fieldData.Object, err = readTCClass(stream)
 	case JAVA_TC_ARRAY:
-		fieldData.LData, err = readTCArray(stream)
+		fieldData.Object, err = readTCArray(stream)
 	case JAVA_TC_ENUM:
-		fieldData.LData, err = readTCEnum(stream)
+		fieldData.Object, err = readTCEnum(stream)
 	default:
 		err = NoFieldError
 	}
