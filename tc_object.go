@@ -18,15 +18,14 @@ func (oo *TCObject) ToBytes() []byte {
 
 func (oo *TCObject) ToString() string {
 	var b = NewPrinter()
-	b.Printf("TC_OBJECT - %s\n", Hexify(JAVA_TC_OBJECT))
+	b.Printf("TC_OBJECT - %s", Hexify(JAVA_TC_OBJECT))
 	b.IncreaseIndent()
 	b.Printf(oo.ClassPointer.ToString())
 	b.Printf("@Handler - %v", oo.Handler)
-	b.Printf("[]ClassData \n")
+	b.Printf("[]ClassData")
 	b.IncreaseIndent()
 	for _, data := range oo.ClassDatas {
 		b.Printf(data.ToString())
-		b.Printf("\n")
 	}
 
 	return b.String()

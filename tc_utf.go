@@ -31,7 +31,7 @@ func (u *TCUtf) ToString() string {
 		bs = NumberToBytes(uint64(len(u.Data)))
 	}
 
-	b.Printf("@Length - %d - %s\n", len(u.Data), Hexify(bs))
+	b.Printf("@Length - %d - %s", len(u.Data), Hexify(bs))
 	b.Printf("@Value - %s - %s", u.Data, Hexify(u.Data))
 	return b.String()
 }

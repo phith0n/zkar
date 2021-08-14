@@ -25,9 +25,9 @@ func (bd *TCBlockData) ToBytes() []byte {
 func (bd *TCBlockData) ToString() string {
 	var b = NewPrinter()
 	if len(bd.data) > 0xFF {
-		b.Printf("TC_BLOCKDATALONG - %s\n", Hexify(JAVA_TC_BLOCKDATALONG))
+		b.Printf("TC_BLOCKDATALONG - %s", Hexify(JAVA_TC_BLOCKDATALONG))
 	} else {
-		b.Printf("TC_BLOCKDATA - %s\n", Hexify(JAVA_TC_BLOCKDATA))
+		b.Printf("TC_BLOCKDATA - %s", Hexify(JAVA_TC_BLOCKDATA))
 	}
 	b.IncreaseIndent()
 	b.Printf("@Blockdata - %s", Hexify(bd.data))

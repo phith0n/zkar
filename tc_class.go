@@ -13,7 +13,7 @@ func (c *TCClass) ToBytes() []byte {
 
 func (c *TCClass) ToString() string {
 	var b = NewPrinter()
-	b.Printf("TC_CLASS - %s\n", Hexify(JAVA_TC_CLASS))
+	b.Printf("TC_CLASS - %s", Hexify(JAVA_TC_CLASS))
 	b.IncreaseIndent()
 	b.Printf(c.ClassPointer.ToString())
 	b.Printf("@Handler - %v", c.Handler)

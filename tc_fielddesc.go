@@ -39,13 +39,13 @@ func (f *TCFieldDesc) ToBytes() []byte {
 
 func (f *TCFieldDesc) ToString() string {
 	var b = NewPrinter()
-	b.Printf("%s - %s - %s\n", typecodeVerbose[f.TypeCode], f.TypeCode, Hexify(f.TypeCode))
-	b.Printf("@FieldName \n")
+	b.Printf("%s - %s - %s", typecodeVerbose[f.TypeCode], f.TypeCode, Hexify(f.TypeCode))
+	b.Printf("@FieldName")
 	b.IncreaseIndent()
 	b.Printf(f.FieldName.ToString())
 	b.DecreaseIndent()
 	if f.TypeCode == "L" || f.TypeCode == "[" {
-		b.Printf("@ClassName \n")
+		b.Printf("@ClassName")
 		b.IncreaseIndent()
 		b.Printf(f.ClassName.ToString())
 	}

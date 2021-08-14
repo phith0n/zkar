@@ -25,12 +25,12 @@ func (so *TCString) ToString() string {
 	var b = NewPrinter()
 	var length = len(so.Utf.Data)
 	if length <= 0xFFFF {
-		b.Printf("TC_STRING - %s\n", Hexify(JAVA_TC_STRING))
+		b.Printf("TC_STRING - %s", Hexify(JAVA_TC_STRING))
 	} else {
-		b.Printf("TC_LONGSTRING - %s\n", Hexify(JAVA_TC_LONGSTRING))
+		b.Printf("TC_LONGSTRING - %s", Hexify(JAVA_TC_LONGSTRING))
 	}
 	b.IncreaseIndent()
-	b.Printf("@Handler - %v\n", so.Handler)
+	b.Printf("@Handler - %v", so.Handler)
 	b.Printf(so.Utf.ToString())
 	return b.String()
 }

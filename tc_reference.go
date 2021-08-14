@@ -25,7 +25,7 @@ func (r *TCReference) ToBytes() []byte {
 
 func (r *TCReference) ToString() string {
 	var b = NewPrinter()
-	b.Printf("TC_REFERENCE - %s\n", Hexify(JAVA_TC_REFERENCE))
+	b.Printf("TC_REFERENCE - %s", Hexify(JAVA_TC_REFERENCE))
 	b.IncreaseIndent()
 	b.Printf("@Handler - %v - %s", r.Handler, Hexify(r.Handler))
 	return b.String()

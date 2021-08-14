@@ -23,13 +23,12 @@ func NewObjectInputStream() *ObjectInputStream {
 
 func (ois *ObjectInputStream) ToString() string {
 	var b = NewPrinter()
-	b.Printf("@Magic - %s\n", Hexify(ois.MagicNumber))
-	b.Printf("@Version - %s\n", Hexify(ois.StreamVersion))
-	b.Printf("@Contents \n")
+	b.Printf("@Magic - %s", Hexify(ois.MagicNumber))
+	b.Printf("@Version - %s", Hexify(ois.StreamVersion))
+	b.Printf("@Contents")
 	b.IncreaseIndent()
 	for _, content := range ois.Contents {
 		b.Printf(content.ToString())
-		b.Printf("\n")
 	}
 	return b.String()
 }

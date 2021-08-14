@@ -29,16 +29,15 @@ func (cd *TCClassData) ToBytes() []byte {
 
 func (cd *TCClassData) ToString() string {
 	var b = NewPrinter()
-	b.Printf("@ClassName - %s\n", cd.ReferenceClassName)
+	b.Printf("@ClassName - %s", cd.ReferenceClassName)
 	b.IncreaseIndent()
-	b.Printf("{}Attributes \n")
+	b.Printf("{}Attributes")
 	b.IncreaseIndent()
 	for pair := cd.FieldDatas.Oldest(); pair != nil; pair = pair.Next() {
-		b.Printf("%s\n", pair.Key.(string))
+		b.Printf("%s", pair.Key.(string))
 		b.IncreaseIndent()
 		b.Printf(pair.Value.(Object).ToString())
 		b.DecreaseIndent()
-		b.Printf("\n")
 	}
 	b.DecreaseIndent()
 
@@ -46,7 +45,7 @@ func (cd *TCClassData) ToString() string {
 		return b.String()
 	}
 
-	b.Printf("@ObjectAnnotation \n")
+	b.Printf("@ObjectAnnotation")
 	b.IncreaseIndent()
 	for _, content := range cd.ObjectAnnotation {
 		b.Printf(content.ToString())
