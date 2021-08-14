@@ -29,3 +29,10 @@ func TestPrinterNewlines(t *testing.T) {
 	b.Printf("\n\n\n\n\n")
 	require.Equal(t, "", b.String())
 }
+
+func TestPrinterIndentLines(t *testing.T) {
+	var b = NewPrinter()
+	b.IncreaseIndent()
+	b.Printf("\n\n\n")
+	require.Equal(t, "", b.String())
+}
