@@ -23,6 +23,14 @@ func (r *TCReference) ToBytes() []byte {
 	return append(result, bs...)
 }
 
+func (r *TCReference) ToString() string {
+	var b = NewPrinter()
+	b.Printf("TC_REFERENCE - %s\n", Hexify(JAVA_TC_REFERENCE))
+	b.IncreaseIndent()
+	b.Printf("Handle - %s", Hexify(r.Handler))
+	return b.String()
+}
+
 func readTCReference(stream *ObjectStream) (*TCReference, error) {
 	// read JAVA_TC_REFERENCE flag
 	_, _ = stream.ReadN(1)

@@ -12,6 +12,16 @@ func (e *TCEnum) ToBytes() []byte {
 	return bs
 }
 
+func (e *TCEnum) ToString() string {
+	var b = NewPrinter()
+	b.Printf("TC_ENUM - %s\n", Hexify(JAVA_TC_ENUM))
+	b.IncreaseIndent()
+	b.Printf(e.ClassPointer.ToString())
+	b.Printf("\n")
+	b.Printf(e.ConstantName.ToString())
+	return b.String()
+}
+
 func readTCEnum(stream *ObjectStream) (*TCEnum, error) {
 	var enum = new(TCEnum)
 	var err error

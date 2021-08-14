@@ -8,6 +8,18 @@ import (
 var PrimitiveTypecode = []string{"B", "C", "D", "F", "I", "J", "S", "Z"}
 var ObjectTypecode = []string{"[", "L"}
 var AllTypecode = append(PrimitiveTypecode, ObjectTypecode...)
+var typecodeVerbose = map[string]string {
+	"B": "Byte",
+	"C": "Char",
+	"D": "Double",
+	"F": "Float",
+	"I": "Integer",
+	"J": "Long",
+	"S": "Short",
+	"Z": "Boolean",
+	"[": "Array",
+	"L": "Object",
+}
 
 type TCFieldDesc struct {
 	TypeCode  string
@@ -23,6 +35,22 @@ func (f *TCFieldDesc) ToBytes() []byte {
 	}
 
 	return bs
+}
+
+func (f *TCFieldDesc) ToString() string {
+	var b = NewPrinter()
+	b.Printf("%s - %s - %s\n", typecodeVerbose[f.TypeCode], f.TypeCode, Hexify(f.TypeCode))
+	b.Printf("@FieldName \n")
+	b.IncreaseIndent()
+	b.Printf(f.FieldName.ToString())
+	b.DecreaseIndent()
+	if f.TypeCode == "L" || f.TypeCode == "[" {
+		b.Printf("@ClassName \n")
+		b.IncreaseIndent()
+		b.Printf(f.ClassName.ToString())
+	}
+
+	return b.String()
 }
 
 func readTCField(stream *ObjectStream) (*TCFieldDesc, error) {

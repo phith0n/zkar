@@ -22,6 +22,18 @@ func (bd *TCBlockData) ToBytes() []byte {
 	return append(bs, bd.data...)
 }
 
+func (bd *TCBlockData) ToString() string {
+	var b = NewPrinter()
+	if len(bd.data) > 0xFF {
+		b.Printf("TC_BLOCKDATALONG - %s\n", Hexify(JAVA_TC_BLOCKDATALONG))
+	} else {
+		b.Printf("TC_BLOCKDATA - %s\n", Hexify(JAVA_TC_BLOCKDATA))
+	}
+	b.IncreaseIndent()
+	b.Printf("@blockdata - %s", Hexify(bd.data))
+	return b.String()
+}
+
 func readTCBlockData(stream *ObjectStream) (*TCBlockData, error) {
 	// read JAVA_TC_BLOCKDATA or JAVA_TC_BLOCKDATALONG Flag
 	flag, _ := stream.ReadN(1)

@@ -1,15 +1,18 @@
 package javaserialize
 
+import orderedmap "github.com/wk8/go-ordered-map"
+
 type TCClassData struct {
 	HasAnnotation    bool
-	FieldDatas       []*TCValue
+	ReferenceClassName string
+	FieldDatas       *orderedmap.OrderedMap
 	ObjectAnnotation []*TCContent
 }
 
 func (cd *TCClassData) ToBytes() []byte {
 	var bs []byte
-	for _, value := range cd.FieldDatas {
-		bs = append(bs, value.ToBytes()...)
+	for pair := cd.FieldDatas.Oldest(); pair != nil; pair = pair.Next() {
+		bs = append(bs, pair.Value.(Object).ToBytes()...)
 	}
 
 	if !cd.HasAnnotation {
@@ -24,9 +27,41 @@ func (cd *TCClassData) ToBytes() []byte {
 	return bs
 }
 
+func (cd *TCClassData) ToString() string {
+	var b = NewPrinter()
+	b.Printf("@ClassName - %s\n", cd.ReferenceClassName)
+	b.IncreaseIndent()
+	b.Printf("{}Attributes \n")
+	b.IncreaseIndent()
+	for pair := cd.FieldDatas.Oldest(); pair != nil; pair = pair.Next() {
+		b.Printf("%s\n", pair.Key.(string))
+		b.IncreaseIndent()
+		b.Printf(pair.Value.(Object).ToString())
+		b.DecreaseIndent()
+		b.Printf("\n")
+	}
+	b.DecreaseIndent()
+
+	if !cd.HasAnnotation {
+		return b.String()
+	}
+
+	b.Printf("@ObjectAnnotation \n")
+	b.IncreaseIndent()
+	for _, content := range cd.ObjectAnnotation {
+		b.Printf(content.ToString())
+	}
+
+	return b.String()
+}
+
 func readTCClassData(stream *ObjectStream, desc *TCClassDesc) (*TCClassData, error) {
 	var err error
-	var classData = new(TCClassData)
+	var classData = &TCClassData{
+		ReferenceClassName: desc.ClassName.Data,
+		FieldDatas: orderedmap.New(),
+	}
+
 	current := stream.CurrentIndex()
 	if desc.HasFlag(JAVA_SC_SERIALIZABLE) {
 		for _, field := range desc.Fields {
@@ -37,13 +72,13 @@ func readTCClassData(stream *ObjectStream, desc *TCClassDesc) (*TCClassData, err
 				// Then everything will be read from objectAnnotation
 				// Example: ysoserial C3O0
 				stream.Seek(current)
-				classData.FieldDatas = []*TCValue{}
+				classData.FieldDatas = orderedmap.New()
 				break
 			} else if err != nil {
 				return nil, err
 			}
 
-			classData.FieldDatas = append(classData.FieldDatas, fieldData)
+			classData.FieldDatas.Set(field.FieldName.Data, fieldData)
 		}
 	}
 

@@ -16,6 +16,14 @@ func (sp *TCStringPointer) ToBytes() []byte {
 	}
 }
 
+func (sp *TCStringPointer) ToString() string {
+	if sp.IsRef {
+		return sp.Reference.ToString()
+	} else {
+		return sp.String.ToString()
+	}
+}
+
 func readTCStringPointer(stream *ObjectStream) (*TCStringPointer, error) {
 	flag, err := stream.PeekN(1)
 	if err != nil {

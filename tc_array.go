@@ -23,6 +23,25 @@ func (t *TCArray) ToBytes() []byte {
 	return bs
 }
 
+func (t *TCArray) ToString() string {
+	var b = NewPrinter()
+	b.Printf("TC_ARRAY - %s", Hexify(JAVA_TC_ARRAY))
+	b.IncreaseIndent()
+	b.Printf(t.ClassPointer.ToString())
+	b.Printf("\n")
+	b.Printf("@ArraySize - %d - %s\n", len(t.ArrayData), Hexify(uint32(len(t.ArrayData))))
+	b.Printf("[]Values \n")
+	b.IncreaseIndent()
+	for index, data := range t.ArrayData {
+		b.Printf("Index %d\n", index)
+		b.IncreaseIndent()
+		b.Printf(data.ToString())
+		b.DecreaseIndent()
+	}
+
+	return b.String()
+}
+
 func readTCArray(stream *ObjectStream) (*TCArray, error) {
 	var array = new(TCArray)
 	var err error

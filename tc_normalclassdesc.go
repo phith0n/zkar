@@ -32,6 +32,46 @@ func (desc *TCClassDesc) ToBytes() []byte {
 	return result
 }
 
+func (desc *TCClassDesc) ToString() string {
+	var b = NewPrinter()
+	b.Printf("TC_CLASSDESC - %s\n", Hexify(JAVA_TC_CLASSDESC))
+	b.IncreaseIndent()
+	b.Printf("@ClassName\n")
+	b.IncreaseIndent()
+	b.Printf(desc.ClassName.ToString())
+	b.DecreaseIndent()
+	b.Printf("\n")
+	b.Printf("@SerialVersionUID - %v - %s\n", desc.SerialVersionUID, Hexify(desc.SerialVersionUID))
+	b.Printf("@ClassDescFlags - %s\n", Hexify(desc.ClassDescFlags))
+	b.Printf("@FieldCount - %d - %s\n", len(desc.Fields), Hexify(uint16(len(desc.Fields))))
+	b.Printf("[]Fields \n")
+	b.IncreaseIndent()
+	for index, field := range desc.Fields {
+		b.Printf("Index %d:\n", index)
+		b.IncreaseIndent()
+		b.Printf(field.ToString())
+		b.DecreaseIndent()
+		b.Printf("\n")
+	}
+	b.DecreaseIndent()
+	b.Printf("[]ClassAnnotations \n")
+	b.IncreaseIndent()
+	for index, content := range desc.ClassAnnotation {
+		b.Printf("Index %d:\n", index)
+		b.IncreaseIndent()
+		b.Printf(content.ToString())
+		b.DecreaseIndent()
+		b.Printf("\n")
+	}
+	b.Printf("TC_ENDBLOCKDATA - %s\n", Hexify(JAVA_TC_ENDBLOCKDATA))
+	b.DecreaseIndent()
+	b.Printf("@SuperClassDesc \n")
+	b.IncreaseIndent()
+	b.Printf(desc.SuperClassPointer.ToString())
+
+	return b.String()
+}
+
 // HasFlag Check if a TCClassDesc object has a flag
 func (desc *TCClassDesc) HasFlag(flag byte) bool {
 	return (desc.ClassDescFlags & flag) == flag

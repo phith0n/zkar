@@ -11,7 +11,7 @@ type TCUtf struct {
 
 func (u *TCUtf) ToBytes() []byte {
 	var bs []byte
-	length := len(u.Data)
+	var length = len(u.Data)
 	if length <= 0xFFFF {
 		bs = NumberToBytes(uint16(len(u.Data)))
 	} else {
@@ -19,6 +19,21 @@ func (u *TCUtf) ToBytes() []byte {
 	}
 
 	return append(bs, []byte(u.Data)...)
+}
+
+func (u *TCUtf) ToString() string {
+	var b = NewPrinter()
+	var length = len(u.Data)
+	var bs []byte
+	if length <= 0xFFFF {
+		bs = NumberToBytes(uint16(len(u.Data)))
+	} else {
+		bs = NumberToBytes(uint64(len(u.Data)))
+	}
+
+	b.Printf("@length - %d - %s\n", len(u.Data), Hexify(bs))
+	b.Printf("@value - %s - %s", u.Data, Hexify(u.Data))
+	return b.String()
 }
 
 func readUTF(stream *ObjectStream) (*TCUtf, error) {

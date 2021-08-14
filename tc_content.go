@@ -42,6 +42,32 @@ func (c *TCContent) ToBytes() []byte {
 	return bs
 }
 
+func (c *TCContent) ToString() string {
+	var bs string
+	switch c.Flag {
+	case JAVA_TC_STRING, JAVA_TC_LONGSTRING:
+		bs = c.String.ToString()
+	case JAVA_TC_BLOCKDATA, JAVA_TC_BLOCKDATALONG:
+		bs = c.BlockData.ToString()
+	case JAVA_TC_CLASS:
+		bs = c.Class.ToString()
+	case JAVA_TC_OBJECT:
+		bs = c.Object.ToString()
+	case JAVA_TC_NULL:
+		bs = c.Null.ToString()
+	case JAVA_TC_REFERENCE:
+		bs = c.Reference.ToString()
+	case JAVA_TC_ENUM:
+		bs = c.Enum.ToString()
+	case JAVA_TC_ARRAY:
+		bs = c.Array.ToString()
+	case JAVA_TC_RESET:
+		bs = "TC_RESET"
+	}
+
+	return bs
+}
+
 func readTCContent(stream *ObjectStream) (*TCContent, error) {
 	var err error = nil
 	var content = new(TCContent)

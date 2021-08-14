@@ -10,7 +10,7 @@ type TCString struct {
 
 func (so *TCString) ToBytes() []byte {
 	var bs []byte
-	length := len(so.Utf.Data)
+	var length = len(so.Utf.Data)
 	if length <= 0xFFFF {
 		bs = append(bs, JAVA_TC_STRING)
 	} else {
@@ -18,6 +18,19 @@ func (so *TCString) ToBytes() []byte {
 	}
 
 	return append(bs, so.Utf.ToBytes()...)
+}
+
+func (so *TCString) ToString() string {
+	var b = NewPrinter()
+	var length = len(so.Utf.Data)
+	if length <= 0xFFFF {
+		b.Printf("TC_STRING - %s\n", Hexify(JAVA_TC_STRING))
+	} else {
+		b.Printf("TC_LONGSTRING - %s\n", Hexify(JAVA_TC_LONGSTRING))
+	}
+	b.IncreaseIndent()
+	b.Printf(so.Utf.ToString())
+	return b.String()
 }
 
 func readTCString(stream *ObjectStream) (*TCString, error) {

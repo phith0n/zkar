@@ -27,6 +27,38 @@ func (pc *TCProxyClassDesc) ToBytes() []byte {
 	return bs
 }
 
+func (pc *TCProxyClassDesc) ToString() string {
+	var b = NewPrinter()
+	b.Printf("TC_PROXYCLASSDESC - %s\n", Hexify(JAVA_TC_PROXYCLASSDESC))
+	b.IncreaseIndent()
+	b.Printf("@InterfaceCount - %d - %s\n", len(pc.InterfaceNames), Hexify(uint32(len(pc.InterfaceNames))))
+	b.IncreaseIndent()
+	for index, ifce := range pc.InterfaceNames {
+		b.Printf("Index %d:\n", index)
+		b.IncreaseIndent()
+		b.Printf(ifce.ToString())
+		b.DecreaseIndent()
+	}
+	b.DecreaseIndent()
+
+	b.Printf("@ClassAnnotations \n")
+	b.IncreaseIndent()
+	for index, content := range pc.ClassAnnotation {
+		b.Printf("Index %d\n", index)
+		b.IncreaseIndent()
+		b.Printf(content.ToString())
+		b.DecreaseIndent()
+		b.Printf("\n")
+	}
+	b.Printf("TC_ENDBLOCKDATA - %s\n", Hexify(JAVA_TC_ENDBLOCKDATA))
+	b.DecreaseIndent()
+
+	b.Printf("@SuperClassDesc \n")
+	b.IncreaseIndent()
+	b.Printf(pc.SuperClassPointer.ToString())
+	return b.String()
+}
+
 func readTCProxyClassDesc(stream *ObjectStream) (*TCProxyClassDesc, error) {
 	var desc = new(TCProxyClassDesc)
 

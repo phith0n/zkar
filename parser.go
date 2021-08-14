@@ -11,6 +11,7 @@ var sugar = logger.Sugar()
 
 type Object interface {
 	ToBytes() []byte
+	ToString() string
 }
 
 type ObjectInputStream struct {
@@ -21,6 +22,19 @@ type ObjectInputStream struct {
 
 func NewObjectInputStream() *ObjectInputStream {
 	return &ObjectInputStream{}
+}
+
+func (ois *ObjectInputStream) ToString() string {
+	var b = NewPrinter()
+	b.Printf("@magic - %s\n", Hexify(ois.MagicNumber))
+	b.Printf("@version - %s\n", Hexify(ois.StreamVersion))
+	b.Printf("@contents \n")
+	b.IncreaseIndent()
+	for _, content := range ois.Contents {
+		b.Printf(content.ToString())
+		b.Printf("\n")
+	}
+	return b.String()
 }
 
 func (ois *ObjectInputStream) ToBytes() []byte {

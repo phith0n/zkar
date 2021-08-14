@@ -23,6 +23,26 @@ func (cp *TCClassPointer) ToBytes() []byte {
 		result = cp.NormalClassDesc.ToBytes()
 	case JAVA_TC_PROXYCLASSDESC:
 		result = cp.ProxyClassDesc.ToBytes()
+	default:
+		panic("unexpected TCClassPointer Flag")
+	}
+
+	return result
+}
+
+func (cp *TCClassPointer) ToString() string {
+	var result string
+	switch cp.Flag {
+	case JAVA_TC_NULL:
+		result = cp.Null.ToString()
+	case JAVA_TC_REFERENCE:
+		result = cp.Reference.ToString()
+	case JAVA_TC_CLASSDESC:
+		result = cp.NormalClassDesc.ToString()
+	case JAVA_TC_PROXYCLASSDESC:
+		result = cp.ProxyClassDesc.ToString()
+	default:
+		panic("unexpected TCClassPointer Flag")
 	}
 
 	return result

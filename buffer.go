@@ -78,6 +78,16 @@ func (s *ObjectStream) AddReference(obj Object) {
 	s.handler++
 }
 
+func (s *ObjectStream) FindReferenceId(obj Object) uint32 {
+	for pair := s.references.Oldest(); pair != nil; pair = pair.Next() {
+		if pair.Value == obj {
+			return pair.Key.(uint32)
+		}
+	}
+
+	return 0
+}
+
 func (s *ObjectStream) GetReference(handler uint32) Object {
 	for pair := s.references.Oldest(); pair != nil; pair = pair.Next() {
 		if pair.Key == handler {
