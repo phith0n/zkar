@@ -12,6 +12,7 @@ type TCClassDesc struct {
 	Fields            []*TCFieldDesc
 	ClassAnnotation   []*TCContent
 	SuperClassPointer *TCClassPointer
+	Handler uint32
 }
 
 func (desc *TCClassDesc) ToBytes() []byte {
@@ -42,6 +43,7 @@ func (desc *TCClassDesc) ToString() string {
 	b.DecreaseIndent()
 	b.Printf("\n")
 	b.Printf("@SerialVersionUID - %v - %s\n", desc.SerialVersionUID, Hexify(desc.SerialVersionUID))
+	b.Printf("@Handler - %v\n", desc.Handler)
 	b.Printf("@ClassDescFlags - %s\n", Hexify(desc.ClassDescFlags))
 	b.Printf("@FieldCount - %d - %s\n", len(desc.Fields), Hexify(uint16(len(desc.Fields))))
 	b.Printf("[]Fields \n")

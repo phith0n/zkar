@@ -10,6 +10,7 @@ type TCArray struct {
 	TypeCode     byte
 	ClassPointer *TCClassPointer
 	ArrayData    []*TCValue
+	Handler uint32
 }
 
 func (t *TCArray) ToBytes() []byte {
@@ -29,6 +30,7 @@ func (t *TCArray) ToString() string {
 	b.IncreaseIndent()
 	b.Printf(t.ClassPointer.ToString())
 	b.Printf("\n")
+	b.Printf("@Handler - %v\n", t.Handler)
 	b.Printf("@ArraySize - %d - %s\n", len(t.ArrayData), Hexify(uint32(len(t.ArrayData))))
 	b.Printf("[]Values \n")
 	b.IncreaseIndent()

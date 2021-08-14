@@ -74,6 +74,25 @@ func (s *ObjectStream) CurrentIndex() int64 {
 }
 
 func (s *ObjectStream) AddReference(obj Object) {
+	switch obj := obj.(type) {
+	case *TCObject:
+		obj.Handler = s.handler
+	case *TCClass:
+		obj.Handler = s.handler
+	case *TCClassDesc:
+		obj.Handler = s.handler
+	case *TCProxyClassDesc:
+		obj.Handler = s.handler
+	case *TCString:
+		obj.Handler = s.handler
+	case *TCArray:
+		obj.Handler = s.handler
+	case *TCEnum:
+		obj.Handler = s.handler
+	default:
+		panic("reference is not allowed here")
+	}
+
 	s.references.Set(s.handler, obj)
 	s.handler++
 }

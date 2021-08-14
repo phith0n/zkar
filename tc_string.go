@@ -6,6 +6,7 @@ import (
 
 type TCString struct {
 	Utf *TCUtf
+	Handler uint32
 }
 
 func (so *TCString) ToBytes() []byte {
@@ -29,6 +30,7 @@ func (so *TCString) ToString() string {
 		b.Printf("TC_LONGSTRING - %s\n", Hexify(JAVA_TC_LONGSTRING))
 	}
 	b.IncreaseIndent()
+	b.Printf("@Handler - %v\n", so.Handler)
 	b.Printf(so.Utf.ToString())
 	return b.String()
 }

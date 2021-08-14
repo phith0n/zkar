@@ -7,8 +7,8 @@ import (
 )
 
 func main() {
-	var filename = "testcases/ysoserial/C3P0.ser"
-	// var filename = "example/object.poc"
+	// var filename = "testcases/ysoserial/class.ser"
+	var filename = "example/object.poc"
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		fmt.Println(err.Error())

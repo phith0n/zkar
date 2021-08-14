@@ -27,7 +27,7 @@ func (r *TCReference) ToString() string {
 	var b = NewPrinter()
 	b.Printf("TC_REFERENCE - %s\n", Hexify(JAVA_TC_REFERENCE))
 	b.IncreaseIndent()
-	b.Printf("Handle - %s", Hexify(r.Handler))
+	b.Printf("@Handler - %v - %s", r.Handler, Hexify(r.Handler))
 	return b.String()
 }
 

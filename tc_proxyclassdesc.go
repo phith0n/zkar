@@ -9,6 +9,7 @@ type TCProxyClassDesc struct {
 	InterfaceNames    []*TCUtf
 	ClassAnnotation   []*TCContent
 	SuperClassPointer *TCClassPointer
+	Handler uint32
 }
 
 func (pc *TCProxyClassDesc) ToBytes() []byte {
@@ -31,6 +32,7 @@ func (pc *TCProxyClassDesc) ToString() string {
 	var b = NewPrinter()
 	b.Printf("TC_PROXYCLASSDESC - %s\n", Hexify(JAVA_TC_PROXYCLASSDESC))
 	b.IncreaseIndent()
+	b.Printf("@Handler - %v\n", pc.Handler)
 	b.Printf("@InterfaceCount - %d - %s\n", len(pc.InterfaceNames), Hexify(uint32(len(pc.InterfaceNames))))
 	b.IncreaseIndent()
 	for index, ifce := range pc.InterfaceNames {

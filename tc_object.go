@@ -3,6 +3,7 @@ package javaserialize
 type TCObject struct {
 	ClassPointer *TCClassPointer
 	ClassDatas   []*TCClassData
+	Handler uint32
 }
 
 func (oo *TCObject) ToBytes() []byte {
@@ -20,6 +21,7 @@ func (oo *TCObject) ToString() string {
 	b.Printf("TC_OBJECT - %s\n", Hexify(JAVA_TC_OBJECT))
 	b.IncreaseIndent()
 	b.Printf(oo.ClassPointer.ToString())
+	b.Printf("@Handler - %v", oo.Handler)
 	b.Printf("[]ClassData \n")
 	b.IncreaseIndent()
 	for _, data := range oo.ClassDatas {

@@ -3,6 +3,7 @@ package javaserialize
 type TCEnum struct {
 	ClassPointer *TCClassPointer
 	ConstantName *TCStringPointer
+	Handler uint32
 }
 
 func (e *TCEnum) ToBytes() []byte {
@@ -18,6 +19,7 @@ func (e *TCEnum) ToString() string {
 	b.IncreaseIndent()
 	b.Printf(e.ClassPointer.ToString())
 	b.Printf("\n")
+	b.Printf("@Handler - %v\n", e.Handler)
 	b.Printf(e.ConstantName.ToString())
 	return b.String()
 }
