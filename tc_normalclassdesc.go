@@ -3,6 +3,7 @@ package javaserialize
 import (
 	"encoding/binary"
 	"fmt"
+	"strings"
 )
 
 type TCClassDesc struct {
@@ -35,6 +36,7 @@ func (desc *TCClassDesc) ToBytes() []byte {
 
 func (desc *TCClassDesc) ToString() string {
 	var b = NewPrinter()
+
 	b.Printf("TC_CLASSDESC - %s\n", Hexify(JAVA_TC_CLASSDESC))
 	b.IncreaseIndent()
 	b.Printf("@ClassName\n")
@@ -44,7 +46,7 @@ func (desc *TCClassDesc) ToString() string {
 	b.Printf("\n")
 	b.Printf("@SerialVersionUID - %v - %s\n", desc.SerialVersionUID, Hexify(desc.SerialVersionUID))
 	b.Printf("@Handler - %v\n", desc.Handler)
-	b.Printf("@ClassDescFlags - %s\n", Hexify(desc.ClassDescFlags))
+	b.Printf("@ClassDescFlags - %s - %s\n", desc.FlagString(), Hexify(desc.ClassDescFlags))
 	b.Printf("@FieldCount - %d - %s\n", len(desc.Fields), Hexify(uint16(len(desc.Fields))))
 	b.Printf("[]Fields \n")
 	b.IncreaseIndent()
@@ -77,6 +79,24 @@ func (desc *TCClassDesc) ToString() string {
 // HasFlag Check if a TCClassDesc object has a flag
 func (desc *TCClassDesc) HasFlag(flag byte) bool {
 	return (desc.ClassDescFlags & flag) == flag
+}
+
+func (desc *TCClassDesc) FlagString() string {
+	var descFlags []string
+	if desc.HasFlag(JAVA_SC_SERIALIZABLE) {
+		descFlags = append(descFlags, "SC_SERIALIZABLE")
+	}
+	if desc.HasFlag(JAVA_SC_WRITE_METHOD) {
+		descFlags = append(descFlags, "SC_WRITE_METHOD")
+	}
+	if desc.HasFlag(JAVA_SC_EXTERNALIZABLE) {
+		descFlags = append(descFlags, "SC_EXTERNALIZABLE")
+	}
+	if desc.HasFlag(JAVA_SC_BLOCK_DATA) {
+		descFlags = append(descFlags, "SC_BLOCK_DATA")
+	}
+
+	return strings.Join(descFlags, "|")
 }
 
 func readTCNormalClassDesc(stream *ObjectStream) (*TCClassDesc, error) {
