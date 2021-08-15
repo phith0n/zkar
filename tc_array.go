@@ -2,6 +2,7 @@ package zkar
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"strings"
 )
@@ -33,6 +34,19 @@ func (t *TCArray) ToString() string {
 	b.Printf("@ArraySize - %d - %s", len(t.ArrayData), Hexify(uint32(len(t.ArrayData))))
 	b.Printf("[]Values")
 	b.IncreaseIndent()
+
+
+	var className = ""
+	if t.ClassPointer.Flag == JAVA_TC_CLASSDESC {
+		className = t.ClassPointer.NormalClassDesc.ClassName.Data
+	} else if t.ClassPointer.Flag == JAVA_TC_REFERENCE && t.ClassPointer.Reference.Flag == JAVA_TC_CLASSDESC {
+		className = t.ClassPointer.Reference.NormalClassDesc.ClassName.Data
+	}
+	if className == "[B" {
+		b.Printf(t.DumpByteArray(t.ArrayData))
+		return b.String()
+	}
+
 	for index, data := range t.ArrayData {
 		b.Printf("Index %d", index)
 		b.IncreaseIndent()
@@ -40,6 +54,16 @@ func (t *TCArray) ToString() string {
 		b.DecreaseIndent()
 	}
 
+	return b.String()
+}
+
+func (t *TCArray) DumpByteArray(arr []*TCValue) string {
+	var b strings.Builder
+	var dumper = hex.Dumper(&b)
+	for _, v := range arr {
+		_, _ = dumper.Write([]byte{v.Byte})
+	}
+	dumper.Close()
 	return b.String()
 }
 
