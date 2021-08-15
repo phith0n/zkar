@@ -1,4 +1,4 @@
-package javaserialize
+package zkar
 
 import (
 	"github.com/stretchr/testify/require"

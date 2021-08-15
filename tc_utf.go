@@ -1,4 +1,4 @@
-package javaserialize
+package zkar
 
 import (
 	"encoding/binary"
@@ -67,7 +67,7 @@ func readLongUTF(stream *ObjectStream) (*TCUtf, error) {
 
 	length := binary.BigEndian.Uint64(bs)
 	if length > 0xFFFFFFFF {
-		return nil, fmt.Errorf("javaserialize doesn't support JAVA_TC_LONGSTRING longer than 0xFFFFFFFF, but current length is %v", length)
+		return nil, fmt.Errorf("zkar doesn't support JAVA_TC_LONGSTRING longer than 0xFFFFFFFF, but current length is %v", length)
 	}
 
 	data, err := stream.ReadN(int(length))

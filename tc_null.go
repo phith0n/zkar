@@ -1,4 +1,4 @@
-package javaserialize
+package zkar
 
 type TCNull struct {
 	// nothing

@@ -1,4 +1,4 @@
-package javaserialize
+package zkar
 
 type TCObject struct {
 	ClassPointer *TCClassPointer

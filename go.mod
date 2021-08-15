@@ -1,4 +1,4 @@
-module github.com/phith0n/javaserialize
+module github.com/phith0n/zkar
 
 go 1.16
 

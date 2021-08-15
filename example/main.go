@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/phith0n/javaserialize"
+	"github.com/phith0n/zkar"
 	"io/ioutil"
 )
 
@@ -15,7 +15,7 @@ func main() {
 		return
 	}
 
-	os := javaserialize.NewObjectInputStream()
+	os := zkar.NewObjectInputStream()
 	err = os.Read(data)
 	if err != nil {
 		fmt.Println(err.Error())

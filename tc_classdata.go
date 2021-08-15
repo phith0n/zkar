@@ -1,4 +1,4 @@
-package javaserialize
+package zkar
 
 import orderedmap "github.com/wk8/go-ordered-map"
 

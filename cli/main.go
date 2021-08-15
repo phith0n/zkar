@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/phith0n/javaserialize"
+	"github.com/phith0n/zkar"
 	"github.com/urfave/cli/v2"
 	"io/ioutil"
 	"os"
@@ -32,7 +32,7 @@ func main() {
 						return err
 					}
 
-					ois := javaserialize.NewObjectInputStream()
+					ois := zkar.NewObjectInputStream()
 					err = ois.Read(data)
 					if err != nil {
 						return nil
