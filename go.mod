@@ -6,7 +6,7 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
-	github.com/sanity-io/litter v1.5.1
+	github.com/phith0n/litter v1.5.3
 	github.com/stretchr/testify v1.7.0
 	github.com/thoas/go-funk v0.9.0
 	github.com/urfave/cli/v2 v2.3.0

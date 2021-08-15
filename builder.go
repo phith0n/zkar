@@ -53,3 +53,15 @@ func SimpleClassDesc(className string, svuid int64, flags byte, handler uint32, 
 
 	return &desc
 }
+
+func NewTCValueBytes(data []byte) []*TCValue {
+	var l []*TCValue
+	for _, b := range data {
+		value := &TCValue{
+			TypeCode: "B",
+			Byte: b,
+		}
+		l = append(l, value)
+	}
+	return l
+}
