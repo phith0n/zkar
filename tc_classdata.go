@@ -1,6 +1,9 @@
 package zkar
 
-import orderedmap "github.com/wk8/go-ordered-map"
+import (
+	orderedmap "github.com/wk8/go-ordered-map"
+	"io"
+)
 
 type TCClassData struct {
 	HasAnnotation    bool
@@ -70,7 +73,7 @@ func readTCClassData(stream *ObjectStream, desc *TCClassDesc) (*TCClassData, err
 				// So we should clear the classData.FieldDatas and reset the position of stream
 				// Then everything will be read from objectAnnotation
 				// Example: ysoserial C3O0
-				stream.Seek(current)
+				stream.Seek(current, io.SeekStart)
 				classData.FieldDatas = orderedmap.New()
 				break
 			} else if err != nil {
