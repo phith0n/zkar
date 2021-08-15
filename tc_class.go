@@ -15,7 +15,7 @@ func (c *TCClass) ToString() string {
 	var b = NewPrinter()
 	b.Printf("TC_CLASS - %s", Hexify(JAVA_TC_CLASS))
 	b.IncreaseIndent()
-	b.Printf(c.ClassPointer.ToString())
+	b.Print(c.ClassPointer.ToString())
 	b.Printf("@Handler - %v", c.Handler)
 	return b.String()
 }

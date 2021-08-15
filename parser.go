@@ -57,7 +57,7 @@ func (ois *Serialization) ToString() string {
 	b.Printf("@Contents")
 	b.IncreaseIndent()
 	for _, content := range ois.Contents {
-		b.Printf(content.ToString())
+		b.Print(content.ToString())
 	}
 	return b.String()
 }

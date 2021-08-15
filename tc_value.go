@@ -83,7 +83,7 @@ func (t *TCValue) ToString() string {
 	case "Z":
 		b.Printf("(boolean)%v - %s", t.Boolean, Hexify(t.Boolean))
 	case "L", "[":
-		b.Printf(t.Object.ToString())
+		b.Print(t.Object.ToString())
 	}
 
 	return b.String()

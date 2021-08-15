@@ -38,12 +38,12 @@ func (cd *TCClassData) ToString() string {
 	var b = NewPrinter()
 	b.Printf("@ClassName - %s", cd.ReferenceClass.ClassName)
 	b.IncreaseIndent()
-	b.Printf("{}Attributes")
+	b.Print("{}Attributes")
 	b.IncreaseIndent()
 	for i := 0; i < len(cd.FieldDatas); i++ {
 		b.Printf("%s", cd.ReferenceClass.Attributes[i])
 		b.IncreaseIndent()
-		b.Printf(cd.FieldDatas[i].ToString())
+		b.Print(cd.FieldDatas[i].ToString())
 		b.DecreaseIndent()
 	}
 	b.DecreaseIndent()
@@ -52,10 +52,10 @@ func (cd *TCClassData) ToString() string {
 		return b.String()
 	}
 
-	b.Printf("@ObjectAnnotation")
+	b.Print("@ObjectAnnotation")
 	b.IncreaseIndent()
 	for _, content := range cd.ObjectAnnotation {
-		b.Printf(content.ToString())
+		b.Print(content.ToString())
 	}
 
 	return b.String()

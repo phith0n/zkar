@@ -20,12 +20,12 @@ func (oo *TCObject) ToString() string {
 	var b = NewPrinter()
 	b.Printf("TC_OBJECT - %s", Hexify(JAVA_TC_OBJECT))
 	b.IncreaseIndent()
-	b.Printf(oo.ClassPointer.ToString())
+	b.Print(oo.ClassPointer.ToString())
 	b.Printf("@Handler - %v", oo.Handler)
-	b.Printf("[]ClassData")
+	b.Print("[]ClassData")
 	b.IncreaseIndent()
 	for _, data := range oo.ClassDatas {
-		b.Printf(data.ToString())
+		b.Print(data.ToString())
 	}
 
 	return b.String()

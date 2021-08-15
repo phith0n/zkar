@@ -31,7 +31,7 @@ func (so *TCString) ToString() string {
 	}
 	b.IncreaseIndent()
 	b.Printf("@Handler - %v", so.Handler)
-	b.Printf(so.Utf.ToString())
+	b.Print(so.Utf.ToString())
 	return b.String()
 }
 

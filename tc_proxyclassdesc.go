@@ -38,25 +38,25 @@ func (pc *TCProxyClassDesc) ToString() string {
 	for index, ifce := range pc.InterfaceNames {
 		b.Printf("Index %d:", index)
 		b.IncreaseIndent()
-		b.Printf(ifce.ToString())
+		b.Print(ifce.ToString())
 		b.DecreaseIndent()
 	}
 	b.DecreaseIndent()
 
-	b.Printf("@ClassAnnotations")
+	b.Print("@ClassAnnotations")
 	b.IncreaseIndent()
 	for index, content := range pc.ClassAnnotation {
 		b.Printf("Index %d", index)
 		b.IncreaseIndent()
-		b.Printf(content.ToString())
+		b.Print(content.ToString())
 		b.DecreaseIndent()
 	}
 	b.Printf("TC_ENDBLOCKDATA - %s", Hexify(JAVA_TC_ENDBLOCKDATA))
 	b.DecreaseIndent()
 
-	b.Printf("@SuperClassDesc")
+	b.Print("@SuperClassDesc")
 	b.IncreaseIndent()
-	b.Printf(pc.SuperClassPointer.ToString())
+	b.Print(pc.SuperClassPointer.ToString())
 	return b.String()
 }
 

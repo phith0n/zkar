@@ -15,9 +15,8 @@ func (p *Printer) Printf(msg string, args ...interface{}) {
 	p.indent(data)
 }
 
-func (p *Printer) PrintfNoIndent(msg string, args ...interface{}) {
-	var data = fmt.Sprintf(msg, args...)
-	_, _ = p.WriteString(data)
+func (p *Printer) Print(data string) {
+	p.indent(data)
 }
 
 func (p *Printer) IncreaseIndent() {

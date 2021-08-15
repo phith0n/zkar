@@ -40,14 +40,14 @@ func (f *TCFieldDesc) ToBytes() []byte {
 func (f *TCFieldDesc) ToString() string {
 	var b = NewPrinter()
 	b.Printf("%s - %s - %s", typecodeVerbose[f.TypeCode], f.TypeCode, Hexify(f.TypeCode))
-	b.Printf("@FieldName")
+	b.Print("@FieldName")
 	b.IncreaseIndent()
-	b.Printf(f.FieldName.ToString())
+	b.Print(f.FieldName.ToString())
 	b.DecreaseIndent()
 	if f.TypeCode == "L" || f.TypeCode == "[" {
-		b.Printf("@ClassName")
+		b.Print("@ClassName")
 		b.IncreaseIndent()
-		b.Printf(f.ClassName.ToString())
+		b.Print(f.ClassName.ToString())
 	}
 
 	return b.String()

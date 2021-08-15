@@ -29,7 +29,7 @@ func (t *TCArray) ToString() string {
 	var b = NewPrinter()
 	b.Printf("TC_ARRAY - %s", Hexify(JAVA_TC_ARRAY))
 	b.IncreaseIndent()
-	b.Printf(t.ClassPointer.ToString())
+	b.Print(t.ClassPointer.ToString())
 	b.Printf("@Handler - %v", t.Handler)
 	b.Printf("@ArraySize - %d - %s", len(t.ArrayData), Hexify(uint32(len(t.ArrayData))))
 	b.Printf("[]Values")
@@ -43,14 +43,14 @@ func (t *TCArray) ToString() string {
 		className = t.ClassPointer.Reference.NormalClassDesc.ClassName.Data
 	}
 	if className == "[B" {
-		b.Printf(t.DumpByteArray(t.ArrayData))
+		b.Print(t.DumpByteArray(t.ArrayData))
 		return b.String()
 	}
 
 	for index, data := range t.ArrayData {
 		b.Printf("Index %d", index)
 		b.IncreaseIndent()
-		b.Printf(data.ToString())
+		b.Print(data.ToString())
 		b.DecreaseIndent()
 	}
 

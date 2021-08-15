@@ -17,9 +17,9 @@ func (e *TCEnum) ToString() string {
 	var b = NewPrinter()
 	b.Printf("TC_ENUM - %s", Hexify(JAVA_TC_ENUM))
 	b.IncreaseIndent()
-	b.Printf(e.ClassPointer.ToString())
+	b.Print(e.ClassPointer.ToString())
 	b.Printf("@Handler - %v", e.Handler)
-	b.Printf(e.ConstantName.ToString())
+	b.Print(e.ConstantName.ToString())
 	return b.String()
 }
 
