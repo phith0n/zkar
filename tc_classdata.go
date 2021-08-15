@@ -1,21 +1,25 @@
 package zkar
 
 import (
-	orderedmap "github.com/wk8/go-ordered-map"
 	"io"
 )
 
+type ReferenceClassInformation struct {
+	ClassName string
+	Attributes []string
+}
+
 type TCClassData struct {
 	HasAnnotation    bool
-	ReferenceClassName string
-	FieldDatas       *orderedmap.OrderedMap
+	ReferenceClass   *ReferenceClassInformation
+	FieldDatas       []*TCValue
 	ObjectAnnotation []*TCContent
 }
 
 func (cd *TCClassData) ToBytes() []byte {
 	var bs []byte
-	for pair := cd.FieldDatas.Oldest(); pair != nil; pair = pair.Next() {
-		bs = append(bs, pair.Value.(Object).ToBytes()...)
+	for _, data := range cd.FieldDatas {
+		bs = append(bs, data.ToBytes()...)
 	}
 
 	if !cd.HasAnnotation {
@@ -32,14 +36,14 @@ func (cd *TCClassData) ToBytes() []byte {
 
 func (cd *TCClassData) ToString() string {
 	var b = NewPrinter()
-	b.Printf("@ClassName - %s", cd.ReferenceClassName)
+	b.Printf("@ClassName - %s", cd.ReferenceClass.ClassName)
 	b.IncreaseIndent()
 	b.Printf("{}Attributes")
 	b.IncreaseIndent()
-	for pair := cd.FieldDatas.Oldest(); pair != nil; pair = pair.Next() {
-		b.Printf("%s", pair.Key.(string))
+	for i := 0; i < len(cd.FieldDatas); i++ {
+		b.Printf("%s", cd.ReferenceClass.Attributes[i])
 		b.IncreaseIndent()
-		b.Printf(pair.Value.(Object).ToString())
+		b.Printf(cd.FieldDatas[i].ToString())
 		b.DecreaseIndent()
 	}
 	b.DecreaseIndent()
@@ -60,8 +64,9 @@ func (cd *TCClassData) ToString() string {
 func readTCClassData(stream *ObjectStream, desc *TCClassDesc) (*TCClassData, error) {
 	var err error
 	var classData = &TCClassData{
-		ReferenceClassName: desc.ClassName.Data,
-		FieldDatas: orderedmap.New(),
+		ReferenceClass: &ReferenceClassInformation {
+			ClassName: desc.ClassName.Data,
+		},
 	}
 
 	current := stream.CurrentIndex()
@@ -74,13 +79,14 @@ func readTCClassData(stream *ObjectStream, desc *TCClassDesc) (*TCClassData, err
 				// Then everything will be read from objectAnnotation
 				// Example: ysoserial C3O0
 				stream.Seek(current, io.SeekStart)
-				classData.FieldDatas = orderedmap.New()
+				classData.FieldDatas = []*TCValue{}
 				break
 			} else if err != nil {
 				return nil, err
 			}
 
-			classData.FieldDatas.Set(field.FieldName.Data, fieldData)
+			classData.FieldDatas = append(classData.FieldDatas, fieldData)
+			classData.ReferenceClass.Attributes = append(classData.ReferenceClass.Attributes, field.FieldName.Data)
 		}
 	}
 
