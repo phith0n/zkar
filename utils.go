@@ -86,5 +86,5 @@ func Hexify(data interface{}) string {
 		b.WriteString(" ")
 	}
 
-	return b.String()
+	return strings.TrimSpace(b.String())
 }

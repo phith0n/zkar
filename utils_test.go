@@ -21,3 +21,13 @@ func TestNumberToBytes(t *testing.T) {
 	var i7 int64 = -630391575257
 	require.Equal(t, []byte("\xff\xff\xff\x6d\x39\xbb\xed\x27"), NumberToBytes(i7))
 }
+
+func TestHexify(t *testing.T) {
+	var b byte = 0x8b
+	require.Equal(t, "0x8b", Hexify(b))
+	require.Equal(t, "0x8b a3", Hexify([]byte{b, 0xa3}))
+	require.Equal(t, "0x00 01 02 03 04", Hexify([]byte("\x00\x01\x02\x03\x04")))
+	require.Equal(t, "0xff ff f7 49", Hexify(uint32(4294965065)))
+	require.Equal(t, "0x01", Hexify(true))
+	require.Equal(t, "0x68 65 6c 6c 6f", Hexify("hello"))
+}
