@@ -32,13 +32,12 @@ func main() {
 						return err
 					}
 
-					ois := zkar.NewObjectInputStream()
-					err = ois.Read(data)
+					ser, err := zkar.FromBytes(data)
 					if err != nil {
 						return nil
 					}
 
-					fmt.Println(ois.ToString())
+					fmt.Println(ser.ToString())
 					return nil
 				},
 			},

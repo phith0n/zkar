@@ -15,14 +15,13 @@ func main() {
 		return
 	}
 
-	os := zkar.NewObjectInputStream()
-	err = os.Read(data)
+	ser, err := zkar.FromBytes(data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
 
-	// pp.Println(os)
-	// ioutil.WriteFile("testcases/ysoserial/C3P01.ser", os.ToBytes(), fs.FileMode(755))
-	fmt.Println(os.ToString())
+	// pp.Println(ser)
+	// ioutil.WriteFile("testcases/ysoserial/C3P01.ser", ser.ToBytes(), fs.FileMode(755))
+	fmt.Println(ser.ToString())
 }
