@@ -11,8 +11,10 @@ type Printer struct {
 }
 
 func (p *Printer) Printf(msg string, args ...interface{}) {
-	var data = fmt.Sprintf(msg, args...)
-	p.indent(data)
+	if len(args) > 0 {
+		msg = fmt.Sprintf(msg, args...)
+	}
+	p.indent(msg)
 }
 
 func (p *Printer) Print(data string) {

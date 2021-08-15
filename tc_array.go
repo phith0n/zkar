@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"strings"
 )
 
@@ -35,7 +36,7 @@ func (t *TCArray) ToString() string {
 	b.Printf("[]Values")
 	b.IncreaseIndent()
 
-
+	// check if Array is a bytes, then hexdump the byte array
 	var className = ""
 	if t.ClassPointer.Flag == JAVA_TC_CLASSDESC {
 		className = t.ClassPointer.NormalClassDesc.ClassName.Data
@@ -43,7 +44,7 @@ func (t *TCArray) ToString() string {
 		className = t.ClassPointer.Reference.NormalClassDesc.ClassName.Data
 	}
 	if className == "[B" {
-		b.Print(t.DumpByteArray(t.ArrayData))
+		t.DumpByteArray(b)
 		return b.String()
 	}
 
@@ -57,14 +58,12 @@ func (t *TCArray) ToString() string {
 	return b.String()
 }
 
-func (t *TCArray) DumpByteArray(arr []*TCValue) string {
-	var b strings.Builder
-	var dumper = hex.Dumper(&b)
-	for _, v := range arr {
+func (t *TCArray) DumpByteArray(b io.Writer) {
+	var dumper = hex.Dumper(b)
+	for _, v := range t.ArrayData {
 		_, _ = dumper.Write([]byte{v.Byte})
 	}
 	dumper.Close()
-	return b.String()
 }
 
 func readTCArray(stream *ObjectStream) (*TCArray, error) {
