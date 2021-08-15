@@ -1,7 +1,6 @@
 package zkar
 
 import (
-	orderedmap "github.com/wk8/go-ordered-map"
 	"io"
 )
 
@@ -9,7 +8,7 @@ type ObjectStream struct {
 	bs         []byte
 	current    int64
 	handler    uint32
-	references *orderedmap.OrderedMap
+	references map[uint32]Object
 }
 
 func NewObjectStream(bs []byte) *ObjectStream {
@@ -17,7 +16,7 @@ func NewObjectStream(bs []byte) *ObjectStream {
 		bs:         bs,
 		current:    int64(0),
 		handler:    JAVA_BASE_WRITE_HANDLE,
-		references: orderedmap.New(),
+		references: make(map[uint32]Object),
 	}
 }
 
@@ -93,14 +92,14 @@ func (s *ObjectStream) AddReference(obj Object) {
 		panic("reference is not allowed here")
 	}
 
-	s.references.Set(s.handler, obj)
+	s.references[s.handler] = obj
 	s.handler++
 }
 
-func (s *ObjectStream) FindReferenceId(obj Object) uint32 {
-	for pair := s.references.Oldest(); pair != nil; pair = pair.Next() {
-		if pair.Value == obj {
-			return pair.Key.(uint32)
+func (s *ObjectStream) FindReferenceId(find Object) uint32 {
+	for handler, obj := range s.references {
+		if obj == find {
+			return handler
 		}
 	}
 
@@ -108,11 +107,5 @@ func (s *ObjectStream) FindReferenceId(obj Object) uint32 {
 }
 
 func (s *ObjectStream) GetReference(handler uint32) Object {
-	for pair := s.references.Oldest(); pair != nil; pair = pair.Next() {
-		if pair.Key == handler {
-			return pair.Value.(Object)
-		}
-	}
-
-	return nil
+	return s.references[handler]
 }
