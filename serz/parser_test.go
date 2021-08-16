@@ -1,4 +1,4 @@
-package serialization
+package serz
 
 import (
 	"bytes"
@@ -9,8 +9,9 @@ import (
 )
 
 func TestParser(t *testing.T) {
-	files, err := filepath.Glob("testcases/ysoserial/*.ser")
+	files, err := filepath.Glob("../testcases/ysoserial/*.ser")
 	require.Nil(t, err)
+	require.NotZero(t, len(files))
 
 	for _, name := range files {
 		data, err := ioutil.ReadFile(name)
@@ -18,6 +19,6 @@ func TestParser(t *testing.T) {
 
 		ser, err := FromBytes(data)
 		require.Nilf(t, err, "an error is occurred in file %v", name)
-		require.Truef(t, bytes.Equal(data, ser.ToBytes()), "original serialization data is different from generation data in file %v", name)
+		require.Truef(t, bytes.Equal(data, ser.ToBytes()), "original serz data is different from generation data in file %v", name)
 	}
 }

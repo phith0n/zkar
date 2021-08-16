@@ -1,4 +1,4 @@
-package serialization
+package serz
 
 // JAVA_STREAM_MAGIC Magic Number
 var JAVA_STREAM_MAGIC = []byte{0xAC, 0xED}

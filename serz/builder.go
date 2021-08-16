@@ -1,4 +1,4 @@
-package serialization
+package serz
 
 
 func NewNullPointer() *TCClassPointer {

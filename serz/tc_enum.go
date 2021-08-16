@@ -1,4 +1,4 @@
-package serialization
+package serz
 
 type TCEnum struct {
 	ClassPointer *TCClassPointer

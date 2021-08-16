@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/phith0n/zkar/payloads"
-	"github.com/phith0n/zkar/serialization"
+	"github.com/phith0n/zkar/serz"
 	"github.com/thoas/go-funk"
 	"github.com/urfave/cli/v2"
 	"io/fs"
@@ -16,11 +16,11 @@ import (
 func main() {
 	var app = cli.App{
 		Name: "zkar",
-		Usage: "A Java serialization tool",
+		Usage: "A Java serz tool",
 		Commands: []*cli.Command {
 			{
 				Name: "generate",
-				Usage: "generate Java serialization attack payloads",
+				Usage: "generate Java serz attack payloads",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name: "output",
@@ -73,12 +73,12 @@ func main() {
 			},
 			{
 				Name: "dump",
-				Usage: "parse the Java serialization streams and dump the struct",
+				Usage: "parse the Java serz streams and dump the struct",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name: "file",
 						Aliases: []string{"f"},
-						Usage: "serialization data filepath",
+						Usage: "serz data filepath",
 						Required: true,
 					},
 					&cli.BoolFlag{
@@ -95,15 +95,15 @@ func main() {
 						return err
 					}
 
-					ser, err := serialization.FromBytes(data)
+					obj, err := serz.FromBytes(data)
 					if err != nil {
 						return nil
 					}
 
 					if context.Bool("golang") {
-						serialization.DumpToGoStruct(ser)
+						serz.DumpToGoStruct(obj)
 					} else {
-						fmt.Println(ser.ToString())
+						fmt.Println(obj.ToString())
 					}
 
 					return nil

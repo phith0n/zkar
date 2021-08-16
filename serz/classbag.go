@@ -1,4 +1,4 @@
-package serialization
+package serz
 
 type ClassBag struct {
 	Classes []*TCClassDesc

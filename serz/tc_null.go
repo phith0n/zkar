@@ -1,4 +1,4 @@
-package serialization
+package serz
 
 type TCNull struct {
 	// nothing

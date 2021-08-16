@@ -1,4 +1,4 @@
-package serialization
+package serz
 
 import (
 	"encoding/hex"

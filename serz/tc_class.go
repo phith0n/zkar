@@ -1,4 +1,4 @@
-package serialization
+package serz
 
 type TCClass struct {
 	ClassPointer *TCClassPointer

@@ -1,4 +1,4 @@
-package serialization
+package serz
 
 import (
 	"github.com/stretchr/testify/require"
