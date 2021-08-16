@@ -1,4 +1,4 @@
-package zkar
+package serialization
 
 import (
 	"encoding/binary"

@@ -1,4 +1,4 @@
-package zkar
+package serialization
 
 type TCClass struct {
 	ClassPointer *TCClassPointer

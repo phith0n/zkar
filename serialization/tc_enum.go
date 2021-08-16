@@ -1,4 +1,4 @@
-package zkar
+package serialization
 
 type TCEnum struct {
 	ClassPointer *TCClassPointer

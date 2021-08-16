@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/phith0n/zkar"
 	"github.com/phith0n/zkar/payloads"
+	"github.com/phith0n/zkar/serialization"
 	"github.com/thoas/go-funk"
 	"github.com/urfave/cli/v2"
 	"io/fs"
@@ -95,13 +95,13 @@ func main() {
 						return err
 					}
 
-					ser, err := zkar.FromBytes(data)
+					ser, err := serialization.FromBytes(data)
 					if err != nil {
 						return nil
 					}
 
 					if context.Bool("golang") {
-						zkar.DumpToGoStruct(ser)
+						serialization.DumpToGoStruct(ser)
 					} else {
 						fmt.Println(ser.ToString())
 					}

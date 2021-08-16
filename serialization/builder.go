@@ -1,4 +1,4 @@
-package zkar
+package serialization
 
 
 func NewNullPointer() *TCClassPointer {
@@ -14,14 +14,14 @@ func NewUtf(data string) *TCUtf {
 
 func NewTCString(data string, handler uint32) *TCString {
 	return &TCString{
-		Utf: NewUtf(data),
+		Utf:     NewUtf(data),
 		Handler: handler,
 	}
 }
 
 func NewTCStringPointer(data string, handler uint32) *TCStringPointer {
 	return &TCStringPointer{
-		IsRef: false,
+		IsRef:  false,
 		String: NewTCString(data, handler),
 	}
 }

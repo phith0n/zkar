@@ -1,4 +1,4 @@
-package zkar
+package serialization
 
 import (
 	"io"
@@ -64,7 +64,7 @@ func (cd *TCClassData) ToString() string {
 func readTCClassData(stream *ObjectStream, desc *TCClassDesc) (*TCClassData, error) {
 	var err error
 	var classData = &TCClassData{
-		ReferenceClass: &ReferenceClassInformation {
+		ReferenceClass: &ReferenceClassInformation{
 			ClassName: desc.ClassName.Data,
 		},
 	}
