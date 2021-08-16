@@ -35,27 +35,27 @@ func (cd *TCClassData) ToBytes() []byte {
 }
 
 func (cd *TCClassData) ToString() string {
-	var b = NewPrinter()
-	b.Printf("@ClassName - %s", cd.ReferenceClass.ClassName)
-	b.IncreaseIndent()
-	b.Print("{}Attributes")
-	b.IncreaseIndent()
+	var b = newPrinter()
+	b.printf("@ClassName - %s", cd.ReferenceClass.ClassName)
+	b.increaseIndent()
+	b.print("{}Attributes")
+	b.increaseIndent()
 	for i := 0; i < len(cd.FieldDatas); i++ {
-		b.Printf("%s", cd.ReferenceClass.Attributes[i])
-		b.IncreaseIndent()
-		b.Print(cd.FieldDatas[i].ToString())
-		b.DecreaseIndent()
+		b.printf("%s", cd.ReferenceClass.Attributes[i])
+		b.increaseIndent()
+		b.print(cd.FieldDatas[i].ToString())
+		b.decreaseIndent()
 	}
-	b.DecreaseIndent()
+	b.decreaseIndent()
 
 	if !cd.HasAnnotation {
 		return b.String()
 	}
 
-	b.Print("@ObjectAnnotation")
-	b.IncreaseIndent()
+	b.print("@ObjectAnnotation")
+	b.increaseIndent()
 	for _, content := range cd.ObjectAnnotation {
-		b.Print(content.ToString())
+		b.print(content.ToString())
 	}
 
 	return b.String()

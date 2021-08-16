@@ -22,16 +22,16 @@ func (so *TCString) ToBytes() []byte {
 }
 
 func (so *TCString) ToString() string {
-	var b = NewPrinter()
+	var b = newPrinter()
 	var length = len(so.Utf.Data)
 	if length <= 0xFFFF {
-		b.Printf("TC_STRING - %s", Hexify(JAVA_TC_STRING))
+		b.printf("TC_STRING - %s", Hexify(JAVA_TC_STRING))
 	} else {
-		b.Printf("TC_LONGSTRING - %s", Hexify(JAVA_TC_LONGSTRING))
+		b.printf("TC_LONGSTRING - %s", Hexify(JAVA_TC_LONGSTRING))
 	}
-	b.IncreaseIndent()
-	b.Printf("@Handler - %v", so.Handler)
-	b.Print(so.Utf.ToString())
+	b.increaseIndent()
+	b.printf("@Handler - %v", so.Handler)
+	b.print(so.Utf.ToString())
 	return b.String()
 }
 

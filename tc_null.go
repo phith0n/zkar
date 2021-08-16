@@ -9,8 +9,8 @@ func (n *TCNull) ToBytes() []byte {
 }
 
 func (n *TCNull) ToString() string {
-	var b = NewPrinter()
-	b.Printf("TC_NULL - %s", Hexify(JAVA_TC_NULL))
+	var b = newPrinter()
+	b.printf("TC_NULL - %s", Hexify(JAVA_TC_NULL))
 	return b.String()
 }
 

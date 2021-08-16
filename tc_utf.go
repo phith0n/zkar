@@ -22,7 +22,7 @@ func (u *TCUtf) ToBytes() []byte {
 }
 
 func (u *TCUtf) ToString() string {
-	var b = NewPrinter()
+	var b = newPrinter()
 	var length = len(u.Data)
 	var bs []byte
 	if length <= 0xFFFF {
@@ -31,8 +31,8 @@ func (u *TCUtf) ToString() string {
 		bs = NumberToBytes(uint64(len(u.Data)))
 	}
 
-	b.Printf("@Length - %d - %s", len(u.Data), Hexify(bs))
-	b.Printf("@Value - %s - %s", u.Data, Hexify(u.Data))
+	b.printf("@Length - %d - %s", len(u.Data), Hexify(bs))
+	b.printf("@Value - %s - %s", u.Data, Hexify(u.Data))
 	return b.String()
 }
 

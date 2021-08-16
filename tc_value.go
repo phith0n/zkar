@@ -64,26 +64,26 @@ func (t *TCValue) ToBytes() []byte {
 }
 
 func (t *TCValue) ToString() string {
-	var b = NewPrinter()
+	var b = newPrinter()
 	switch t.TypeCode {
 	case "B":
-		b.Printf("(byte)%v - %s", t.Byte, Hexify(t.Byte))
+		b.printf("(byte)%v - %s", t.Byte, Hexify(t.Byte))
 	case "C":
-		b.Printf("(char)%v - %s", t.Char, Hexify(t.Char))
+		b.printf("(char)%v - %s", t.Char, Hexify(t.Char))
 	case "D":
-		b.Printf("(double)%v - %s", t.Double, Hexify(t.Double))
+		b.printf("(double)%v - %s", t.Double, Hexify(t.Double))
 	case "F":
-		b.Printf("(float)%v - %s", t.Float, Hexify(t.Float))
+		b.printf("(float)%v - %s", t.Float, Hexify(t.Float))
 	case "I":
-		b.Printf("(integer)%v - %s", t.Integer, Hexify(t.Integer))
+		b.printf("(integer)%v - %s", t.Integer, Hexify(t.Integer))
 	case "J":
-		b.Printf("(long)%v - %s", t.Long, Hexify(t.Long))
+		b.printf("(long)%v - %s", t.Long, Hexify(t.Long))
 	case "S":
-		b.Printf("(short)%v - %s", t.Short, Hexify(t.Short))
+		b.printf("(short)%v - %s", t.Short, Hexify(t.Short))
 	case "Z":
-		b.Printf("(boolean)%v - %s", t.Boolean, Hexify(t.Boolean))
+		b.printf("(boolean)%v - %s", t.Boolean, Hexify(t.Boolean))
 	case "L", "[":
-		b.Print(t.Object.ToString())
+		b.print(t.Object.ToString())
 	}
 
 	return b.String()

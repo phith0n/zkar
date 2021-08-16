@@ -51,13 +51,13 @@ func FromBytes(data []byte) (*Serialization, error) {
 }
 
 func (ois *Serialization) ToString() string {
-	var b = NewPrinter()
-	b.Printf("@Magic - %s", Hexify(ois.MagicNumber))
-	b.Printf("@Version - %s", Hexify(ois.StreamVersion))
-	b.Printf("@Contents")
-	b.IncreaseIndent()
+	var b = newPrinter()
+	b.printf("@Magic - %s", Hexify(ois.MagicNumber))
+	b.printf("@Version - %s", Hexify(ois.StreamVersion))
+	b.printf("@Contents")
+	b.increaseIndent()
 	for _, content := range ois.Contents {
-		b.Print(content.ToString())
+		b.print(content.ToString())
 	}
 	return b.String()
 }

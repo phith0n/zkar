@@ -5,33 +5,19 @@ import (
 	"strings"
 )
 
-type Printer struct {
+type printer struct {
 	strings.Builder
 	currentIndent int
 }
 
-func (p *Printer) Printf(msg string, args ...interface{}) {
+func (p *printer) printf(msg string, args ...interface{}) {
 	if len(args) > 0 {
 		msg = fmt.Sprintf(msg, args...)
 	}
-	p.indent(msg)
+	p.print(msg)
 }
 
-func (p *Printer) Print(data string) {
-	p.indent(data)
-}
-
-func (p *Printer) IncreaseIndent() {
-	p.currentIndent += 2
-}
-
-func (p *Printer) DecreaseIndent() {
-	if p.currentIndent >= 2 {
-		p.currentIndent -= 2
-	}
-}
-
-func (p *Printer) indent(data string) {
+func (p *printer) print(data string) {
 	var indent = strings.Repeat(" ", p.currentIndent)
 	var blocks = strings.Split(data, "\n")
 	for _, block := range blocks {
@@ -41,8 +27,18 @@ func (p *Printer) indent(data string) {
 	}
 }
 
-func NewPrinter() *Printer {
-	return &Printer{
+func (p *printer) increaseIndent() {
+	p.currentIndent += 2
+}
+
+func (p *printer) decreaseIndent() {
+	if p.currentIndent >= 2 {
+		p.currentIndent -= 2
+	}
+}
+
+func newPrinter() *printer {
+	return &printer{
 		currentIndent: 0,
 	}
 }
