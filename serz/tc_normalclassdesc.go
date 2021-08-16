@@ -3,6 +3,7 @@ package serz
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/phith0n/zkar/commons"
 	"strings"
 )
 
@@ -35,40 +36,40 @@ func (desc *TCClassDesc) ToBytes() []byte {
 }
 
 func (desc *TCClassDesc) ToString() string {
-	var b = newPrinter()
+	var b = commons.NewPrinter()
 
-	b.printf("TC_CLASSDESC - %s", Hexify(JAVA_TC_CLASSDESC))
-	b.increaseIndent()
-	b.print("@ClassName")
-	b.increaseIndent()
-	b.print(desc.ClassName.ToString())
-	b.decreaseIndent()
-	b.printf("@SerialVersionUID - %v - %s", desc.SerialVersionUID, Hexify(desc.SerialVersionUID))
-	b.printf("@Handler - %v", desc.Handler)
-	b.printf("@ClassDescFlags - %s - %s", desc.FlagString(), Hexify(desc.ClassDescFlags))
-	b.printf("@FieldCount - %d - %s", len(desc.Fields), Hexify(uint16(len(desc.Fields))))
-	b.print("[]Fields")
-	b.increaseIndent()
+	b.Printf("TC_CLASSDESC - %s", Hexify(JAVA_TC_CLASSDESC))
+	b.IncreaseIndent()
+	b.Print("@ClassName")
+	b.IncreaseIndent()
+	b.Print(desc.ClassName.ToString())
+	b.DecreaseIndent()
+	b.Printf("@SerialVersionUID - %v - %s", desc.SerialVersionUID, Hexify(desc.SerialVersionUID))
+	b.Printf("@Handler - %v", desc.Handler)
+	b.Printf("@ClassDescFlags - %s - %s", desc.FlagString(), Hexify(desc.ClassDescFlags))
+	b.Printf("@FieldCount - %d - %s", len(desc.Fields), Hexify(uint16(len(desc.Fields))))
+	b.Print("[]Fields")
+	b.IncreaseIndent()
 	for index, field := range desc.Fields {
-		b.printf("Index %d:", index)
-		b.increaseIndent()
-		b.print(field.ToString())
-		b.decreaseIndent()
+		b.Printf("Index %d:", index)
+		b.IncreaseIndent()
+		b.Print(field.ToString())
+		b.DecreaseIndent()
 	}
-	b.decreaseIndent()
-	b.print("[]ClassAnnotations")
-	b.increaseIndent()
+	b.DecreaseIndent()
+	b.Print("[]ClassAnnotations")
+	b.IncreaseIndent()
 	for index, content := range desc.ClassAnnotation {
-		b.printf("Index %d:", index)
-		b.increaseIndent()
-		b.print(content.ToString())
-		b.decreaseIndent()
+		b.Printf("Index %d:", index)
+		b.IncreaseIndent()
+		b.Print(content.ToString())
+		b.DecreaseIndent()
 	}
-	b.printf("TC_ENDBLOCKDATA - %s", Hexify(JAVA_TC_ENDBLOCKDATA))
-	b.decreaseIndent()
-	b.print("@SuperClassDesc")
-	b.increaseIndent()
-	b.print(desc.SuperClassPointer.ToString())
+	b.Printf("TC_ENDBLOCKDATA - %s", Hexify(JAVA_TC_ENDBLOCKDATA))
+	b.DecreaseIndent()
+	b.Print("@SuperClassDesc")
+	b.IncreaseIndent()
+	b.Print(desc.SuperClassPointer.ToString())
 
 	return b.String()
 }

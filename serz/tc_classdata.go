@@ -1,6 +1,7 @@
 package serz
 
 import (
+	"github.com/phith0n/zkar/commons"
 	"io"
 )
 
@@ -35,27 +36,27 @@ func (cd *TCClassData) ToBytes() []byte {
 }
 
 func (cd *TCClassData) ToString() string {
-	var b = newPrinter()
-	b.printf("@ClassName - %s", cd.ReferenceClass.ClassName)
-	b.increaseIndent()
-	b.print("{}Attributes")
-	b.increaseIndent()
+	var b = commons.NewPrinter()
+	b.Printf("@ClassName - %s", cd.ReferenceClass.ClassName)
+	b.IncreaseIndent()
+	b.Print("{}Attributes")
+	b.IncreaseIndent()
 	for i := 0; i < len(cd.FieldDatas); i++ {
-		b.printf("%s", cd.ReferenceClass.Attributes[i])
-		b.increaseIndent()
-		b.print(cd.FieldDatas[i].ToString())
-		b.decreaseIndent()
+		b.Printf("%s", cd.ReferenceClass.Attributes[i])
+		b.IncreaseIndent()
+		b.Print(cd.FieldDatas[i].ToString())
+		b.DecreaseIndent()
 	}
-	b.decreaseIndent()
+	b.DecreaseIndent()
 
 	if !cd.HasAnnotation {
 		return b.String()
 	}
 
-	b.print("@ObjectAnnotation")
-	b.increaseIndent()
+	b.Print("@ObjectAnnotation")
+	b.IncreaseIndent()
 	for _, content := range cd.ObjectAnnotation {
-		b.print(content.ToString())
+		b.Print(content.ToString())
 	}
 
 	return b.String()

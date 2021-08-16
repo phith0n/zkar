@@ -1,5 +1,7 @@
 package serz
 
+import "github.com/phith0n/zkar/commons"
+
 type TCClass struct {
 	ClassPointer *TCClassPointer
 	Handler uint32
@@ -12,11 +14,11 @@ func (c *TCClass) ToBytes() []byte {
 }
 
 func (c *TCClass) ToString() string {
-	var b = newPrinter()
-	b.printf("TC_CLASS - %s", Hexify(JAVA_TC_CLASS))
-	b.increaseIndent()
-	b.print(c.ClassPointer.ToString())
-	b.printf("@Handler - %v", c.Handler)
+	var b = commons.NewPrinter()
+	b.Printf("TC_CLASS - %s", Hexify(JAVA_TC_CLASS))
+	b.IncreaseIndent()
+	b.Print(c.ClassPointer.ToString())
+	b.Printf("@Handler - %v", c.Handler)
 	return b.String()
 }
 

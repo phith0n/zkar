@@ -1,5 +1,7 @@
 package serz
 
+import "github.com/phith0n/zkar/commons"
+
 type TCObject struct {
 	ClassPointer *TCClassPointer
 	ClassDatas   []*TCClassData
@@ -17,15 +19,15 @@ func (oo *TCObject) ToBytes() []byte {
 }
 
 func (oo *TCObject) ToString() string {
-	var b = newPrinter()
-	b.printf("TC_OBJECT - %s", Hexify(JAVA_TC_OBJECT))
-	b.increaseIndent()
-	b.print(oo.ClassPointer.ToString())
-	b.printf("@Handler - %v", oo.Handler)
-	b.print("[]ClassData")
-	b.increaseIndent()
+	var b = commons.NewPrinter()
+	b.Printf("TC_OBJECT - %s", Hexify(JAVA_TC_OBJECT))
+	b.IncreaseIndent()
+	b.Print(oo.ClassPointer.ToString())
+	b.Printf("@Handler - %v", oo.Handler)
+	b.Print("[]ClassData")
+	b.IncreaseIndent()
 	for _, data := range oo.ClassDatas {
-		b.print(data.ToString())
+		b.Print(data.ToString())
 	}
 
 	return b.String()

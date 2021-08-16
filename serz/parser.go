@@ -3,6 +3,7 @@ package serz
 import (
 	"bytes"
 	"fmt"
+	"github.com/phith0n/zkar/commons"
 	"os"
 )
 
@@ -51,13 +52,13 @@ func FromBytes(data []byte) (*Serialization, error) {
 }
 
 func (ois *Serialization) ToString() string {
-	var b = newPrinter()
-	b.printf("@Magic - %s", Hexify(ois.MagicNumber))
-	b.printf("@Version - %s", Hexify(ois.StreamVersion))
-	b.printf("@Contents")
-	b.increaseIndent()
+	var b = commons.NewPrinter()
+	b.Printf("@Magic - %s", Hexify(ois.MagicNumber))
+	b.Printf("@Version - %s", Hexify(ois.StreamVersion))
+	b.Printf("@Contents")
+	b.IncreaseIndent()
 	for _, content := range ois.Contents {
-		b.print(content.ToString())
+		b.Print(content.ToString())
 	}
 	return b.String()
 }

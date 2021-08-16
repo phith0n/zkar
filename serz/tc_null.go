@@ -1,5 +1,7 @@
 package serz
 
+import "github.com/phith0n/zkar/commons"
+
 type TCNull struct {
 	// nothing
 }
@@ -9,8 +11,8 @@ func (n *TCNull) ToBytes() []byte {
 }
 
 func (n *TCNull) ToString() string {
-	var b = newPrinter()
-	b.printf("TC_NULL - %s", Hexify(JAVA_TC_NULL))
+	var b = commons.NewPrinter()
+	b.Printf("TC_NULL - %s", Hexify(JAVA_TC_NULL))
 	return b.String()
 }
 

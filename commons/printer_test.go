@@ -1,4 +1,4 @@
-package serz
+package commons
 
 import (
 	"github.com/stretchr/testify/require"
@@ -6,33 +6,33 @@ import (
 )
 
 func TestPrinterIndent(t *testing.T) {
-	var b = newPrinter()
-	b.increaseIndent()
-	b.printf("a: 1\nb: 2")
+	var b = NewPrinter()
+	b.IncreaseIndent()
+	b.Printf("a: 1\nb: 2")
 	require.Equal(t, "  a: 1\n  b: 2\n", b.String())
 }
 
 func TestPrinterNoNewline(t *testing.T) {
-	var b = newPrinter()
-	b.printf("no newline")
+	var b = NewPrinter()
+	b.Printf("no newline")
 	require.Equal(t, "no newline\n", b.String())
 }
 
 func TestPrinterNewline(t *testing.T) {
-	var b = newPrinter()
-	b.printf("\n")
+	var b = NewPrinter()
+	b.Printf("\n")
 	require.Equal(t, "", b.String())
 }
 
 func TestPrinterNewlines(t *testing.T) {
-	var b = newPrinter()
-	b.printf("\n\n\n\n\n")
+	var b = NewPrinter()
+	b.Printf("\n\n\n\n\n")
 	require.Equal(t, "", b.String())
 }
 
 func TestPrinterIndentLines(t *testing.T) {
-	var b = newPrinter()
-	b.increaseIndent()
-	b.printf("\n\n\n")
+	var b = NewPrinter()
+	b.IncreaseIndent()
+	b.Printf("\n\n\n")
 	require.Equal(t, "", b.String())
 }

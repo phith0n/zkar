@@ -3,6 +3,7 @@ package serz
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/phith0n/zkar/commons"
 	"github.com/thoas/go-funk"
 	"math"
 )
@@ -64,26 +65,26 @@ func (t *TCValue) ToBytes() []byte {
 }
 
 func (t *TCValue) ToString() string {
-	var b = newPrinter()
+	var b = commons.NewPrinter()
 	switch t.TypeCode {
 	case "B":
-		b.printf("(byte)%v - %s", t.Byte, Hexify(t.Byte))
+		b.Printf("(byte)%v - %s", t.Byte, Hexify(t.Byte))
 	case "C":
-		b.printf("(char)%v - %s", t.Char, Hexify(t.Char))
+		b.Printf("(char)%v - %s", t.Char, Hexify(t.Char))
 	case "D":
-		b.printf("(double)%v - %s", t.Double, Hexify(t.Double))
+		b.Printf("(double)%v - %s", t.Double, Hexify(t.Double))
 	case "F":
-		b.printf("(float)%v - %s", t.Float, Hexify(t.Float))
+		b.Printf("(float)%v - %s", t.Float, Hexify(t.Float))
 	case "I":
-		b.printf("(integer)%v - %s", t.Integer, Hexify(t.Integer))
+		b.Printf("(integer)%v - %s", t.Integer, Hexify(t.Integer))
 	case "J":
-		b.printf("(long)%v - %s", t.Long, Hexify(t.Long))
+		b.Printf("(long)%v - %s", t.Long, Hexify(t.Long))
 	case "S":
-		b.printf("(short)%v - %s", t.Short, Hexify(t.Short))
+		b.Printf("(short)%v - %s", t.Short, Hexify(t.Short))
 	case "Z":
-		b.printf("(boolean)%v - %s", t.Boolean, Hexify(t.Boolean))
+		b.Printf("(boolean)%v - %s", t.Boolean, Hexify(t.Boolean))
 	case "L", "[":
-		b.print(t.Object.ToString())
+		b.Print(t.Object.ToString())
 	}
 
 	return b.String()

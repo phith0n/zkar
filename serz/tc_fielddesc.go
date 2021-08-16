@@ -2,6 +2,7 @@ package serz
 
 import (
 	"fmt"
+	"github.com/phith0n/zkar/commons"
 	"github.com/thoas/go-funk"
 )
 
@@ -38,16 +39,16 @@ func (f *TCFieldDesc) ToBytes() []byte {
 }
 
 func (f *TCFieldDesc) ToString() string {
-	var b = newPrinter()
-	b.printf("%s - %s - %s", typecodeVerbose[f.TypeCode], f.TypeCode, Hexify(f.TypeCode))
-	b.print("@FieldName")
-	b.increaseIndent()
-	b.print(f.FieldName.ToString())
-	b.decreaseIndent()
+	var b = commons.NewPrinter()
+	b.Printf("%s - %s - %s", typecodeVerbose[f.TypeCode], f.TypeCode, Hexify(f.TypeCode))
+	b.Print("@FieldName")
+	b.IncreaseIndent()
+	b.Print(f.FieldName.ToString())
+	b.DecreaseIndent()
 	if f.TypeCode == "L" || f.TypeCode == "[" {
-		b.print("@ClassName")
-		b.increaseIndent()
-		b.print(f.ClassName.ToString())
+		b.Print("@ClassName")
+		b.IncreaseIndent()
+		b.Print(f.ClassName.ToString())
 	}
 
 	return b.String()

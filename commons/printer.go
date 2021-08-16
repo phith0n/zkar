@@ -1,23 +1,23 @@
-package serz
+package commons
 
 import (
 	"fmt"
 	"strings"
 )
 
-type printer struct {
+type Printer struct {
 	strings.Builder
 	currentIndent int
 }
 
-func (p *printer) printf(msg string, args ...interface{}) {
+func (p *Printer) Printf(msg string, args ...interface{}) {
 	if len(args) > 0 {
 		msg = fmt.Sprintf(msg, args...)
 	}
-	p.print(msg)
+	p.Print(msg)
 }
 
-func (p *printer) print(data string) {
+func (p *Printer) Print(data string) {
 	var indent = strings.Repeat(" ", p.currentIndent)
 	var blocks = strings.Split(data, "\n")
 	for _, block := range blocks {
@@ -27,18 +27,18 @@ func (p *printer) print(data string) {
 	}
 }
 
-func (p *printer) increaseIndent() {
+func (p *Printer) IncreaseIndent() {
 	p.currentIndent += 2
 }
 
-func (p *printer) decreaseIndent() {
+func (p *Printer) DecreaseIndent() {
 	if p.currentIndent >= 2 {
 		p.currentIndent -= 2
 	}
 }
 
-func newPrinter() *printer {
-	return &printer{
+func NewPrinter() *Printer {
+	return &Printer{
 		currentIndent: 0,
 	}
 }

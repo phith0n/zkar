@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"github.com/phith0n/zkar/commons"
 	"io"
 	"strings"
 )
@@ -27,14 +28,14 @@ func (t *TCArray) ToBytes() []byte {
 }
 
 func (t *TCArray) ToString() string {
-	var b = newPrinter()
-	b.printf("TC_ARRAY - %s", Hexify(JAVA_TC_ARRAY))
-	b.increaseIndent()
-	b.print(t.ClassPointer.ToString())
-	b.printf("@Handler - %v", t.Handler)
-	b.printf("@ArraySize - %d - %s", len(t.ArrayData), Hexify(uint32(len(t.ArrayData))))
-	b.printf("[]Values")
-	b.increaseIndent()
+	var b = commons.NewPrinter()
+	b.Printf("TC_ARRAY - %s", Hexify(JAVA_TC_ARRAY))
+	b.IncreaseIndent()
+	b.Print(t.ClassPointer.ToString())
+	b.Printf("@Handler - %v", t.Handler)
+	b.Printf("@ArraySize - %d - %s", len(t.ArrayData), Hexify(uint32(len(t.ArrayData))))
+	b.Printf("[]Values")
+	b.IncreaseIndent()
 
 	// check if Array is a bytes, then hexdump the byte array
 	var className = ""
@@ -49,10 +50,10 @@ func (t *TCArray) ToString() string {
 	}
 
 	for index, data := range t.ArrayData {
-		b.printf("Index %d", index)
-		b.increaseIndent()
-		b.print(data.ToString())
-		b.decreaseIndent()
+		b.Printf("Index %d", index)
+		b.IncreaseIndent()
+		b.Print(data.ToString())
+		b.DecreaseIndent()
 	}
 
 	return b.String()

@@ -3,6 +3,7 @@ package serz
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/phith0n/zkar/commons"
 )
 
 type TCBlockData struct {
@@ -23,14 +24,14 @@ func (bd *TCBlockData) ToBytes() []byte {
 }
 
 func (bd *TCBlockData) ToString() string {
-	var b = newPrinter()
+	var b = commons.NewPrinter()
 	if len(bd.Data) > 0xFF {
-		b.printf("TC_BLOCKDATALONG - %s", Hexify(JAVA_TC_BLOCKDATALONG))
+		b.Printf("TC_BLOCKDATALONG - %s", Hexify(JAVA_TC_BLOCKDATALONG))
 	} else {
-		b.printf("TC_BLOCKDATA - %s", Hexify(JAVA_TC_BLOCKDATA))
+		b.Printf("TC_BLOCKDATA - %s", Hexify(JAVA_TC_BLOCKDATA))
 	}
-	b.increaseIndent()
-	b.printf("@Blockdata - %s", Hexify(bd.Data))
+	b.IncreaseIndent()
+	b.Printf("@Blockdata - %s", Hexify(bd.Data))
 	return b.String()
 }
 
