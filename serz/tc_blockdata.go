@@ -14,10 +14,10 @@ func (bd *TCBlockData) ToBytes() []byte {
 	var bs []byte
 	if len(bd.Data) > 0xFF {
 		bs = append(bs, JAVA_TC_BLOCKDATALONG)
-		bs = append(bs, NumberToBytes(uint32(len(bd.Data)))...)
+		bs = append(bs, commons.NumberToBytes(uint32(len(bd.Data)))...)
 	} else {
 		bs = append(bs, JAVA_TC_BLOCKDATA)
-		bs = append(bs, NumberToBytes(uint8(len(bd.Data)))...)
+		bs = append(bs, commons.NumberToBytes(uint8(len(bd.Data)))...)
 	}
 
 	return append(bs, bd.Data...)
@@ -26,12 +26,12 @@ func (bd *TCBlockData) ToBytes() []byte {
 func (bd *TCBlockData) ToString() string {
 	var b = commons.NewPrinter()
 	if len(bd.Data) > 0xFF {
-		b.Printf("TC_BLOCKDATALONG - %s", Hexify(JAVA_TC_BLOCKDATALONG))
+		b.Printf("TC_BLOCKDATALONG - %s", commons.Hexify(JAVA_TC_BLOCKDATALONG))
 	} else {
-		b.Printf("TC_BLOCKDATA - %s", Hexify(JAVA_TC_BLOCKDATA))
+		b.Printf("TC_BLOCKDATA - %s", commons.Hexify(JAVA_TC_BLOCKDATA))
 	}
 	b.IncreaseIndent()
-	b.Printf("@Blockdata - %s", Hexify(bd.Data))
+	b.Printf("@Blockdata - %s", commons.Hexify(bd.Data))
 	return b.String()
 }
 

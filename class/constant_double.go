@@ -1,6 +1,8 @@
 package class
 
-import "github.com/phith0n/zkar/serz"
+import (
+	"github.com/phith0n/zkar/commons"
+)
 
 type ConstantDouble struct {
 	Double float64
@@ -8,7 +10,7 @@ type ConstantDouble struct {
 
 func (c *ConstantDouble) ToBytes() []byte {
 	var bs = []byte{CONSTANT_DOUBLE_INFO}
-	bs = append(bs, serz.NumberToBytes(c.Double)...)
+	bs = append(bs, commons.NumberToBytes(c.Double)...)
 	return bs
 }
 

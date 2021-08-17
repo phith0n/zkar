@@ -16,7 +16,7 @@ type TCProxyClassDesc struct {
 func (pc *TCProxyClassDesc) ToBytes() []byte {
 	var bs = []byte{JAVA_TC_PROXYCLASSDESC}
 
-	bs = append(bs, NumberToBytes(uint32(len(pc.InterfaceNames)))...)
+	bs = append(bs, commons.NumberToBytes(uint32(len(pc.InterfaceNames)))...)
 	for _, s := range pc.InterfaceNames {
 		bs = append(bs, s.ToBytes()...)
 	}
@@ -31,10 +31,10 @@ func (pc *TCProxyClassDesc) ToBytes() []byte {
 
 func (pc *TCProxyClassDesc) ToString() string {
 	var b = commons.NewPrinter()
-	b.Printf("TC_PROXYCLASSDESC - %s", Hexify(JAVA_TC_PROXYCLASSDESC))
+	b.Printf("TC_PROXYCLASSDESC - %s", commons.Hexify(JAVA_TC_PROXYCLASSDESC))
 	b.IncreaseIndent()
 	b.Printf("@Handler - %v", pc.Handler)
-	b.Printf("@InterfaceCount - %d - %s", len(pc.InterfaceNames), Hexify(uint32(len(pc.InterfaceNames))))
+	b.Printf("@InterfaceCount - %d - %s", len(pc.InterfaceNames), commons.Hexify(uint32(len(pc.InterfaceNames))))
 	b.IncreaseIndent()
 	for index, ifce := range pc.InterfaceNames {
 		b.Printf("Index %d:", index)
@@ -52,7 +52,7 @@ func (pc *TCProxyClassDesc) ToString() string {
 		b.Print(content.ToString())
 		b.DecreaseIndent()
 	}
-	b.Printf("TC_ENDBLOCKDATA - %s", Hexify(JAVA_TC_ENDBLOCKDATA))
+	b.Printf("TC_ENDBLOCKDATA - %s", commons.Hexify(JAVA_TC_ENDBLOCKDATA))
 	b.DecreaseIndent()
 
 	b.Print("@SuperClassDesc")

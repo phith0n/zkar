@@ -20,9 +20,9 @@ type TCClassDesc struct {
 func (desc *TCClassDesc) ToBytes() []byte {
 	var result = []byte{JAVA_TC_CLASSDESC}
 	result = append(result, desc.ClassName.ToBytes()...)
-	result = append(result, NumberToBytes(desc.SerialVersionUID)...)
+	result = append(result, commons.NumberToBytes(desc.SerialVersionUID)...)
 	result = append(result, desc.ClassDescFlags)
-	result = append(result, NumberToBytes(uint16(len(desc.Fields)))...)
+	result = append(result, commons.NumberToBytes(uint16(len(desc.Fields)))...)
 	for _, field := range desc.Fields {
 		result = append(result, field.ToBytes()...)
 	}
@@ -38,16 +38,16 @@ func (desc *TCClassDesc) ToBytes() []byte {
 func (desc *TCClassDesc) ToString() string {
 	var b = commons.NewPrinter()
 
-	b.Printf("TC_CLASSDESC - %s", Hexify(JAVA_TC_CLASSDESC))
+	b.Printf("TC_CLASSDESC - %s", commons.Hexify(JAVA_TC_CLASSDESC))
 	b.IncreaseIndent()
 	b.Print("@ClassName")
 	b.IncreaseIndent()
 	b.Print(desc.ClassName.ToString())
 	b.DecreaseIndent()
-	b.Printf("@SerialVersionUID - %v - %s", desc.SerialVersionUID, Hexify(desc.SerialVersionUID))
+	b.Printf("@SerialVersionUID - %v - %s", desc.SerialVersionUID, commons.Hexify(desc.SerialVersionUID))
 	b.Printf("@Handler - %v", desc.Handler)
-	b.Printf("@ClassDescFlags - %s - %s", desc.FlagString(), Hexify(desc.ClassDescFlags))
-	b.Printf("@FieldCount - %d - %s", len(desc.Fields), Hexify(uint16(len(desc.Fields))))
+	b.Printf("@ClassDescFlags - %s - %s", desc.FlagString(), commons.Hexify(desc.ClassDescFlags))
+	b.Printf("@FieldCount - %d - %s", len(desc.Fields), commons.Hexify(uint16(len(desc.Fields))))
 	b.Print("[]Fields")
 	b.IncreaseIndent()
 	for index, field := range desc.Fields {
@@ -65,7 +65,7 @@ func (desc *TCClassDesc) ToString() string {
 		b.Print(content.ToString())
 		b.DecreaseIndent()
 	}
-	b.Printf("TC_ENDBLOCKDATA - %s", Hexify(JAVA_TC_ENDBLOCKDATA))
+	b.Printf("TC_ENDBLOCKDATA - %s", commons.Hexify(JAVA_TC_ENDBLOCKDATA))
 	b.DecreaseIndent()
 	b.Print("@SuperClassDesc")
 	b.IncreaseIndent()

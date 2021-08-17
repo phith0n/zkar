@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/phith0n/zkar/commons"
-	"github.com/phith0n/zkar/serz"
 )
 
 type ConstantLong struct {
@@ -13,7 +12,7 @@ type ConstantLong struct {
 
 func (c *ConstantLong) ToBytes() []byte {
 	var bs = []byte{CONSTANT_LONG_INFO}
-	bs = append(bs, serz.NumberToBytes(c.Long)...)
+	bs = append(bs, commons.NumberToBytes(c.Long)...)
 	return bs
 }
 

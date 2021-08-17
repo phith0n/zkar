@@ -14,9 +14,9 @@ func (u *TCUtf) ToBytes() []byte {
 	var bs []byte
 	var length = len(u.Data)
 	if length <= 0xFFFF {
-		bs = NumberToBytes(uint16(len(u.Data)))
+		bs = commons.NumberToBytes(uint16(len(u.Data)))
 	} else {
-		bs = NumberToBytes(uint64(len(u.Data)))
+		bs = commons.NumberToBytes(uint64(len(u.Data)))
 	}
 
 	return append(bs, []byte(u.Data)...)
@@ -27,13 +27,13 @@ func (u *TCUtf) ToString() string {
 	var length = len(u.Data)
 	var bs []byte
 	if length <= 0xFFFF {
-		bs = NumberToBytes(uint16(len(u.Data)))
+		bs = commons.NumberToBytes(uint16(len(u.Data)))
 	} else {
-		bs = NumberToBytes(uint64(len(u.Data)))
+		bs = commons.NumberToBytes(uint64(len(u.Data)))
 	}
 
-	b.Printf("@Length - %d - %s", len(u.Data), Hexify(bs))
-	b.Printf("@Value - %s - %s", u.Data, Hexify(u.Data))
+	b.Printf("@Length - %d - %s", len(u.Data), commons.Hexify(bs))
+	b.Printf("@Value - %s - %s", u.Data, commons.Hexify(u.Data))
 	return b.String()
 }
 

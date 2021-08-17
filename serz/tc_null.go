@@ -12,7 +12,7 @@ func (n *TCNull) ToBytes() []byte {
 
 func (n *TCNull) ToString() string {
 	var b = commons.NewPrinter()
-	b.Printf("TC_NULL - %s", Hexify(JAVA_TC_NULL))
+	b.Printf("TC_NULL - %s", commons.Hexify(JAVA_TC_NULL))
 	return b.String()
 }
 

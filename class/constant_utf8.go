@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/phith0n/zkar/commons"
-	"github.com/phith0n/zkar/serz"
 )
 
 type ConstantUTF8 struct {
@@ -15,7 +14,7 @@ func (c *ConstantUTF8) ToBytes() []byte {
 	var bs = []byte{CONSTANT_UTF8_INFO}
 
 	// integer overflow
-	bs = append(bs, serz.NumberToBytes(uint16(len(c.Data)))...)
+	bs = append(bs, commons.NumberToBytes(uint16(len(c.Data)))...)
 	bs = append(bs, []byte(c.Data)...)
 	return bs
 }

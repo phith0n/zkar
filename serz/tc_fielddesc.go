@@ -40,7 +40,7 @@ func (f *TCFieldDesc) ToBytes() []byte {
 
 func (f *TCFieldDesc) ToString() string {
 	var b = commons.NewPrinter()
-	b.Printf("%s - %s - %s", typecodeVerbose[f.TypeCode], f.TypeCode, Hexify(f.TypeCode))
+	b.Printf("%s - %s - %s", typecodeVerbose[f.TypeCode], f.TypeCode, commons.Hexify(f.TypeCode))
 	b.Print("@FieldName")
 	b.IncreaseIndent()
 	b.Print(f.FieldName.ToString())

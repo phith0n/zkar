@@ -17,7 +17,7 @@ func (e *TCEnum) ToBytes() []byte {
 
 func (e *TCEnum) ToString() string {
 	var b = commons.NewPrinter()
-	b.Printf("TC_ENUM - %s", Hexify(JAVA_TC_ENUM))
+	b.Printf("TC_ENUM - %s", commons.Hexify(JAVA_TC_ENUM))
 	b.IncreaseIndent()
 	b.Print(e.ClassPointer.ToString())
 	b.Printf("@Handler - %v", e.Handler)

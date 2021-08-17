@@ -53,8 +53,8 @@ func FromBytes(data []byte) (*Serialization, error) {
 
 func (ois *Serialization) ToString() string {
 	var b = commons.NewPrinter()
-	b.Printf("@Magic - %s", Hexify(ois.MagicNumber))
-	b.Printf("@Version - %s", Hexify(ois.StreamVersion))
+	b.Printf("@Magic - %s", commons.Hexify(ois.MagicNumber))
+	b.Printf("@Version - %s", commons.Hexify(ois.StreamVersion))
 	b.Printf("@Contents")
 	b.IncreaseIndent()
 	for _, content := range ois.Contents {

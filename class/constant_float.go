@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/phith0n/zkar/commons"
-	"github.com/phith0n/zkar/serz"
 	"math"
 )
 
@@ -14,7 +13,7 @@ type ConstantFloat struct {
 
 func (c *ConstantFloat) ToBytes() []byte {
 	var bs = []byte{CONSTANT_FLOAT_INFO}
-	bs = append(bs, serz.NumberToBytes(c.Float)...)
+	bs = append(bs, commons.NumberToBytes(c.Float)...)
 	return bs
 }
 

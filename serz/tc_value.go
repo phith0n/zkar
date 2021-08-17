@@ -42,17 +42,17 @@ func (t *TCValue) ToBytes() []byte {
 	case "B":
 		return []byte{t.Byte}
 	case "C":
-		return NumberToBytes(t.Char)
+		return commons.NumberToBytes(t.Char)
 	case "D":
-		return NumberToBytes(t.Double)
+		return commons.NumberToBytes(t.Double)
 	case "F":
-		return NumberToBytes(t.Float)
+		return commons.NumberToBytes(t.Float)
 	case "I":
-		return NumberToBytes(t.Integer)
+		return commons.NumberToBytes(t.Integer)
 	case "J":
-		return NumberToBytes(t.Long)
+		return commons.NumberToBytes(t.Long)
 	case "S":
-		return NumberToBytes(t.Short)
+		return commons.NumberToBytes(t.Short)
 	case "Z":
 		if t.Boolean {
 			return []byte{0x01}
@@ -68,21 +68,21 @@ func (t *TCValue) ToString() string {
 	var b = commons.NewPrinter()
 	switch t.TypeCode {
 	case "B":
-		b.Printf("(byte)%v - %s", t.Byte, Hexify(t.Byte))
+		b.Printf("(byte)%v - %s", t.Byte, commons.Hexify(t.Byte))
 	case "C":
-		b.Printf("(char)%v - %s", t.Char, Hexify(t.Char))
+		b.Printf("(char)%v - %s", t.Char, commons.Hexify(t.Char))
 	case "D":
-		b.Printf("(double)%v - %s", t.Double, Hexify(t.Double))
+		b.Printf("(double)%v - %s", t.Double, commons.Hexify(t.Double))
 	case "F":
-		b.Printf("(float)%v - %s", t.Float, Hexify(t.Float))
+		b.Printf("(float)%v - %s", t.Float, commons.Hexify(t.Float))
 	case "I":
-		b.Printf("(integer)%v - %s", t.Integer, Hexify(t.Integer))
+		b.Printf("(integer)%v - %s", t.Integer, commons.Hexify(t.Integer))
 	case "J":
-		b.Printf("(long)%v - %s", t.Long, Hexify(t.Long))
+		b.Printf("(long)%v - %s", t.Long, commons.Hexify(t.Long))
 	case "S":
-		b.Printf("(short)%v - %s", t.Short, Hexify(t.Short))
+		b.Printf("(short)%v - %s", t.Short, commons.Hexify(t.Short))
 	case "Z":
-		b.Printf("(boolean)%v - %s", t.Boolean, Hexify(t.Boolean))
+		b.Printf("(boolean)%v - %s", t.Boolean, commons.Hexify(t.Boolean))
 	case "L", "[":
 		b.Print(t.Object.ToString())
 	}

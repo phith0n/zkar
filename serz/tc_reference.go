@@ -20,15 +20,15 @@ type TCReference struct {
 
 func (r *TCReference) ToBytes() []byte {
 	result := []byte{JAVA_TC_REFERENCE}
-	bs := NumberToBytes(r.Handler)
+	bs := commons.NumberToBytes(r.Handler)
 	return append(result, bs...)
 }
 
 func (r *TCReference) ToString() string {
 	var b = commons.NewPrinter()
-	b.Printf("TC_REFERENCE - %s", Hexify(JAVA_TC_REFERENCE))
+	b.Printf("TC_REFERENCE - %s", commons.Hexify(JAVA_TC_REFERENCE))
 	b.IncreaseIndent()
-	b.Printf("@Handler - %v - %s", r.Handler, Hexify(r.Handler))
+	b.Printf("@Handler - %v - %s", r.Handler, commons.Hexify(r.Handler))
 	return b.String()
 }
 

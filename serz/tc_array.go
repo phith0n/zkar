@@ -19,7 +19,7 @@ type TCArray struct {
 func (t *TCArray) ToBytes() []byte {
 	var bs = []byte{JAVA_TC_ARRAY}
 	bs = append(bs, t.ClassPointer.ToBytes()...)
-	bs = append(bs, NumberToBytes(uint32(len(t.ArrayData)))...)
+	bs = append(bs, commons.NumberToBytes(uint32(len(t.ArrayData)))...)
 	for _, value := range t.ArrayData {
 		bs = append(bs, value.ToBytes()...)
 	}
@@ -29,11 +29,11 @@ func (t *TCArray) ToBytes() []byte {
 
 func (t *TCArray) ToString() string {
 	var b = commons.NewPrinter()
-	b.Printf("TC_ARRAY - %s", Hexify(JAVA_TC_ARRAY))
+	b.Printf("TC_ARRAY - %s", commons.Hexify(JAVA_TC_ARRAY))
 	b.IncreaseIndent()
 	b.Print(t.ClassPointer.ToString())
 	b.Printf("@Handler - %v", t.Handler)
-	b.Printf("@ArraySize - %d - %s", len(t.ArrayData), Hexify(uint32(len(t.ArrayData))))
+	b.Printf("@ArraySize - %d - %s", len(t.ArrayData), commons.Hexify(uint32(len(t.ArrayData))))
 	b.Printf("[]Values")
 	b.IncreaseIndent()
 

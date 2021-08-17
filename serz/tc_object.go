@@ -20,7 +20,7 @@ func (oo *TCObject) ToBytes() []byte {
 
 func (oo *TCObject) ToString() string {
 	var b = commons.NewPrinter()
-	b.Printf("TC_OBJECT - %s", Hexify(JAVA_TC_OBJECT))
+	b.Printf("TC_OBJECT - %s", commons.Hexify(JAVA_TC_OBJECT))
 	b.IncreaseIndent()
 	b.Print(oo.ClassPointer.ToString())
 	b.Printf("@Handler - %v", oo.Handler)

@@ -1,4 +1,4 @@
-package serz
+package commons
 
 import (
 	"github.com/stretchr/testify/require"
