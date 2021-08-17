@@ -79,7 +79,11 @@ func (cf *ClassFile) readConstant(stream *commons.Stream) error {
 	case CONSTANT_LONG_INFO:
 		obj, err = readConstantLong(stream)
 	case CONSTANT_DOUBLE_INFO:
-
+		obj, err = readConstantDouble(stream)
+	case CONSTANT_CLASS_INFO:
+		obj, err = readConstantClass(stream)
+	case CONSTANT_STRING_INGFO:
+		obj, err = readConstantString(stream)
 	}
 
 	if err != nil {
