@@ -3,6 +3,7 @@ package serz
 import (
 	"encoding/binary"
 	"encoding/hex"
+	"math"
 	"strings"
 )
 
@@ -35,6 +36,12 @@ func NumberToBytes(data interface{}) []byte {
 	case int64:
 		bs = make([]byte, 8)
 		binary.BigEndian.PutUint64(bs, uint64(i))
+	case float32:
+		bs = make([]byte, 4)
+		binary.BigEndian.PutUint32(bs, math.Float32bits(i))
+	case float64:
+		bs = make([]byte, 8)
+		binary.BigEndian.PutUint64(bs, math.Float64bits(i))
 	case int:
 		if uintSize == 64 {
 			bs = make([]byte, 8)
@@ -67,7 +74,7 @@ func Hexify(data interface{}) string {
 		bs = []byte(data)
 	case byte:
 		bs = append(bs, data)
-	case int8, int16, uint16, int32, uint32, int64, uint64, int, uint:
+	case int8, int16, uint16, int32, uint32, int64, uint64, int, uint, float32, float64:
 		bs = NumberToBytes(data)
 	case bool:
 		if data {

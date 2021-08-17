@@ -21,5 +21,5 @@ const (
 )
 
 type Constant interface {
-	Type() string
+	ToBytes() []byte
 }

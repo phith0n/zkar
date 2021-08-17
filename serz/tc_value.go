@@ -44,9 +44,9 @@ func (t *TCValue) ToBytes() []byte {
 	case "C":
 		return NumberToBytes(t.Char)
 	case "D":
-		return NumberToBytes(math.Float64bits(t.Double))
+		return NumberToBytes(t.Double)
 	case "F":
-		return NumberToBytes(math.Float32bits(t.Float))
+		return NumberToBytes(t.Float)
 	case "I":
 		return NumberToBytes(t.Integer)
 	case "J":

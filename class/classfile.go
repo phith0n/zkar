@@ -12,7 +12,7 @@ type ClassFile struct {
 	MagicNumber []byte
 	MinorVersion uint16
 	MajorVersion uint16
-	ConstantPool []*Constant
+	ConstantPool []Constant
 	AccessFlag uint16
 	ThisClassOffset uint16
 	SuperClassOffset uint16
@@ -63,15 +63,29 @@ func (cf *ClassFile) readConstantPool(stream *commons.Stream) error {
 }
 
 func (cf *ClassFile) readConstant(stream *commons.Stream) error {
-	bs, err := stream.ReadN(1)
+	bs, err := stream.PeekN(1)
 	if err != nil {
 		return fmt.Errorf("read constant type failed, no enough data in the stream")
 	}
 
+	var obj Constant
 	switch bs[0] {
 	case CONSTANT_UTF8_INFO:
+		obj, err = readConstantUTF8(stream)
+	case CONSTANT_INTEGER_INFO:
+		obj, err = readConstantInteger(stream)
+	case CONSTANT_FLOAT_INFO:
+		obj, err = readConstantFloat(stream)
+	case CONSTANT_LONG_INFO:
+		obj, err = readConstantLong(stream)
+	case CONSTANT_DOUBLE_INFO:
 
 	}
 
+	if err != nil {
+		return err
+	}
+
+	cf.ConstantPool = append(cf.ConstantPool, obj)
 	return nil
 }
