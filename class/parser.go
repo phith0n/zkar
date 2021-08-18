@@ -15,5 +15,25 @@ func ParseClass(data []byte) (*ClassFile, error) {
 		return nil, err
 	}
 
+	err = classFile.readAccessFlag(stream)
+	if err != nil {
+		return nil, err
+	}
+
+	err = classFile.readClass(stream)
+	if err != nil {
+		return nil, err
+	}
+
+	err = classFile.readInterfaces(stream)
+	if err != nil {
+		return nil, err
+	}
+
+	err = classFile.readFields(stream)
+	if err != nil {
+		return nil, err
+	}
+
 	return classFile, nil
 }

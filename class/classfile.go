@@ -43,75 +43,17 @@ func (cf *ClassFile) readHeader(stream *commons.Stream) error {
 	return nil
 }
 
-func (cf *ClassFile) readConstantPool(stream *commons.Stream) error {
+func (cf *ClassFile) readClass(stream *commons.Stream) error {
 	bs, err := stream.ReadN(2)
 	if err != nil {
-		return fmt.Errorf("read constant pool size failed, no enough data in the stream")
+		return fmt.Errorf("read this class failed, no enough data in the stream")
 	}
+	cf.ThisClassIndex = binary.BigEndian.Uint16(bs)
 
-	var size = binary.BigEndian.Uint16(bs)
-
-	// Note: Constant Pool index is start from 1, not 0
-	for i := uint16(1); i < size; i++ {
-		err = cf.readConstant(stream)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (cf *ClassFile) readConstant(stream *commons.Stream) error {
-	bs, err := stream.PeekN(1)
+	bs, err = stream.ReadN(2)
 	if err != nil {
-		return fmt.Errorf("read constant type failed, no enough data in the stream")
+		return fmt.Errorf("read super class failed, no enough data in the stream")
 	}
-
-	var obj Constant
-	switch bs[0] {
-	case CONSTANT_UTF8_INFO:
-		obj, err = readConstantUTF8(stream)
-	case CONSTANT_INTEGER_INFO:
-		obj, err = readConstantInteger(stream)
-	case CONSTANT_FLOAT_INFO:
-		obj, err = readConstantFloat(stream)
-	case CONSTANT_LONG_INFO:
-		obj, err = readConstantLong(stream)
-	case CONSTANT_DOUBLE_INFO:
-		obj, err = readConstantDouble(stream)
-	case CONSTANT_CLASS_INFO:
-		obj, err = readConstantClass(stream)
-	case CONSTANT_STRING_INGFO:
-		obj, err = readConstantString(stream)
-	case CONSTANT_FIELD_REF_INFO:
-		obj, err = readConstantFieldRef(stream)
-	case CONSTANT_METHOD_REF_INFO:
-		obj, err = readConstantMethodRef(stream)
-	case CONSTANT_INTERFACE_METHOD_REF:
-		obj, err = readConstantInterfaceMethodRef(stream)
-	case CONSTANT_NAME_AND_TYPE_INFO:
-		obj, err = readConstantNameAndType(stream)
-	case CONSTANT_METHOD_HANDLE_INFO:
-		obj, err = readConstantMethodHandle(stream)
-	case CONSTANT_METHOD_TYPE_INFO:
-		obj, err = readConstantMethodType(stream)
-	case CONSTANT_DYNAMIC_INFO:
-		obj, err = readConstantDynamic(stream)
-	case CONSTANT_INVOKE_DYNAMIC_INFO:
-		obj, err = readConstantInvokeDynamic(stream)
-	case CONSTANT_MODULE_INFO:
-		obj, err = readConstantModule(stream)
-	case CONSTANT_PACKAGE_INFO:
-		obj, err = readConstantPackage(stream)
-	default:
-		err = fmt.Errorf("constant type %v doesn't exists", bs)
-	}
-
-	if err != nil {
-		return err
-	}
-
-	cf.ConstantPool = append(cf.ConstantPool, obj)
+	cf.SuperClassIndex = binary.BigEndian.Uint16(bs)
 	return nil
 }
