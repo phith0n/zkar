@@ -10,5 +10,10 @@ func ParseClass(data []byte) (*ClassFile, error) {
 		return nil, err
 	}
 
+	err = classFile.readConstantPool(stream)
+	if err != nil {
+		return nil, err
+	}
+
 	return classFile, nil
 }

@@ -7,13 +7,12 @@ import (
 )
 
 type ConstantString struct {
-	StringOffset uint16
-	Reference *ConstantUTF8 // Reference must be a ConstantUTF8 object
+	StringIndex uint16
 }
 
 func (c *ConstantString) ToBytes() []byte {
 	var bs = []byte{CONSTANT_STRING_INGFO}
-	bs = append(bs, commons.NumberToBytes(c.StringOffset)...)
+	bs = append(bs, commons.NumberToBytes(c.StringIndex)...)
 	return bs
 }
 
@@ -26,7 +25,6 @@ func readConstantString(stream *commons.Stream) (*ConstantString, error) {
 
 	var i = binary.BigEndian.Uint16(bs)
 	return &ConstantString{
-		StringOffset: i,
-		// lack of Reference because ConstantPool have not been constructed yet
+		StringIndex: i,
 	}, nil
 }

@@ -14,9 +14,9 @@ type ClassFile struct {
 	MajorVersion uint16
 	ConstantPool []Constant
 	AccessFlag uint16
-	ThisClassOffset uint16
-	SuperClassOffset uint16
-	InterfaceOffsetArray []uint16
+	ThisClassIndex uint16
+	SuperClassIndex uint16
+	InterfaceIndexArray []uint16
 	Fields []*Field
 	Methods []*Method
 	Attributes []*Attribute
@@ -53,7 +53,7 @@ func (cf *ClassFile) readConstantPool(stream *commons.Stream) error {
 
 	// Note: Constant Pool index is start from 1, not 0
 	for i := uint16(1); i < size; i++ {
-		err = cf.readConstantPool(stream)
+		err = cf.readConstant(stream)
 		if err != nil {
 			return err
 		}
@@ -84,6 +84,24 @@ func (cf *ClassFile) readConstant(stream *commons.Stream) error {
 		obj, err = readConstantClass(stream)
 	case CONSTANT_STRING_INGFO:
 		obj, err = readConstantString(stream)
+	case CONSTANT_FIELD_REF_INFO:
+		obj, err = readConstantFieldRef(stream)
+	case CONSTANT_METHOD_REF_INFO:
+		obj, err = readConstantMethodRef(stream)
+	case CONSTANT_INTERFACE_METHOD_REF:
+		obj, err = readConstantInterfaceMethodRef(stream)
+	case CONSTANT_NAME_AND_TYPE_INFO:
+		obj, err = readConstantNameAndType(stream)
+	case CONSTANT_DYNAMIC_INFO:
+		obj, err = readConstantDynamic(stream)
+	case CONSTANT_INVOKE_DYNAMIC_INFO:
+		obj, err = readConstantInvokeDynamic(stream)
+	case CONSTANT_MODULE_INFO:
+		obj, err = readConstantModule(stream)
+	case CONSTANT_PACKAGE_INFO:
+		obj, err = readConstantPackage(stream)
+	default:
+		err = fmt.Errorf("constant type %v doesn't exists", bs)
 	}
 
 	if err != nil {

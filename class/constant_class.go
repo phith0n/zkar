@@ -7,13 +7,12 @@ import (
 )
 
 type ConstantClass struct {
-	NameOffset uint16
-	Reference *ConstantUTF8 // Reference must be a ConstantUTF8 object
+	NameIndex uint16
 }
 
 func (c *ConstantClass) ToBytes() []byte {
 	var bs = []byte{CONSTANT_CLASS_INFO}
-	bs = append(bs, commons.NumberToBytes(c.NameOffset)...)
+	bs = append(bs, commons.NumberToBytes(c.NameIndex)...)
 	return bs
 }
 
@@ -26,7 +25,6 @@ func readConstantClass(stream *commons.Stream) (*ConstantClass, error) {
 
 	var i = binary.BigEndian.Uint16(bs)
 	return &ConstantClass{
-		NameOffset: i,
-		// lack of Reference because ConstantPool have not been constructed yet
+		NameIndex: i,
 	}, nil
 }

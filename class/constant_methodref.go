@@ -6,26 +6,26 @@ import (
 	"github.com/phith0n/zkar/commons"
 )
 
-type ConstantFieldRef struct {
+type ConstantMethodRef struct {
 	ClassIndex uint16
 	NameAndTypeIndex uint16
 }
 
-func (c *ConstantFieldRef) ToBytes() []byte {
-	var bs = []byte{CONSTANT_FIELD_REF_INFO}
+func (c *ConstantMethodRef) ToBytes() []byte {
+	var bs = []byte{CONSTANT_METHOD_REF_INFO}
 	bs = append(bs, commons.NumberToBytes(c.ClassIndex)...)
 	bs = append(bs, commons.NumberToBytes(c.NameAndTypeIndex)...)
 	return bs
 }
 
-func readConstantFieldRef(stream *commons.Stream) (*ConstantFieldRef, error) {
+func readConstantMethodRef(stream *commons.Stream) (*ConstantMethodRef, error) {
 	_, _ = stream.ReadN(1)
 	bs, err := stream.ReadN(4)
 	if err != nil {
-		return nil, fmt.Errorf("read constant field ref failed, no enough data in the stream")
+		return nil, fmt.Errorf("read constant method ref failed, no enough data in the stream")
 	}
 
-	var c = &ConstantFieldRef{}
+	var c = &ConstantMethodRef{}
 	c.ClassIndex = binary.BigEndian.Uint16(bs[:2])
 	c.NameAndTypeIndex = binary.BigEndian.Uint16(bs[2:])
 
