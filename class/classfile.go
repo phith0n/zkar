@@ -92,6 +92,10 @@ func (cf *ClassFile) readConstant(stream *commons.Stream) error {
 		obj, err = readConstantInterfaceMethodRef(stream)
 	case CONSTANT_NAME_AND_TYPE_INFO:
 		obj, err = readConstantNameAndType(stream)
+	case CONSTANT_METHOD_HANDLE_INFO:
+		obj, err = readConstantMethodHandle(stream)
+	case CONSTANT_METHOD_TYPE_INFO:
+		obj, err = readConstantMethodType(stream)
 	case CONSTANT_DYNAMIC_INFO:
 		obj, err = readConstantDynamic(stream)
 	case CONSTANT_INVOKE_DYNAMIC_INFO:
