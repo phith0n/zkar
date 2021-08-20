@@ -16,7 +16,7 @@ func (c *ConstantString) ToBytes() []byte {
 	return bs
 }
 
-func readConstantString(stream *commons.Stream) (*ConstantString, error) {
+func (cf *ClassFile) readConstantString(stream *commons.Stream) (*ConstantString, error) {
 	_, _ = stream.ReadN(1)
 	bs, err := stream.ReadN(2)
 	if err != nil {

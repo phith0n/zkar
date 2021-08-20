@@ -18,7 +18,7 @@ func (c *ConstantInterfaceMethodRef) ToBytes() []byte {
 	return bs
 }
 
-func readConstantInterfaceMethodRef(stream *commons.Stream) (*ConstantInterfaceMethodRef, error) {
+func (cf *ClassFile) readConstantInterfaceMethodRef(stream *commons.Stream) (*ConstantInterfaceMethodRef, error) {
 	_, _ = stream.ReadN(1)
 	bs, err := stream.ReadN(4)
 	if err != nil {

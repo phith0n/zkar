@@ -18,7 +18,7 @@ func (c *ConstantFieldRef) ToBytes() []byte {
 	return bs
 }
 
-func readConstantFieldRef(stream *commons.Stream) (*ConstantFieldRef, error) {
+func (cf *ClassFile) readConstantFieldRef(stream *commons.Stream) (*ConstantFieldRef, error) {
 	_, _ = stream.ReadN(1)
 	bs, err := stream.ReadN(4)
 	if err != nil {

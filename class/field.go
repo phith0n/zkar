@@ -10,7 +10,7 @@ type Field struct {
 	AccessFlag uint16
 	NameIndex uint16
 	DescriptorIndex uint16
-	Attributes []*Attribute
+	Attributes []Attribute
 }
 
 func (cf *ClassFile) readFields(stream *commons.Stream) error {
@@ -21,7 +21,7 @@ func (cf *ClassFile) readFields(stream *commons.Stream) error {
 
 	var size = binary.BigEndian.Uint16(bs)
 	for i := uint16(0); i < size; i++ {
-		field, err := readField(stream)
+		field, err := cf.readField(stream)
 		if err != nil {
 			return err
 		}
@@ -32,7 +32,7 @@ func (cf *ClassFile) readFields(stream *commons.Stream) error {
 	return nil
 }
 
-func readField(stream *commons.Stream) (*Field, error) {
+func (cf *ClassFile) readField(stream *commons.Stream) (*Field, error) {
 	var field = new(Field)
 	bs, err := stream.ReadN(8)
 	if err != nil {
@@ -43,7 +43,7 @@ func readField(stream *commons.Stream) (*Field, error) {
 	field.DescriptorIndex = binary.BigEndian.Uint16(bs[4:6])
 	var size = binary.BigEndian.Uint16(bs[6:])
 	for i := uint16(0); i < size; i++ {
-		attr, err := readAttribute(stream)
+		attr, err := cf.readAttribute(stream)
 		if err != nil {
 			return nil, err
 		}

@@ -19,7 +19,7 @@ func (c *ConstantUTF8) ToBytes() []byte {
 	return bs
 }
 
-func readConstantUTF8(stream *commons.Stream) (*ConstantUTF8, error) {
+func (cf *ClassFile) readConstantUTF8(stream *commons.Stream) (*ConstantUTF8, error) {
 	_, _ = stream.ReadN(1)
 	bs, err := stream.ReadN(2)
 	if err != nil {

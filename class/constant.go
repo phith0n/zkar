@@ -58,39 +58,39 @@ func (cf *ClassFile) readConstant(stream *commons.Stream) error {
 	var obj Constant
 	switch bs[0] {
 	case CONSTANT_UTF8_INFO:
-		obj, err = readConstantUTF8(stream)
+		obj, err = cf.readConstantUTF8(stream)
 	case CONSTANT_INTEGER_INFO:
-		obj, err = readConstantInteger(stream)
+		obj, err = cf.readConstantInteger(stream)
 	case CONSTANT_FLOAT_INFO:
-		obj, err = readConstantFloat(stream)
+		obj, err = cf.readConstantFloat(stream)
 	case CONSTANT_LONG_INFO:
-		obj, err = readConstantLong(stream)
+		obj, err = cf.readConstantLong(stream)
 	case CONSTANT_DOUBLE_INFO:
-		obj, err = readConstantDouble(stream)
+		obj, err = cf.readConstantDouble(stream)
 	case CONSTANT_CLASS_INFO:
-		obj, err = readConstantClass(stream)
+		obj, err = cf.readConstantClass(stream)
 	case CONSTANT_STRING_INGFO:
-		obj, err = readConstantString(stream)
+		obj, err = cf.readConstantString(stream)
 	case CONSTANT_FIELD_REF_INFO:
-		obj, err = readConstantFieldRef(stream)
+		obj, err = cf.readConstantFieldRef(stream)
 	case CONSTANT_METHOD_REF_INFO:
-		obj, err = readConstantMethodRef(stream)
+		obj, err = cf.readConstantMethodRef(stream)
 	case CONSTANT_INTERFACE_METHOD_REF:
-		obj, err = readConstantInterfaceMethodRef(stream)
+		obj, err = cf.readConstantInterfaceMethodRef(stream)
 	case CONSTANT_NAME_AND_TYPE_INFO:
-		obj, err = readConstantNameAndType(stream)
+		obj, err = cf.readConstantNameAndType(stream)
 	case CONSTANT_METHOD_HANDLE_INFO:
-		obj, err = readConstantMethodHandle(stream)
+		obj, err = cf.readConstantMethodHandle(stream)
 	case CONSTANT_METHOD_TYPE_INFO:
-		obj, err = readConstantMethodType(stream)
+		obj, err = cf.readConstantMethodType(stream)
 	case CONSTANT_DYNAMIC_INFO:
-		obj, err = readConstantDynamic(stream)
+		obj, err = cf.readConstantDynamic(stream)
 	case CONSTANT_INVOKE_DYNAMIC_INFO:
-		obj, err = readConstantInvokeDynamic(stream)
+		obj, err = cf.readConstantInvokeDynamic(stream)
 	case CONSTANT_MODULE_INFO:
-		obj, err = readConstantModule(stream)
+		obj, err = cf.readConstantModule(stream)
 	case CONSTANT_PACKAGE_INFO:
-		obj, err = readConstantPackage(stream)
+		obj, err = cf.readConstantPackage(stream)
 	default:
 		err = fmt.Errorf("constant type %v doesn't exists", bs)
 	}

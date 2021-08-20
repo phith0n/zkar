@@ -18,7 +18,7 @@ func (c *ConstantDynamic) ToBytes() []byte {
 	return bs
 }
 
-func readConstantDynamic(stream *commons.Stream) (*ConstantDynamic, error) {
+func (cf *ClassFile) readConstantDynamic(stream *commons.Stream) (*ConstantDynamic, error) {
 	_, _ = stream.ReadN(1)
 	bs, err := stream.ReadN(4)
 	if err != nil {

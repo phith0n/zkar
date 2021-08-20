@@ -16,7 +16,7 @@ func (c *ConstantModule) ToBytes() []byte {
 	return bs
 }
 
-func readConstantModule(stream *commons.Stream) (*ConstantModule, error) {
+func (cf *ClassFile) readConstantModule(stream *commons.Stream) (*ConstantModule, error) {
 	_, _ = stream.ReadN(1)
 	bs, err := stream.ReadN(2)
 	if err != nil {

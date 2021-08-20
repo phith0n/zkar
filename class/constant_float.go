@@ -17,7 +17,7 @@ func (c *ConstantFloat) ToBytes() []byte {
 	return bs
 }
 
-func readConstantFloat(stream *commons.Stream) (*ConstantFloat, error) {
+func (cf *ClassFile) readConstantFloat(stream *commons.Stream) (*ConstantFloat, error) {
 	_, _ = stream.ReadN(1)
 	bs, err := stream.ReadN(4)
 	if err != nil {

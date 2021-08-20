@@ -18,7 +18,7 @@ func (c *ConstantInvokeDynamic) ToBytes() []byte {
 	return bs
 }
 
-func readConstantInvokeDynamic(stream *commons.Stream) (*ConstantInvokeDynamic, error) {
+func (cf *ClassFile) readConstantInvokeDynamic(stream *commons.Stream) (*ConstantInvokeDynamic, error) {
 	_, _ = stream.ReadN(1)
 	bs, err := stream.ReadN(4)
 	if err != nil {
