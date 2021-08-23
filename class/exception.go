@@ -13,3 +13,5 @@ type Exception struct {
 	// If the value of the CatchType item is zero, this exception handler is called for all exceptions.
 	CatchType uint16
 }
+
+

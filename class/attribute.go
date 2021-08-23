@@ -11,8 +11,18 @@ type Attribute interface {
 }
 
 type AttributeBase struct {
+	class *ClassFile
+
 	AttributeNameIndex uint16
 	AttributeLength    uint32
+}
+
+func newAttributeBase(class *ClassFile, nameIndex uint16, length uint32) *AttributeBase {
+	return &AttributeBase{
+		class: class,
+		AttributeNameIndex: nameIndex,
+		AttributeLength: length,
+	}
 }
 
 func (cf *ClassFile) readAttribute(stream *commons.Stream) (Attribute, error) {
@@ -33,7 +43,7 @@ func (cf *ClassFile) readAttribute(stream *commons.Stream) (Attribute, error) {
 	var attr Attribute
 	switch utf8.Data {
 	case "SourceFile":
-		attr = &AttrSourceFile{AttributeBase: &AttributeBase{AttributeNameIndex: nameIndex, AttributeLength: length}}
+		attr = &AttrSourceFile{AttributeBase: newAttributeBase(cf, nameIndex, length)}
 	}
 
 	err = attr.readInfo(stream)

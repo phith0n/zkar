@@ -1,6 +1,10 @@
 package class
 
-import "github.com/phith0n/zkar/commons"
+import (
+	"encoding/binary"
+	"fmt"
+	"github.com/phith0n/zkar/commons"
+)
 
 // AttrCode attribute of Method
 type AttrCode struct {
@@ -28,6 +32,54 @@ type AttrCode struct {
 }
 
 func (a *AttrCode) readInfo(stream *commons.Stream) error {
-	// TODO
+	bs, err := stream.ReadN(8)
+	if err != nil {
+		return fmt.Errorf("read AttrCode attribute failed, no enough data in the stream")
+	}
+
+	a.MaxStack = binary.BigEndian.Uint16(bs[:2])
+	a.MaxLocals = binary.BigEndian.Uint16(bs[2:4])
+	length4 := binary.BigEndian.Uint32(bs[4:])
+
+	a.Code, err = stream.ReadN(int(length4))
+	if err != nil {
+		return fmt.Errorf("read AttrCode code failed, no enough data in the stream")
+	}
+
+	bs, err = stream.ReadN(2)
+	if err != nil {
+		return fmt.Errorf("read AttrCode exception length failed, no enough data in the stream")
+	}
+
+	length2 := binary.BigEndian.Uint16(bs)
+	for i := uint16(0); i < length2; i++ {
+		bs, err = stream.ReadN(8)
+		if err != nil {
+			return fmt.Errorf("read AttrCode exception failed, no enough data in the stream")
+		}
+
+		exception := &Exception{
+			StartPC: binary.BigEndian.Uint16(bs[:2]),
+			EndPC: binary.BigEndian.Uint16(bs[2:4]),
+			HandlerPC: binary.BigEndian.Uint16(bs[4:6]),
+			CatchType: binary.BigEndian.Uint16(bs[6:]),
+		}
+		a.ExceptionTable = append(a.ExceptionTable, exception)
+	}
+
+	bs, err = stream.ReadN(2)
+	if err != nil {
+		return fmt.Errorf("read AttrCode attributes length failed, no enough data in the stream")
+	}
+
+	for i := uint16(0); i < binary.BigEndian.Uint16(bs); i++ {
+		attr, err := a.class.readAttribute(stream)
+		if err != nil {
+			return fmt.Errorf("read AttrCode attribute failed, no enough data in the stream")
+		}
+
+		a.Attributes = append(a.Attributes, attr)
+	}
+	
 	return nil
 }
