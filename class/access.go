@@ -8,6 +8,9 @@ import (
 
 const (
 	ACC_PUBLIC uint16 = 0x0001 // Declared public; may be accessed from outside its package.
+	ACC_PRIVATE uint16 = 0x0002 // Marked private in source.
+	ACC_PROTECTED uint16 = 0x0004 // Marked protected in source.
+	ACC_STATIC uint16 = 0x0008 // Marked or implicitly static in source.
 	ACC_FINAL uint16 = 0x0010 // Declared final; no subclasses allowed.
 	ACC_SUPER uint16 = 0x0020 // Treat superclass methods specially when invoked by the invokespecial instruction.
 	ACC_INTERFACE uint16 = 0x0200 // Is an interface, not a class.

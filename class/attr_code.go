@@ -7,6 +7,7 @@ import (
 )
 
 // AttrCode attribute of Method
+// https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.3
 type AttrCode struct {
 	*AttributeBase
 
@@ -30,6 +31,21 @@ type AttrCode struct {
 	// Attributes related to AttrCode
 	Attributes           []Attribute
 }
+
+type Exception struct {
+	// The values of the two items StartPC and EndPC indicate the ranges
+	//    in the code array at which the exception handler is active.
+	StartPC uint16
+	EndPC uint16
+
+	// The value of the HandlerPC item indicates the start of the exception handler.
+	HandlerPC uint16
+
+	// If the value of the CatchType item is nonzero, it must be a valid index into the constant pool table.
+	// If the value of the CatchType item is zero, this exception handler is called for all exceptions.
+	CatchType uint16
+}
+
 
 func (a *AttrCode) readInfo(stream *commons.Stream) error {
 	bs, err := stream.ReadN(8)
