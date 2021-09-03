@@ -13,7 +13,8 @@ type AttrStackMapTable struct {
 	Data []byte
 }
 
-// readInfo TODO: read detail information of AttrStackMapTable
+// readInfo not implement
+// TODO: read detail information of AttrStackMapTable
 func (a *AttrStackMapTable) readInfo(stream *commons.Stream) error {
 	var err error
 	a.Data, err = stream.ReadN(int(a.AttributeLength))

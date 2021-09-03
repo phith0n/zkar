@@ -10,7 +10,7 @@ import (
 type AttrLineNumberTable struct {
 	*AttributeBase
 
-	LineNumberTables []*LineNumberTable
+	Tables []*LineNumberTable
 }
 
 type LineNumberTable struct {
@@ -37,7 +37,7 @@ func (a *AttrLineNumberTable) readInfo(stream *commons.Stream) error {
 			StartPC: binary.BigEndian.Uint16(bs[:2]),
 			LineNumber: binary.BigEndian.Uint16(bs[2:]),
 		}
-		a.LineNumberTables = append(a.LineNumberTables, table)
+		a.Tables = append(a.Tables, table)
 	}
 
 	return nil
