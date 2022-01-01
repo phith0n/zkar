@@ -14,7 +14,7 @@ ZKar provides:
 
 ## 📦 Installing
 
-Using ZKar is easy. use `go get` to install the ZKar generator executable along with the library and its dependencies:
+Using ZKar is easy. use `go get` to install the ZKar along with the library and its dependencies:
 
 ```shell
 go get -u github.com/phith0n/zkar
@@ -45,7 +45,7 @@ func main() {
 
 ## 💻 Command line utility tool
 
-ZKar also contains a command line utility tool that you can use it directly:
+ZKar also provides a command line utility tool that you can use it directly:
 
 ```shell
 $ go run main.go
