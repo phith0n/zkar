@@ -1,20 +1,26 @@
 # ZKar
 
-ZKar is a Java serialization protocol analysis tool implement in Go.
+ZKar is a Java serialization protocol analysis tool implement in Go. This tool is still **work in progress**, so no
+complete API document and contribution guide.
 
-This tool is still **work in progress**, so no complete API document and contribution guide.
+ZKar provides:
 
-## Usage
+- A Java serialization payloads parser and viewer in pure Go, no CGO or JDK is required
+- From the Java serialization protocol to a Go struct
+- A Go library that can manipulate the Java serialization data
+- WIP: [Ysoserial](https://github.com/frohoff/ysoserial) implement in Go
+- WIP: Java class bytecodes parser, viewer and manipulation
+- WIP: An implementation of RMI/LDAP in Go
 
-### API
+## 📚 Installing
 
-Install
+Using ZKar is easy. use `go get` to install the ZKar generator executable along with the library and its dependencies:
 
 ```shell
 go get -u github.com/phith0n/zkar
 ```
 
-Quick start
+Next, use `github.com/phith0n/zkar/*` in your application:
 
 ```go
 package main
@@ -37,7 +43,9 @@ func main() {
 }
 ```
 
-### Command line
+## 💻 Command line utility tool
+
+ZKar also contains a command line utility tool that you can use it directly:
 
 ```shell
 $ go run main.go
@@ -56,15 +64,15 @@ GLOBAL OPTIONS:
    --help, -h  show help (default: false)
 ```
 
-For example, you can dump the payload CommonsBeanutils3 from Ysoserial like:
-
+For example, you are able to dump the payload CommonsBeanutils3 from Ysoserial like:
+  
 ```shell
 $ go run main.go dump -f "$(pwd)/testcases/ysoserial/CommonsBeanutils3.ser"
 ```
 
 [![asciicast](https://asciinema.org/a/Zlrg1yAghjgauGlogwmbF5vP5.svg)](https://asciinema.org/a/Zlrg1yAghjgauGlogwmbF5vP5)
 
-## Test
+## 🛠 Tests
 
 ZKar is a well-tested tool that passed all Ysoserial generated gadgets parsing and rebuilding tests. It means that
 gadget generating by Ysoserial can be parsed by ZKar, and parsed struts can be converted back into bytes string which is
@@ -107,13 +115,13 @@ equal to the original one.
 | Vaadin1             | Ysoserial | ✅     | ✅       | 438.729µs  |
 | Wicket1             | Ysoserial | ✅     | ✅       | 23.509µs   |
 
-## TODO
+## 📝 TODO
 
 - [ ] Java bytecodes parser and generator
 - [ ] Serialization payloads generator
 - [ ] An implementation of RMI/LDAP in Go
 
-## See Also
+## 👀 See Also
 
 - [SerializationDumper](https://github.com/NickstaDB/SerializationDumper): A tool to dump and rebuild Java serialization
   streams and Java RMI packet contents in a more human readable form.
