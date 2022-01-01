@@ -12,7 +12,7 @@ ZKar provides:
 - WIP: Java class bytecodes parser, viewer and manipulation
 - WIP: An implementation of RMI/LDAP in Go
 
-## 📚 Installing
+## 📦 Installing
 
 Using ZKar is easy. use `go get` to install the ZKar generator executable along with the library and its dependencies:
 
@@ -120,6 +120,10 @@ equal to the original one.
 - [ ] Java bytecodes parser and generator
 - [ ] Serialization payloads generator
 - [ ] An implementation of RMI/LDAP in Go
+
+## ⚖️ License
+
+ZKar is released under the MIT license. See [LICENSE](LICENSE)
 
 ## 👀 See Also
 
