@@ -56,10 +56,10 @@ GLOBAL OPTIONS:
    --help, -h  show help (default: false)
 ```
 
-For example, you can 
+For example, you can dump the payload CommonsBeanutils3 from Ysoserial like:
 
 ```shell
-$ go run main.go dump -f "$(pwd)/testcases/ysoserial/CommonsBeanutils1.ser"
+$ go run main.go dump -f "$(pwd)/testcases/ysoserial/CommonsBeanutils3.ser"
 ```
 
 [![asciicast](https://asciinema.org/a/Zlrg1yAghjgauGlogwmbF5vP5.svg)](https://asciinema.org/a/Zlrg1yAghjgauGlogwmbF5vP5)
