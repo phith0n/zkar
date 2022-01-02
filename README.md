@@ -114,7 +114,7 @@ equal to the original one.
 | URLDNS              | ysoserial | ✅     | ✅       | 21.502µs   |
 | Vaadin1             | ysoserial | ✅     | ✅       | 438.729µs  |
 | Wicket1             | ysoserial | ✅     | ✅       | 23.509µs   |
-| Jdk8u20             | pwntester | ❌     | ❌       | /          |
+| Jdk8u20             | pwntester | ❌     | ❌       | 312.882µs  |
 
 [JDK/JRE 8u20 gadget](https://github.com/pwntester/JRE8u20_RCE_Gadget) is not supported now, I am current working on it.
 
