@@ -8,7 +8,7 @@ ZKar provides:
 - A Java serialization payloads parser and viewer in pure Go, no CGO or JDK is required
 - From the Java serialization protocol to a Go struct
 - A Go library that can manipulate the Java serialization data
-- WIP: [Ysoserial](https://github.com/frohoff/ysoserial) implement in Go
+- WIP: [ysoserial](https://github.com/frohoff/ysoserial) implement in Go
 - WIP: Java class bytecodes parser, viewer and manipulation
 - WIP: An implementation of RMI/LDAP in Go
 
@@ -26,20 +26,20 @@ Next, use `github.com/phith0n/zkar/*` in your application:
 package main
 
 import (
-  "fmt"
-  "github.com/phith0n/zkar/serz"
-  "io/ioutil"
-  "log"
+	"fmt"
+	"github.com/phith0n/zkar/serz"
+	"io/ioutil"
+	"log"
 )
 
 func main() {
-  data, _ := ioutil.ReadFile("./testcases/ysoserial/CommonsCollections6.ser")
-  serialization, err := serz.FromBytes(data)
-  if err != nil {
-    log.Fatal("parse error")
-  }
+	data, _ := ioutil.ReadFile("./testcases/ysoserial/CommonsCollections6.ser")
+	serialization, err := serz.FromBytes(data)
+	if err != nil {
+		log.Fatal("parse error")
+	}
 
-  fmt.Println(serialization.ToString())
+	fmt.Println(serialization.ToString())
 }
 ```
 
@@ -64,8 +64,8 @@ GLOBAL OPTIONS:
    --help, -h  show help (default: false)
 ```
 
-For example, you are able to dump the payload CommonsBeanutils3 from Ysoserial like:
-  
+For example, you are able to dump the payload CommonsBeanutils3 from ysoserial like:
+
 ```shell
 $ go run main.go dump -f "$(pwd)/testcases/ysoserial/CommonsBeanutils3.ser"
 ```
@@ -74,50 +74,54 @@ $ go run main.go dump -f "$(pwd)/testcases/ysoserial/CommonsBeanutils3.ser"
 
 ## 🛠 Tests
 
-ZKar is a well-tested tool that passed all Ysoserial generated gadgets parsing and rebuilding tests. It means that
-gadget generating by Ysoserial can be parsed by ZKar, and parsed struts can be converted back into bytes string which is
+ZKar is a well-tested tool that passed all ysoserial generated gadgets parsing and rebuilding tests. It means that
+gadget generating by ysoserial can be parsed by ZKar, and parsed struts can be converted back into bytes string which is
 equal to the original one.
 
 | Gadget              | Package   | Parse | Rebuild | Parse Time |
 |---------------------|-----------|-------|---------|------------|
-| AspectJWeaver       | Ysoserial | ✅     | ✅       | 80.334µs   |
-| BeanShell1          | Ysoserial | ✅     | ✅       | 782.613µs  |
-| C3P0                | Ysoserial | ✅     | ✅       | 98.321µs   |
-| Click1              | Ysoserial | ✅     | ✅       | 573.298µs  |
-| Clojure             | Ysoserial | ✅     | ✅       | 72.415µs   |
-| CommonsBeanutils1   | Ysoserial | ✅     | ✅       | 461.15µs   |
-| CommonsCollections1 | Ysoserial | ✅     | ✅       | 64.484µs   |
-| CommonsCollections2 | Ysoserial | ✅     | ✅       | 508.918µs  |
-| CommonsCollections3 | Ysoserial | ✅     | ✅       | 564.071µs  |
-| CommonsCollections4 | Ysoserial | ✅     | ✅       | 535.449µs  |
-| CommonsCollections5 | Ysoserial | ✅     | ✅       | 137.609µs  |
-| CommonsCollections6 | Ysoserial | ✅     | ✅       | 68.753µs   |
-| CommonsCollections7 | Ysoserial | ✅     | ✅       | 178.549µs  |
-| FileUpload1         | Ysoserial | ✅     | ✅       | 35.39µs    |
-| Groovy1             | Ysoserial | ✅     | ✅       | 150.991µs  |
-| Hibernate1          | Ysoserial | ✅     | ✅       | 789.674µs  |
-| Hibernate2          | Ysoserial | ✅     | ✅       | 168.624µs  |
-| JBossInterceptors1  | Ysoserial | ✅     | ✅       | 632.581µs  |
-| JRMPClient          | Ysoserial | ✅     | ✅       | 32.967µs   |
-| JRMPListener        | Ysoserial | ✅     | ✅       | 38.263µs   |
-| JSON1               | Ysoserial | ✅     | ✅       | 2.157225ms |
-| JavassistWeld1      | Ysoserial | ✅     | ✅       | 468.596µs  |
-| Jdk7u21             | Ysoserial | ✅     | ✅       | 355.01µs   |
-| Jython1             | Ysoserial | ✅     | ✅       | 216.862µs  |
-| MozillaRhino1       | Ysoserial | ✅     | ✅       | 1.775193ms |
-| MozillaRhino2       | Ysoserial | ✅     | ✅       | 409.124µs  |
-| Myfaces1            | Ysoserial | ✅     | ✅       | 22.997µs   |
-| Myfaces2            | Ysoserial | ✅     | ✅       | 38.131µs   |
-| ROME                | Ysoserial | ✅     | ✅       | 485.804µs  |
-| Spring1             | Ysoserial | ✅     | ✅       | 797.469µs  |
-| Spring2             | Ysoserial | ✅     | ✅       | 358.041µs  |
-| URLDNS              | Ysoserial | ✅     | ✅       | 21.502µs   |
-| Vaadin1             | Ysoserial | ✅     | ✅       | 438.729µs  |
-| Wicket1             | Ysoserial | ✅     | ✅       | 23.509µs   |
+| AspectJWeaver       | ysoserial | ✅     | ✅       | 80.334µs   |
+| BeanShell1          | ysoserial | ✅     | ✅       | 782.613µs  |
+| C3P0                | ysoserial | ✅     | ✅       | 98.321µs   |
+| Click1              | ysoserial | ✅     | ✅       | 573.298µs  |
+| Clojure             | ysoserial | ✅     | ✅       | 72.415µs   |
+| CommonsBeanutils1   | ysoserial | ✅     | ✅       | 461.15µs   |
+| CommonsCollections1 | ysoserial | ✅     | ✅       | 64.484µs   |
+| CommonsCollections2 | ysoserial | ✅     | ✅       | 508.918µs  |
+| CommonsCollections3 | ysoserial | ✅     | ✅       | 564.071µs  |
+| CommonsCollections4 | ysoserial | ✅     | ✅       | 535.449µs  |
+| CommonsCollections5 | ysoserial | ✅     | ✅       | 137.609µs  |
+| CommonsCollections6 | ysoserial | ✅     | ✅       | 68.753µs   |
+| CommonsCollections7 | ysoserial | ✅     | ✅       | 178.549µs  |
+| FileUpload1         | ysoserial | ✅     | ✅       | 35.39µs    |
+| Groovy1             | ysoserial | ✅     | ✅       | 150.991µs  |
+| Hibernate1          | ysoserial | ✅     | ✅       | 789.674µs  |
+| Hibernate2          | ysoserial | ✅     | ✅       | 168.624µs  |
+| JBossInterceptors1  | ysoserial | ✅     | ✅       | 632.581µs  |
+| JRMPClient          | ysoserial | ✅     | ✅       | 32.967µs   |
+| JRMPListener        | ysoserial | ✅     | ✅       | 38.263µs   |
+| JSON1               | ysoserial | ✅     | ✅       | 2.157225ms |
+| JavassistWeld1      | ysoserial | ✅     | ✅       | 468.596µs  |
+| Jdk7u21             | ysoserial | ✅     | ✅       | 355.01µs   |
+| Jython1             | ysoserial | ✅     | ✅       | 216.862µs  |
+| MozillaRhino1       | ysoserial | ✅     | ✅       | 1.775193ms |
+| MozillaRhino2       | ysoserial | ✅     | ✅       | 409.124µs  |
+| Myfaces1            | ysoserial | ✅     | ✅       | 22.997µs   |
+| Myfaces2            | ysoserial | ✅     | ✅       | 38.131µs   |
+| ROME                | ysoserial | ✅     | ✅       | 485.804µs  |
+| Spring1             | ysoserial | ✅     | ✅       | 797.469µs  |
+| Spring2             | ysoserial | ✅     | ✅       | 358.041µs  |
+| URLDNS              | ysoserial | ✅     | ✅       | 21.502µs   |
+| Vaadin1             | ysoserial | ✅     | ✅       | 438.729µs  |
+| Wicket1             | ysoserial | ✅     | ✅       | 23.509µs   |
+| Jdk8u20             | pwntester | ❌     | ❌       | /          |
+
+[JDK/JRE 8u20 gadget](https://github.com/pwntester/JRE8u20_RCE_Gadget) is not supported now, I am current working on it.
 
 ## 📝 TODO
 
 - [ ] Java bytecodes parser and generator
+- [ ] JDK/JRE 8u20 Gadget supporting
 - [ ] Serialization payloads generator
 - [ ] An implementation of RMI/LDAP in Go
 
