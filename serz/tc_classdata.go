@@ -6,7 +6,7 @@ import (
 )
 
 type ReferenceClassInformation struct {
-	ClassName string
+	ClassName  string
 	Attributes []string
 }
 
@@ -79,7 +79,7 @@ func readTCClassData(stream *ObjectStream, desc *TCClassDesc) (*TCClassData, err
 				// So we should clear the classData.FieldDatas and reset the position of stream
 				// Then everything will be read from objectAnnotation
 				// Example: ysoserial C3O0
-				stream.Seek(current, io.SeekStart)
+				_, _ = stream.Seek(current, io.SeekStart)
 				classData.FieldDatas = []*TCValue{}
 				break
 			} else if err != nil {

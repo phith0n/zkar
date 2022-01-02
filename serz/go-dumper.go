@@ -37,16 +37,16 @@ func customDumpFunction(v reflect.Value, w io.Writer) bool {
 			b.WriteString("\\x" + hex.EncodeToString([]byte{value.Byte}))
 		}
 
-		io.WriteString(w, fmt.Sprintf(`zkar.NewTCValueBytes([]byte("%s"))`, b.String()))
+		_, _ = io.WriteString(w, fmt.Sprintf(`zkar.NewTCValueBytes([]byte("%s"))`, b.String()))
 		return true
 	}
 
 	if bytearr, ok := v.Interface().([]byte); ok {
-		io.WriteString(w, `[]byte("`)
+		_, _ = io.WriteString(w, `[]byte("`)
 		for _, value := range bytearr {
-			io.WriteString(w, fmt.Sprintf("\\x%s", hex.EncodeToString([]byte{value})))
+			_, _ = io.WriteString(w, fmt.Sprintf("\\x%s", hex.EncodeToString([]byte{value})))
 		}
-		io.WriteString(w, `")`)
+		_, _ = io.WriteString(w, `")`)
 		return true
 	}
 
