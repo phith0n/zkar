@@ -5,10 +5,12 @@ import (
 	"github.com/phith0n/zkar/serz"
 	"github.com/urfave/cli/v2"
 	"io/ioutil"
+	"log"
 	"os"
 )
 
 func main() {
+	log.SetFlags(0)
 	var app = cli.App{
 		Name:  "zkar",
 		Usage: "A Java serz tool",
@@ -62,6 +64,7 @@ func main() {
 
 					obj, err := serz.FromBytes(data)
 					if err != nil {
+						log.Fatalln(err)
 						return nil
 					}
 
