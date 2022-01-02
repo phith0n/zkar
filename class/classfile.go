@@ -9,17 +9,17 @@ import (
 )
 
 type ClassFile struct {
-	MagicNumber []byte
-	MinorVersion uint16
-	MajorVersion uint16
-	ConstantPool []Constant
-	AccessFlag uint16
-	ThisClassIndex uint16
-	SuperClassIndex uint16
+	MagicNumber         []byte
+	MinorVersion        uint16
+	MajorVersion        uint16
+	ConstantPool        []Constant
+	AccessFlag          uint16
+	ThisClassIndex      uint16
+	SuperClassIndex     uint16
 	InterfaceIndexArray []uint16
-	Fields []*Field
-	Methods []*Method
-	Attributes []*Attribute
+	Fields              []*Field
+	Methods             []*Method
+	Attributes          []*Attribute
 }
 
 func (cf *ClassFile) readHeader(stream *commons.Stream) error {

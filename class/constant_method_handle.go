@@ -7,7 +7,7 @@ import (
 )
 
 type ConstantMethodHandle struct {
-	ReferenceKind byte
+	ReferenceKind  byte
 	ReferenceIndex uint16
 }
 
@@ -26,7 +26,7 @@ func (cf *ClassFile) readConstantMethodHandle(stream *commons.Stream) (*Constant
 	}
 
 	return &ConstantMethodHandle{
-		ReferenceKind: bs[0],
+		ReferenceKind:  bs[0],
 		ReferenceIndex: binary.BigEndian.Uint16(bs[1:]),
 	}, nil
 }

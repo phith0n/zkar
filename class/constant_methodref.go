@@ -7,7 +7,7 @@ import (
 )
 
 type ConstantMethodRef struct {
-	ClassIndex uint16
+	ClassIndex       uint16
 	NameAndTypeIndex uint16
 }
 

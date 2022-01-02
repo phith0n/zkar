@@ -13,7 +13,7 @@ type TCArray struct {
 	TypeCode     byte
 	ClassPointer *TCClassPointer
 	ArrayData    []*TCValue
-	Handler uint32
+	Handler      uint32
 }
 
 func (t *TCArray) ToBytes() []byte {

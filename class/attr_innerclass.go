@@ -53,9 +53,9 @@ func (a *AttrInnerClass) readInnerClass(stream *commons.Stream) (*InnerClass, er
 	}
 
 	c := &InnerClass{
-		InnerClassInfo: binary.BigEndian.Uint16(bs[:2]),
-		OuterClassInfo: binary.BigEndian.Uint16(bs[2:4]),
-		InnerClassIndex: binary.BigEndian.Uint16(bs[4:6]),
+		InnerClassInfo:        binary.BigEndian.Uint16(bs[:2]),
+		OuterClassInfo:        binary.BigEndian.Uint16(bs[2:4]),
+		InnerClassIndex:       binary.BigEndian.Uint16(bs[4:6]),
 		InnerClassAccessFlags: binary.BigEndian.Uint16(bs[6:]),
 	}
 	return c, nil

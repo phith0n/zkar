@@ -5,7 +5,7 @@ import "github.com/phith0n/zkar/commons"
 type TCObject struct {
 	ClassPointer *TCClassPointer
 	ClassDatas   []*TCClassData
-	Handler uint32
+	Handler      uint32
 }
 
 func (oo *TCObject) ToBytes() []byte {

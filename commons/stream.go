@@ -6,17 +6,16 @@ import (
 )
 
 type Stream struct {
-	bs         []byte
-	current    int64
+	bs      []byte
+	current int64
 }
 
 func NewStream(bs []byte) *Stream {
 	return &Stream{
-		bs:         bs,
-		current:    int64(0),
+		bs:      bs,
+		current: int64(0),
 	}
 }
-
 
 // Read implement io.Reader
 func (s *Stream) Read(b []byte) (n int, err error) {

@@ -12,31 +12,31 @@ type AttrCode struct {
 	*AttributeBase
 
 	// Maximum depth of the operand stack of this method at any point during execution of the method.
-	MaxStack             uint16
+	MaxStack uint16
 
 	// The number of local variables in the local variable array allocated upon invocation of this method,
 	//   including the local variables used to pass parameters to the method on its invocation.
-	MaxLocals            uint16
+	MaxLocals uint16
 
 	// Actual bytes of Java Virtual Machine code that implement the method
 	// If the method is either native or abstract, and is not a class or interface initialization method,
 	//   then its Method structure must not have a Code attribute in its attributes table.
 	//   Otherwise, its Method structure must have exactly one Code attribute in its attributes table.
-	Code                 []byte
+	Code []byte
 
 	// Each entry in the ExceptionTable array describes one exception handler in the code array.
 	//   The order of the handlers in the ExceptionTable array is significant
-	ExceptionTable       []*Exception
+	ExceptionTable []*Exception
 
 	// Attributes related to AttrCode
-	Attributes           []Attribute
+	Attributes []Attribute
 }
 
 type Exception struct {
 	// The values of the two items StartPC and EndPC indicate the ranges
 	//    in the code array at which the exception handler is active.
 	StartPC uint16
-	EndPC uint16
+	EndPC   uint16
 
 	// The value of the HandlerPC item indicates the start of the exception handler.
 	HandlerPC uint16
@@ -45,7 +45,6 @@ type Exception struct {
 	// If the value of the CatchType item is zero, this exception handler is called for all exceptions.
 	CatchType uint16
 }
-
 
 func (a *AttrCode) readInfo(stream *commons.Stream) error {
 	bs, err := stream.ReadN(8)
@@ -75,8 +74,8 @@ func (a *AttrCode) readInfo(stream *commons.Stream) error {
 		}
 
 		exception := &Exception{
-			StartPC: binary.BigEndian.Uint16(bs[:2]),
-			EndPC: binary.BigEndian.Uint16(bs[2:4]),
+			StartPC:   binary.BigEndian.Uint16(bs[:2]),
+			EndPC:     binary.BigEndian.Uint16(bs[2:4]),
 			HandlerPC: binary.BigEndian.Uint16(bs[4:6]),
 			CatchType: binary.BigEndian.Uint16(bs[6:]),
 		}
@@ -96,6 +95,6 @@ func (a *AttrCode) readInfo(stream *commons.Stream) error {
 
 		a.Attributes = append(a.Attributes, attr)
 	}
-	
+
 	return nil
 }

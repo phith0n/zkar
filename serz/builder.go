@@ -1,6 +1,5 @@
 package serz
 
-
 func NewNullPointer() *TCClassPointer {
 	return &TCClassPointer{
 		Flag: JAVA_TC_NULL,
@@ -31,10 +30,10 @@ func SimpleClassDesc(className string, svuid int64, flags byte, handler uint32, 
 		ClassName: &TCUtf{
 			Data: className,
 		},
-		SerialVersionUID: svuid,
-		ClassDescFlags: flags,
+		SerialVersionUID:  svuid,
+		ClassDescFlags:    flags,
 		SuperClassPointer: super,
-		Handler: handler,
+		Handler:           handler,
 	}
 
 	for _, blocks := range fields {
@@ -59,7 +58,7 @@ func NewTCValueBytes(data []byte) []*TCValue {
 	for _, b := range data {
 		value := &TCValue{
 			TypeCode: "B",
-			Byte: b,
+			Byte:     b,
 		}
 		l = append(l, value)
 	}

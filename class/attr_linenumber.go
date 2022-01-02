@@ -34,7 +34,7 @@ func (a *AttrLineNumberTable) readInfo(stream *commons.Stream) error {
 		}
 
 		table := &LineNumberTable{
-			StartPC: binary.BigEndian.Uint16(bs[:2]),
+			StartPC:    binary.BigEndian.Uint16(bs[:2]),
 			LineNumber: binary.BigEndian.Uint16(bs[2:]),
 		}
 		a.Tables = append(a.Tables, table)

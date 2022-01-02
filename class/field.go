@@ -7,10 +7,10 @@ import (
 )
 
 type Field struct {
-	AccessFlag uint16
-	NameIndex uint16
+	AccessFlag      uint16
+	NameIndex       uint16
 	DescriptorIndex uint16
-	Attributes []Attribute
+	Attributes      []Attribute
 }
 
 func (cf *ClassFile) readFields(stream *commons.Stream) error {

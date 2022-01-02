@@ -19,9 +19,9 @@ type AttributeBase struct {
 
 func newAttributeBase(class *ClassFile, nameIndex uint16, length uint32) *AttributeBase {
 	return &AttributeBase{
-		class: class,
+		class:              class,
 		AttributeNameIndex: nameIndex,
-		AttributeLength: length,
+		AttributeLength:    length,
 	}
 }
 

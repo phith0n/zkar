@@ -27,4 +27,3 @@ func (cf *ClassFile) readConstantPackage(stream *commons.Stream) (*ConstantPacka
 		NameIndex: binary.BigEndian.Uint16(bs),
 	}, nil
 }
-

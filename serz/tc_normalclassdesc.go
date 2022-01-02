@@ -14,7 +14,7 @@ type TCClassDesc struct {
 	Fields            []*TCFieldDesc
 	ClassAnnotation   []*TCContent
 	SuperClassPointer *TCClassPointer
-	Handler uint32
+	Handler           uint32
 }
 
 func (desc *TCClassDesc) ToBytes() []byte {

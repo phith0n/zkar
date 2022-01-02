@@ -67,4 +67,3 @@ func TestStream_PeekN(t *testing.T) {
 	require.Equal(t, io.ErrUnexpectedEOF, err)
 	require.Nil(t, bs)
 }
-

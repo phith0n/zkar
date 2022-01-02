@@ -8,6 +8,8 @@ import (
 )
 
 func TestParseClass(t *testing.T) {
+	t.SkipNow()
+
 	data, err := ioutil.ReadFile("../testcases/classfile/TrainPrint.class")
 	require.Nil(t, err)
 

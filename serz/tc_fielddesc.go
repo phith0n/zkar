@@ -9,7 +9,7 @@ import (
 var PrimitiveTypecode = []string{"B", "C", "D", "F", "I", "J", "S", "Z"}
 var ObjectTypecode = []string{"[", "L"}
 var AllTypecode = append(PrimitiveTypecode, ObjectTypecode...)
-var typecodeVerbose = map[string]string {
+var typecodeVerbose = map[string]string{
 	"B": "Byte",
 	"C": "Char",
 	"D": "Double",

@@ -10,7 +10,7 @@ import (
 // https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.10
 type AttrSourceFile struct {
 	*AttributeBase
-	SourceFileIndex    uint16 // indicate the name of the source file of the class
+	SourceFileIndex uint16 // indicate the name of the source file of the class
 }
 
 func (a *AttrSourceFile) readInfo(stream *commons.Stream) error {

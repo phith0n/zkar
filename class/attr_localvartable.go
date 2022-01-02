@@ -13,11 +13,11 @@ type AttrLocalVariableTable struct {
 }
 
 type LocalVariableTable struct {
-	StartPC uint16
-	Length uint16
-	NameIndex uint16
+	StartPC         uint16
+	Length          uint16
+	NameIndex       uint16
 	DescriptorIndex uint16
-	Index uint16
+	Index           uint16
 }
 
 func (a *AttrLocalVariableTable) readInfo(stream *commons.Stream) error {
@@ -33,11 +33,11 @@ func (a *AttrLocalVariableTable) readInfo(stream *commons.Stream) error {
 		}
 
 		table := &LocalVariableTable{
-			StartPC: binary.BigEndian.Uint16(bs[:2]),
-			Length: binary.BigEndian.Uint16(bs[2:4]),
-			NameIndex: binary.BigEndian.Uint16(bs[4:6]),
+			StartPC:         binary.BigEndian.Uint16(bs[:2]),
+			Length:          binary.BigEndian.Uint16(bs[2:4]),
+			NameIndex:       binary.BigEndian.Uint16(bs[4:6]),
 			DescriptorIndex: binary.BigEndian.Uint16(bs[6:8]),
-			Index: binary.BigEndian.Uint16(bs[8:]),
+			Index:           binary.BigEndian.Uint16(bs[8:]),
 		}
 		a.Tables = append(a.Tables, table)
 	}

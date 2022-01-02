@@ -7,7 +7,7 @@ import (
 )
 
 type ConstantNameAndType struct {
-	NameIndex uint16
+	NameIndex       uint16
 	DescriptorIndex uint16
 }
 

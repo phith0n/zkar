@@ -8,7 +8,7 @@ import (
 
 type ConstantInvokeDynamic struct {
 	BootstrapMethodIndex uint16 // a reference to the BootstrapMethod in ClassFile.Attributes
-	NameAndTypeIndex uint16
+	NameAndTypeIndex     uint16
 }
 
 func (c *ConstantInvokeDynamic) ToBytes() []byte {
@@ -31,5 +31,3 @@ func (cf *ClassFile) readConstantInvokeDynamic(stream *commons.Stream) (*Constan
 
 	return c, nil
 }
-
-

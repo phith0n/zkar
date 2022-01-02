@@ -102,4 +102,3 @@ func (cf *ClassFile) readConstant(stream *commons.Stream) error {
 	cf.ConstantPool = append(cf.ConstantPool, obj)
 	return nil
 }
-

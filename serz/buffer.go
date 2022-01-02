@@ -12,7 +12,7 @@ type ObjectStream struct {
 
 func NewObjectStream(bs []byte) *ObjectStream {
 	return &ObjectStream{
-		Stream: commons.NewStream(bs),
+		Stream:     commons.NewStream(bs),
 		handler:    JAVA_BASE_WRITE_HANDLE,
 		references: make(map[uint32]Object),
 	}

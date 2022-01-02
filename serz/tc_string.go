@@ -6,7 +6,7 @@ import (
 )
 
 type TCString struct {
-	Utf *TCUtf
+	Utf     *TCUtf
 	Handler uint32
 }
 

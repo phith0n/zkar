@@ -5,7 +5,7 @@ import "github.com/phith0n/zkar/commons"
 type TCEnum struct {
 	ClassPointer *TCClassPointer
 	ConstantName *TCStringPointer
-	Handler uint32
+	Handler      uint32
 }
 
 func (e *TCEnum) ToBytes() []byte {

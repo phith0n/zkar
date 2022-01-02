@@ -10,7 +10,7 @@ type TCProxyClassDesc struct {
 	InterfaceNames    []*TCUtf
 	ClassAnnotation   []*TCContent
 	SuperClassPointer *TCClassPointer
-	Handler uint32
+	Handler           uint32
 }
 
 func (pc *TCProxyClassDesc) ToBytes() []byte {
