@@ -1,3 +1,6 @@
 .idea
 *.poc
 *.exe
+/target/
+
+dist/
