@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"github.com/phith0n/zkar/serz"
 	"github.com/urfave/cli/v2"
@@ -46,7 +47,13 @@ func main() {
 						Name:     "file",
 						Aliases:  []string{"f"},
 						Usage:    "serz data filepath",
-						Required: true,
+						Required: false,
+					},
+					&cli.StringFlag{
+						Name:     "base64",
+						Aliases:  []string{"B"},
+						Usage:    "serz data as Base64 format string",
+						Required: false,
 					},
 					&cli.BoolFlag{
 						Name:     "golang",
@@ -57,7 +64,19 @@ func main() {
 				},
 				Action: func(context *cli.Context) error {
 					var filename = context.String("file")
-					data, err := ioutil.ReadFile(filename)
+					var b64data = context.String("base64")
+					var data []byte
+					var err error
+					if (filename == "" && b64data == "") || (filename != "" && b64data != "") {
+						return fmt.Errorf("one \"file\" or \"base64\" flag must be specified, and not both")
+					}
+
+					if filename != "" {
+						data, err = ioutil.ReadFile(filename)
+					} else {
+						data, err = base64.StdEncoding.DecodeString(b64data)
+					}
+
 					if err != nil {
 						return err
 					}
