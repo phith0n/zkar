@@ -12,6 +12,9 @@ import (
 	"time"
 )
 
+const existsFlag = "✅"
+const notExistsFlag = "❌"
+
 func extractName(name string) string {
 	name = filepath.Base(name)
 	blocks := strings.Split(name, ".")
@@ -81,8 +84,8 @@ func TestMain(m *testing.M) {
 			goto cleanup
 		}
 
-		var parseFlag = "❌"
-		var rebuildFlag = "❌"
+		var parseFlag = notExistsFlag
+		var rebuildFlag = notExistsFlag
 		var serialization *Serialization
 		var start = time.Now()
 
@@ -95,12 +98,12 @@ func TestMain(m *testing.M) {
 		var duration = time.Since(start)
 
 		if err == nil {
-			parseFlag = "✅"
+			parseFlag = existsFlag
 
 			if isJDK8u20 && bytes.Equal(serialization.ToJDK8u20Bytes(), data) {
-				rebuildFlag = "✅"
+				rebuildFlag = existsFlag
 			} else if !isJDK8u20 && bytes.Equal(serialization.ToBytes(), data) {
-				rebuildFlag = "✅"
+				rebuildFlag = existsFlag
 			}
 		}
 
