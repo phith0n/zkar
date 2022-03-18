@@ -40,16 +40,13 @@ func TestYsoserial(t *testing.T) {
 }
 
 func TestJDK8u20(t *testing.T) {
-	// current skipped
-	t.SkipNow()
-
 	var filename = "../testcases/pwntester/JDK8u20.ser"
 	data, err := ioutil.ReadFile(filename)
 	require.Nil(t, err)
 
-	ser, err := FromBytes(data)
+	ser, err := FromJDK8u20Bytes(data)
 	require.Nilf(t, err, "an error is occurred in file %v", filename)
-	require.Truef(t, bytes.Equal(data, ser.ToBytes()), "original serz data is different from generation data in file %v", filename)
+	require.Truef(t, bytes.Equal(data, ser.ToJDK8u20Bytes()), "original serz data is different from generation data in file %v", filename)
 }
 
 func TestMain(m *testing.M) {
