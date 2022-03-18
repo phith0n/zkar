@@ -114,14 +114,15 @@ equal to the original one.
 | URLDNS              | ysoserial | ✅     | ✅       | 21.502µs   |
 | Vaadin1             | ysoserial | ✅     | ✅       | 438.729µs  |
 | Wicket1             | ysoserial | ✅     | ✅       | 23.509µs   |
-| Jdk8u20             | pwntester | ❌     | ❌       | 312.882µs  |
+| JDK8u20*            | pwntester | ✅     | ✅       | 529.3µs    |
 
-[JDK/JRE 8u20 gadget](https://github.com/pwntester/JRE8u20_RCE_Gadget) is not supported now, I am current working on it.
+Notice: For parsing JDK8u20 payload, you should add `--jdk8u20` flag to `dump` command.
+As the payload is not a valid serialized data stream, it's necessary to tell ZKar patches the data through this flag.
 
 ## 📝 TODO
 
 - [ ] Java bytecodes parser and generator
-- [ ] JDK/JRE 8u20 Gadget supporting
+- [x] JDK/JRE 8u20 Gadget supporting
 - [ ] Serialization payloads generator
 - [ ] An implementation of RMI/LDAP in Go
 

@@ -12,6 +12,9 @@ import (
 	"time"
 )
 
+const existsFlag = "✅"
+const notExistsFlag = "❌"
+
 func extractName(name string) string {
 	name = filepath.Base(name)
 	blocks := strings.Split(name, ".")
@@ -40,16 +43,13 @@ func TestYsoserial(t *testing.T) {
 }
 
 func TestJDK8u20(t *testing.T) {
-	// current skipped
-	t.SkipNow()
-
 	var filename = "../testcases/pwntester/JDK8u20.ser"
 	data, err := ioutil.ReadFile(filename)
 	require.Nil(t, err)
 
-	ser, err := FromBytes(data)
+	ser, err := FromJDK8u20Bytes(data)
 	require.Nilf(t, err, "an error is occurred in file %v", filename)
-	require.Truef(t, bytes.Equal(data, ser.ToBytes()), "original serz data is different from generation data in file %v", filename)
+	require.Truef(t, bytes.Equal(data, ser.ToJDK8u20Bytes()), "original serz data is different from generation data in file %v", filename)
 }
 
 func TestMain(m *testing.M) {
@@ -77,23 +77,33 @@ func TestMain(m *testing.M) {
 	fmt.Println("| Gadget | Package | Parsed | Rebuild | Parse Time |")
 	fmt.Println("|--------|--------|--------|--------|--------|")
 	for _, name := range files {
+		var isJDK8u20 = strings.Contains(name, "JDK8u20")
 		data, err := ioutil.ReadFile(name)
 		if err != nil {
 			exitCode = exitCode | 1
 			goto cleanup
 		}
 
-		parseFlag := "❌"
-		rebuildFlag := "❌"
-		start := time.Now()
-		serialization, err := FromBytes(data)
-		duration := time.Since(start)
+		var parseFlag = notExistsFlag
+		var rebuildFlag = notExistsFlag
+		var serialization *Serialization
+		var start = time.Now()
+
+		if isJDK8u20 {
+			serialization, err = FromJDK8u20Bytes(data)
+		} else {
+			serialization, err = FromBytes(data)
+		}
+
+		var duration = time.Since(start)
 
 		if err == nil {
-			parseFlag = "✅"
+			parseFlag = existsFlag
 
-			if bytes.Equal(serialization.ToBytes(), data) {
-				rebuildFlag = "✅"
+			if isJDK8u20 && bytes.Equal(serialization.ToJDK8u20Bytes(), data) {
+				rebuildFlag = existsFlag
+			} else if !isJDK8u20 && bytes.Equal(serialization.ToBytes(), data) {
+				rebuildFlag = existsFlag
 			}
 		}
 

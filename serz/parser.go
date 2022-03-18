@@ -51,6 +51,16 @@ func FromBytes(data []byte) (*Serialization, error) {
 	return ser, nil
 }
 
+func FromJDK8u20Bytes(data []byte) (*Serialization, error) {
+	data = bytes.Replace(
+		data,
+		[]byte{0x00, 0x7e, 0x00, 0x09},
+		[]byte{0x00, 0x7e, 0x00, 0x09, JAVA_TC_ENDBLOCKDATA},
+		1,
+	)
+	return FromBytes(data)
+}
+
 func (ois *Serialization) ToString() string {
 	var b = commons.NewPrinter()
 	b.Printf("@Magic - %s", commons.Hexify(ois.MagicNumber))
@@ -70,4 +80,14 @@ func (ois *Serialization) ToBytes() []byte {
 	}
 
 	return bs
+}
+
+func (ois *Serialization) ToJDK8u20Bytes() []byte {
+	var data = ois.ToBytes()
+	return bytes.Replace(
+		data,
+		[]byte{0x00, 0x7e, 0x00, 0x09, JAVA_TC_ENDBLOCKDATA},
+		[]byte{0x00, 0x7e, 0x00, 0x09},
+		1,
+	)
 }
