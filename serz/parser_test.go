@@ -74,22 +74,32 @@ func TestMain(m *testing.M) {
 	fmt.Println("| Gadget | Package | Parsed | Rebuild | Parse Time |")
 	fmt.Println("|--------|--------|--------|--------|--------|")
 	for _, name := range files {
+		var isJDK8u20 = strings.Contains(name, "JDK8u20")
 		data, err := ioutil.ReadFile(name)
 		if err != nil {
 			exitCode = exitCode | 1
 			goto cleanup
 		}
 
-		parseFlag := "❌"
-		rebuildFlag := "❌"
-		start := time.Now()
-		serialization, err := FromBytes(data)
-		duration := time.Since(start)
+		var parseFlag = "❌"
+		var rebuildFlag = "❌"
+		var serialization *Serialization
+		var start = time.Now()
+
+		if isJDK8u20 {
+			serialization, err = FromJDK8u20Bytes(data)
+		} else {
+			serialization, err = FromBytes(data)
+		}
+
+		var duration = time.Since(start)
 
 		if err == nil {
 			parseFlag = "✅"
 
-			if bytes.Equal(serialization.ToBytes(), data) {
+			if isJDK8u20 && bytes.Equal(serialization.ToJDK8u20Bytes(), data) {
+				rebuildFlag = "✅"
+			} else if !isJDK8u20 && bytes.Equal(serialization.ToBytes(), data) {
 				rebuildFlag = "✅"
 			}
 		}
