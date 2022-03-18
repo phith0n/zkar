@@ -58,7 +58,7 @@ func (cd *TCClassData) ToString() string {
 	for _, content := range cd.ObjectAnnotation {
 		b.Print(content.ToString())
 	}
-
+	b.Printf("TC_ENDBLOCKDATA - %s", commons.Hexify(JAVA_TC_ENDBLOCKDATA))
 	return b.String()
 }
 
