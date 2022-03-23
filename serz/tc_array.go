@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/phith0n/zkar/commons"
-	"io"
 	"strings"
 )
 
@@ -45,7 +44,7 @@ func (t *TCArray) ToString() string {
 		className = t.ClassPointer.Reference.NormalClassDesc.ClassName.Data
 	}
 	if className == "[B" {
-		t.DumpByteArray(b)
+		b.Print(t.DumpByteArray())
 		return b.String()
 	}
 
@@ -59,12 +58,14 @@ func (t *TCArray) ToString() string {
 	return b.String()
 }
 
-func (t *TCArray) DumpByteArray(b io.Writer) {
-	var dumper = hex.Dumper(b)
+func (t *TCArray) DumpByteArray() string {
+	var builder = &strings.Builder{}
+	var dumper = hex.Dumper(builder)
 	for _, v := range t.ArrayData {
 		_, _ = dumper.Write([]byte{v.Byte})
 	}
 	dumper.Close()
+	return builder.String()
 }
 
 func readTCArray(stream *ObjectStream) (*TCArray, error) {
