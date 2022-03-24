@@ -62,6 +62,34 @@ func (cd *TCClassData) ToString() string {
 	return b.String()
 }
 
+func (cd *TCClassData) Walk(callback WalkCallback) error {
+	for _, data := range cd.FieldDatas {
+		if err := callback(data); err != nil {
+			return err
+		}
+
+		if err := data.Walk(callback); err != nil {
+			return err
+		}
+	}
+
+	if !cd.HasAnnotation {
+		return nil
+	}
+
+	for _, anno := range cd.ObjectAnnotation {
+		if err := callback(anno); err != nil {
+			return err
+		}
+
+		if err := anno.Walk(callback); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func readTCClassData(stream *ObjectStream, desc *TCClassDesc) (*TCClassData, error) {
 	var err error
 	var classData = &TCClassData{

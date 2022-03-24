@@ -58,6 +58,28 @@ func (t *TCArray) ToString() string {
 	return b.String()
 }
 
+func (t *TCArray) Walk(callback WalkCallback) error {
+	if err := callback(t.ClassPointer); err != nil {
+		return err
+	}
+
+	if err := t.ClassPointer.Walk(callback); err != nil {
+		return err
+	}
+
+	for _, v := range t.ArrayData {
+		if err := callback(v); err != nil {
+			return err
+		}
+
+		if err := v.Walk(callback); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (t *TCArray) DumpByteArray() string {
 	var builder = &strings.Builder{}
 	var dumper = hex.Dumper(builder)

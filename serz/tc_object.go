@@ -33,6 +33,28 @@ func (oo *TCObject) ToString() string {
 	return b.String()
 }
 
+func (oo *TCObject) Walk(callback WalkCallback) error {
+	if err := callback(oo.ClassPointer); err != nil {
+		return err
+	}
+
+	if err := oo.ClassPointer.Walk(callback); err != nil {
+		return err
+	}
+
+	for _, data := range oo.ClassDatas {
+		if err := callback(data); err != nil {
+			return err
+		}
+
+		if err := data.Walk(callback); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func readTCObject(stream *ObjectStream) (*TCObject, error) {
 	var obj = new(TCObject)
 	var err error

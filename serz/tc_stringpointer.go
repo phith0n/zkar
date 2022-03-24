@@ -24,6 +24,21 @@ func (sp *TCStringPointer) ToString() string {
 	}
 }
 
+func (sp *TCStringPointer) Walk(callback WalkCallback) error {
+	var obj Object
+	if sp.IsRef {
+		obj = sp.Reference
+	} else {
+		obj = sp.String
+	}
+
+	if err := callback(obj); err != nil {
+		return err
+	}
+
+	return obj.Walk(callback)
+}
+
 func readTCStringPointer(stream *ObjectStream) (*TCStringPointer, error) {
 	flag, err := stream.PeekN(1)
 	if err != nil {

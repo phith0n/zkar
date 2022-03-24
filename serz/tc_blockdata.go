@@ -35,6 +35,10 @@ func (bd *TCBlockData) ToString() string {
 	return b.String()
 }
 
+func (bd *TCBlockData) Walk(callback WalkCallback) error {
+	return nil
+}
+
 func readTCBlockData(stream *ObjectStream) (*TCBlockData, error) {
 	// read JAVA_TC_BLOCKDATA or JAVA_TC_BLOCKDATALONG Flag
 	flag, _ := stream.ReadN(1)

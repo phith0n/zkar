@@ -16,6 +16,10 @@ func (n *TCNull) ToString() string {
 	return b.String()
 }
 
+func (n *TCNull) Walk(callback WalkCallback) error {
+	return nil
+}
+
 func readTCNull(stream *ObjectStream) *TCNull {
 	_, _ = stream.ReadN(1)
 	return new(TCNull)

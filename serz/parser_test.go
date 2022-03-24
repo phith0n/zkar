@@ -28,18 +28,14 @@ func extractPackage(name string) string {
 }
 
 func TestYsoserial(t *testing.T) {
-	files, err := filepath.Glob("../testcases/ysoserial/*.ser")
-	require.Nil(t, err)
-	require.NotZero(t, len(files))
-
-	for _, name := range files {
-		data, err := ioutil.ReadFile(name)
-		require.Nil(t, err)
-
-		ser, err := FromBytes(data)
-		require.Nilf(t, err, "an error is occurred in file %v", name)
-		require.Truef(t, bytes.Equal(data, ser.ToBytes()), "original serz data is different from generation data in file %v", name)
-	}
+	walkAndTest("../testcases/ysoserial/*.ser", t, func(filename string, data []byte, ser *Serialization) {
+		require.Truef(
+			t,
+			bytes.Equal(data, ser.ToBytes()),
+			"original data is different from generation data in file %v",
+			filename,
+		)
+	})
 }
 
 func TestJDK8u20(t *testing.T) {
@@ -49,7 +45,7 @@ func TestJDK8u20(t *testing.T) {
 
 	ser, err := FromJDK8u20Bytes(data)
 	require.Nilf(t, err, "an error is occurred in file %v", filename)
-	require.Truef(t, bytes.Equal(data, ser.ToJDK8u20Bytes()), "original serz data is different from generation data in file %v", filename)
+	require.Truef(t, bytes.Equal(data, ser.ToJDK8u20Bytes()), "original data is different from generation data in file %v", filename)
 }
 
 func TestMain(m *testing.M) {
@@ -112,4 +108,20 @@ func TestMain(m *testing.M) {
 
 cleanup:
 	os.Exit(exitCode)
+}
+
+func walkAndTest(pathGlob string, t *testing.T, callback func(filename string, data []byte, ser *Serialization)) {
+	files, err := filepath.Glob(pathGlob)
+	require.Nil(t, err)
+	require.NotZero(t, len(files))
+
+	for _, name := range files {
+		data, err := ioutil.ReadFile(name)
+		require.Nil(t, err)
+
+		ser, err := FromBytes(data)
+		require.Nilf(t, err, "an error is occurred in file %v", name)
+
+		callback(name, data, ser)
+	}
 }

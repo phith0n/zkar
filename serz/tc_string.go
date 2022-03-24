@@ -36,6 +36,14 @@ func (so *TCString) ToString() string {
 	return b.String()
 }
 
+func (so *TCString) Walk(callback WalkCallback) error {
+	if err := callback(so.Utf); err != nil {
+		return err
+	}
+
+	return so.Utf.Walk(callback)
+}
+
 func readTCString(stream *ObjectStream) (*TCString, error) {
 	var s = new(TCString)
 	var err error

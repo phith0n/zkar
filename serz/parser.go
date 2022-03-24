@@ -10,6 +10,7 @@ import (
 type Object interface {
 	ToBytes() []byte
 	ToString() string
+	AllowWalked
 }
 
 type Serialization struct {
@@ -90,4 +91,18 @@ func (ois *Serialization) ToJDK8u20Bytes() []byte {
 		[]byte{0x00, 0x7e, 0x00, 0x09},
 		1,
 	)
+}
+
+func (ois *Serialization) Walk(callback WalkCallback) error {
+	for _, content := range ois.Contents {
+		if err := callback(content); err != nil {
+			return err
+		}
+
+		if err := content.Walk(callback); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

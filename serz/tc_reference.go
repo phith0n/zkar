@@ -32,6 +32,11 @@ func (r *TCReference) ToString() string {
 	return b.String()
 }
 
+// Walk We don't walk into TCReference, because it's field are all the pointer that walked before
+func (r *TCReference) Walk(callback WalkCallback) error {
+	return nil
+}
+
 func readTCReference(stream *ObjectStream) (*TCReference, error) {
 	// read JAVA_TC_REFERENCE flag
 	_, _ = stream.ReadN(1)

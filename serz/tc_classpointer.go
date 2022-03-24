@@ -48,6 +48,28 @@ func (cp *TCClassPointer) ToString() string {
 	return result
 }
 
+func (cp *TCClassPointer) Walk(callback WalkCallback) error {
+	var obj Object
+	switch cp.Flag {
+	case JAVA_TC_NULL:
+		obj = cp.Null
+	case JAVA_TC_REFERENCE:
+		obj = cp.Reference
+	case JAVA_TC_CLASSDESC:
+		obj = cp.NormalClassDesc
+	case JAVA_TC_PROXYCLASSDESC:
+		obj = cp.ProxyClassDesc
+	default:
+		panic("unexpected TCClassPointer Flag")
+	}
+
+	if err := callback(obj); err != nil {
+		return err
+	}
+
+	return obj.Walk(callback)
+}
+
 func (cp *TCClassPointer) FindClassBag(stream *ObjectStream) (*ClassBag, error) {
 	var normalClassDesc *TCClassDesc
 	var proxyClassDesc *TCProxyClassDesc
