@@ -1,9 +1,5 @@
 package serz
 
-import (
-	"fmt"
-)
-
 type WalkCallback func(object Object) error
 type FindCallback func(object Object) bool
 type StopWalkError struct{}
@@ -34,7 +30,7 @@ func FindObject(orig AllowWalked, callback FindCallback) Object {
 	}
 }
 
-func FindClassDesc(orig AllowWalked, name string) (*TCClassDesc, error) {
+func FindClassDesc(orig AllowWalked, name string) *TCClassDesc {
 	var obj = FindObject(orig, func(object Object) bool {
 		var desc *TCClassDesc
 		var ok bool
@@ -46,8 +42,8 @@ func FindClassDesc(orig AllowWalked, name string) (*TCClassDesc, error) {
 	})
 
 	if obj != nil {
-		return obj.(*TCClassDesc), nil
+		return obj.(*TCClassDesc)
 	} else {
-		return nil, fmt.Errorf("class desc %v not found", name)
+		return nil
 	}
 }

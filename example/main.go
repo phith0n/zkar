@@ -1,12 +1,23 @@
 package main
 
 import (
-	"encoding/hex"
 	"fmt"
+	"github.com/phith0n/zkar/serz"
+	"io/ioutil"
+	"log"
 )
 
 func main() {
-	var s = "\x8c\xA3\x8B"
-	var bs = []byte(s)
-	fmt.Println(bs, s, hex.EncodeToString(bs))
+	data, _ := ioutil.ReadFile("./testcases/ysoserial/Jdk7u21.ser")
+	serialization, err := serz.FromBytes(data)
+	if err != nil {
+		log.Fatal("parse error")
+	}
+
+	desc := serz.FindClassDesc(serialization, "sun.reflect.annotation.AnnotationInvocationHandler")
+	if desc != nil {
+		fmt.Println(desc.ToString())
+	} else {
+		log.Fatal("class desc not found")
+	}
 }
