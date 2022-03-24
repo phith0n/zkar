@@ -22,6 +22,14 @@ func (c *TCClass) ToString() string {
 	return b.String()
 }
 
+func (c *TCClass) Walk(callback WalkCallback) error {
+	if err := callback(c.ClassPointer); err != nil {
+		return err
+	}
+
+	return c.ClassPointer.Walk(callback)
+}
+
 func readTCClass(stream *ObjectStream) (*TCClass, error) {
 	var class = new(TCClass)
 	var err error

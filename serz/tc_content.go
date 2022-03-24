@@ -68,6 +68,34 @@ func (c *TCContent) ToString() string {
 	return bs
 }
 
+func (c *TCContent) Walk(callback WalkCallback) error {
+	var obj Object
+	switch c.Flag {
+	case JAVA_TC_STRING, JAVA_TC_LONGSTRING:
+		obj = c.String
+	case JAVA_TC_BLOCKDATA, JAVA_TC_BLOCKDATALONG:
+		obj = c.BlockData
+	case JAVA_TC_CLASS:
+		obj = c.Class
+	case JAVA_TC_OBJECT:
+		obj = c.Object
+	case JAVA_TC_NULL:
+		obj = c.Null
+	case JAVA_TC_REFERENCE:
+		obj = c.Reference
+	case JAVA_TC_ENUM:
+		obj = c.Enum
+	case JAVA_TC_ARRAY:
+		obj = c.Array
+	}
+
+	if err := callback(obj); err != nil {
+		return err
+	}
+
+	return obj.Walk(callback)
+}
+
 func readTCContent(stream *ObjectStream) (*TCContent, error) {
 	var err error = nil
 	var content = new(TCContent)

@@ -74,6 +74,42 @@ func (desc *TCClassDesc) ToString() string {
 	return b.String()
 }
 
+func (desc *TCClassDesc) Walk(callback WalkCallback) error {
+	if err := callback(desc.ClassName); err != nil {
+		return err
+	}
+
+	if err := desc.ClassName.Walk(callback); err != nil {
+		return err
+	}
+
+	for _, field := range desc.Fields {
+		if err := callback(field); err != nil {
+			return err
+		}
+
+		if err := field.Walk(callback); err != nil {
+			return err
+		}
+	}
+
+	for _, anno := range desc.ClassAnnotation {
+		if err := callback(anno); err != nil {
+			return err
+		}
+
+		if err := anno.Walk(callback); err != nil {
+			return err
+		}
+	}
+
+	if err := callback(desc.SuperClassPointer); err != nil {
+		return err
+	}
+
+	return desc.SuperClassPointer.Walk(callback)
+}
+
 // HasFlag Check if a TCClassDesc object has a flag
 func (desc *TCClassDesc) HasFlag(flag byte) bool {
 	return (desc.ClassDescFlags & flag) == flag

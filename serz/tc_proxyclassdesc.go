@@ -61,6 +61,35 @@ func (pc *TCProxyClassDesc) ToString() string {
 	return b.String()
 }
 
+func (pc *TCProxyClassDesc) Walk(callback WalkCallback) error {
+	for _, ifer := range pc.InterfaceNames {
+		if err := callback(ifer); err != nil {
+			return err
+		}
+
+		if err := ifer.Walk(callback); err != nil {
+			return err
+		}
+	}
+
+	for _, anno := range pc.ClassAnnotation {
+		if err := callback(anno); err != nil {
+			return err
+		}
+
+		if err := anno.Walk(callback); err != nil {
+			return err
+		}
+
+	}
+
+	if err := callback(pc.SuperClassPointer); err != nil {
+		return err
+	}
+
+	return pc.SuperClassPointer.Walk(callback)
+}
+
 func readTCProxyClassDesc(stream *ObjectStream) (*TCProxyClassDesc, error) {
 	var desc = new(TCProxyClassDesc)
 

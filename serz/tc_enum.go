@@ -25,6 +25,22 @@ func (e *TCEnum) ToString() string {
 	return b.String()
 }
 
+func (e *TCEnum) Walk(callback WalkCallback) error {
+	if err := callback(e.ClassPointer); err != nil {
+		return err
+	}
+
+	if err := e.ClassPointer.Walk(callback); err != nil {
+		return err
+	}
+
+	if err := callback(e.ConstantName); err != nil {
+		return err
+	}
+
+	return e.ConstantName.Walk(callback)
+}
+
 func readTCEnum(stream *ObjectStream) (*TCEnum, error) {
 	var enum = new(TCEnum)
 	var err error

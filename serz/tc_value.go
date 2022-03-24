@@ -90,6 +90,20 @@ func (t *TCValue) ToString() string {
 	return b.String()
 }
 
+func (t *TCValue) Walk(callback WalkCallback) error {
+	if t.TypeCode == "L" || t.TypeCode == "[" {
+		if err := callback(t.Object); err != nil {
+			return err
+		}
+
+		if err := t.Object.Walk(callback); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func readTCValue(stream *ObjectStream, typeCode string) (*TCValue, error) {
 	if funk.ContainsString(PrimitiveTypecode, typeCode) {
 		return readTCValueFromPrimitive(stream, typeCode)

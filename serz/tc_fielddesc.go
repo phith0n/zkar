@@ -54,6 +54,26 @@ func (f *TCFieldDesc) ToString() string {
 	return b.String()
 }
 
+func (f *TCFieldDesc) Walk(callback WalkCallback) error {
+	if err := callback(f.FieldName); err != nil {
+		return err
+	}
+
+	if err := f.FieldName.Walk(callback); err != nil {
+		return err
+	}
+
+	if f.TypeCode == "L" || f.TypeCode == "[" {
+		if err := callback(f.ClassName); err != nil {
+			return err
+		}
+
+		return f.ClassName.Walk(callback)
+	}
+
+	return nil
+}
+
 func readTCField(stream *ObjectStream) (*TCFieldDesc, error) {
 	var fieldDesc = new(TCFieldDesc)
 	typeCode, err := stream.ReadN(1)

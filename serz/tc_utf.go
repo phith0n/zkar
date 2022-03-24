@@ -37,6 +37,10 @@ func (u *TCUtf) ToString() string {
 	return b.String()
 }
 
+func (u *TCUtf) Walk(callback WalkCallback) error {
+	return nil
+}
+
 func readUTF(stream *ObjectStream) (*TCUtf, error) {
 	var bs []byte
 	var err error
