@@ -75,7 +75,7 @@ func main() {
 					var data []byte
 					var err error
 					if (filename == "" && b64data == "") || (filename != "" && b64data != "") {
-						return fmt.Errorf("one \"file\" or \"base64\" flag must be specified, and not both")
+						return fmt.Errorf("one \"--file\" or \"--base64\" flag must be specified, and not both")
 					}
 
 					if filename != "" {
