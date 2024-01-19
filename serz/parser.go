@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/phith0n/zkar/commons"
+	"io"
 	"os"
 )
 
@@ -17,6 +18,37 @@ type Serialization struct {
 	MagicNumber   []byte
 	StreamVersion []byte
 	Contents      []*TCContent
+}
+
+func FromReadSeeker(r io.ReadSeeker, len int) (*Serialization, error) {
+	var stream = NewObjectStreamFromReadSeeker(r)
+	var ser = new(Serialization)
+
+	// read magic number 0xACED
+	bs, err := stream.ReadN(2)
+	if err != nil || !bytes.Equal(bs, JAVA_STREAM_MAGIC) {
+		return nil, fmt.Errorf("invalid magic number")
+	}
+	ser.MagicNumber = JAVA_STREAM_MAGIC
+
+	// read stream version
+	bs, err = stream.ReadN(2)
+	if err != nil || !bytes.Equal(bs, JAVA_STREAM_VERSION) {
+		fmt.Fprintf(os.Stderr, "[warn] invalid stream version %v", bs)
+	}
+	ser.StreamVersion = bs
+
+	for i := 0; i < len; i++ {
+		var content *TCContent
+		content, err = readTCContent(stream)
+		if err != nil {
+			return nil, err
+		}
+
+		ser.Contents = append(ser.Contents, content)
+	}
+
+	return ser, nil
 }
 
 func FromBytes(data []byte) (*Serialization, error) {
@@ -60,6 +92,16 @@ func FromJDK8u20Bytes(data []byte) (*Serialization, error) {
 		1,
 	)
 	return FromBytes(data)
+}
+
+func FromJDK8u20ReadSeeker(data []byte) (*Serialization, error) {
+	data = bytes.Replace(
+		data,
+		[]byte{0x00, 0x7e, 0x00, 0x09},
+		[]byte{0x00, 0x7e, 0x00, 0x09, JAVA_TC_ENDBLOCKDATA},
+		1,
+	)
+	return FromReadSeeker(bytes.NewReader(data), 1)
 }
 
 func (ois *Serialization) ToString() string {

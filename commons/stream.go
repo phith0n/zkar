@@ -5,9 +5,61 @@ import (
 	"io"
 )
 
+type CommonStream interface {
+	io.ReadSeeker
+	ReadN(n int) (bs []byte, err error)
+	PeekN(n int) (bs []byte, err error)
+	EOF() bool
+	CurrentIndex() int64
+}
+
+type ReadSeekerStream struct {
+	io.ReadSeeker
+	offset int64
+	err    error
+}
+
+func (s *ReadSeekerStream) Read(b []byte) (n int, err error) {
+	if _, err = s.Seek(s.offset, io.SeekStart); err != nil {
+		s.err = err
+		return
+	}
+	n, err = s.ReadSeeker.Read(b)
+	s.offset += int64(n)
+	return
+}
+
+func (s *ReadSeekerStream) ReadN(n int) (bs []byte, err error) {
+	bs = make([]byte, n)
+	_, err = io.ReadFull(s, bs)
+	return
+}
+
+func (s *ReadSeekerStream) PeekN(n int) (bs []byte, err error) {
+	oldOffset := s.offset
+	bs, err = s.ReadN(n)
+	s.offset = oldOffset
+	return
+}
+
+func (s *ReadSeekerStream) EOF() bool {
+	return s.err != nil
+}
+
+func (s *ReadSeekerStream) CurrentIndex() int64 {
+	return s.offset
+}
+
 type Stream struct {
 	bs      []byte
 	current int64
+}
+
+func NewStreamFromReadSeeker(rs io.ReadSeeker) *ReadSeekerStream {
+	return &ReadSeekerStream{
+		ReadSeeker: rs,
+		offset:     0,
+	}
 }
 
 func NewStream(bs []byte) *Stream {

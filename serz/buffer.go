@@ -2,19 +2,28 @@ package serz
 
 import (
 	"github.com/phith0n/zkar/commons"
+	"io"
 )
 
 type ObjectStream struct {
-	*commons.Stream
+	commons.CommonStream
 	handler    uint32
 	references map[uint32]Object
 }
 
 func NewObjectStream(bs []byte) *ObjectStream {
 	return &ObjectStream{
-		Stream:     commons.NewStream(bs),
-		handler:    JAVA_BASE_WRITE_HANDLE,
-		references: make(map[uint32]Object),
+		CommonStream: commons.NewStream(bs),
+		handler:      JAVA_BASE_WRITE_HANDLE,
+		references:   make(map[uint32]Object),
+	}
+}
+
+func NewObjectStreamFromReadSeeker(r io.ReadSeeker) *ObjectStream {
+	return &ObjectStream{
+		CommonStream: commons.NewStreamFromReadSeeker(r),
+		handler:      JAVA_BASE_WRITE_HANDLE,
+		references:   make(map[uint32]Object),
 	}
 }
 
