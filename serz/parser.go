@@ -20,7 +20,7 @@ type Serialization struct {
 	Contents      []*TCContent
 }
 
-func FromReadSeeker(r io.ReadSeeker, len int) (*Serialization, error) {
+func FromReadSeeker(r io.ReadSeeker) (*Serialization, error) {
 	var stream = NewObjectStreamFromReadSeeker(r)
 	var ser = new(Serialization)
 
@@ -38,50 +38,22 @@ func FromReadSeeker(r io.ReadSeeker, len int) (*Serialization, error) {
 	}
 	ser.StreamVersion = bs
 
-	for i := 0; i < len; i++ {
+	for {
 		var content *TCContent
-		content, err = readTCContent(stream)
+		content, err = ReadTCContent(stream)
 		if err != nil {
+			if err == io.EOF {
+				return ser, nil
+			}
 			return nil, err
 		}
 
 		ser.Contents = append(ser.Contents, content)
 	}
-
-	return ser, nil
 }
 
 func FromBytes(data []byte) (*Serialization, error) {
-	var bs []byte
-	var err error
-	var stream = NewObjectStream(data)
-	var ser = new(Serialization)
-
-	// read magic number 0xACED
-	bs, err = stream.ReadN(2)
-	if err != nil || !bytes.Equal(bs, JAVA_STREAM_MAGIC) {
-		return nil, fmt.Errorf("invalid magic number")
-	}
-	ser.MagicNumber = JAVA_STREAM_MAGIC
-
-	// read stream version
-	bs, err = stream.ReadN(2)
-	if err != nil || !bytes.Equal(bs, JAVA_STREAM_VERSION) {
-		fmt.Fprintf(os.Stderr, "[warn] invalid stream version %v", bs)
-	}
-	ser.StreamVersion = bs
-
-	for !stream.EOF() {
-		var content *TCContent
-		content, err = readTCContent(stream)
-		if err != nil {
-			return nil, err
-		}
-
-		ser.Contents = append(ser.Contents, content)
-	}
-
-	return ser, nil
+	return FromReadSeeker(bytes.NewReader(data))
 }
 
 func FromJDK8u20Bytes(data []byte) (*Serialization, error) {
@@ -101,7 +73,7 @@ func FromJDK8u20ReadSeeker(data []byte) (*Serialization, error) {
 		[]byte{0x00, 0x7e, 0x00, 0x09, JAVA_TC_ENDBLOCKDATA},
 		1,
 	)
-	return FromReadSeeker(bytes.NewReader(data), 1)
+	return FromReadSeeker(bytes.NewReader(data))
 }
 
 func (ois *Serialization) ToString() string {

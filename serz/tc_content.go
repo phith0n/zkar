@@ -96,11 +96,14 @@ func (c *TCContent) Walk(callback WalkCallback) error {
 	return obj.Walk(callback)
 }
 
-func readTCContent(stream *ObjectStream) (*TCContent, error) {
+func ReadTCContent(stream *ObjectStream) (*TCContent, error) {
 	var err error = nil
 	var content = new(TCContent)
 
-	next, _ := stream.PeekN(1)
+	next, err := stream.PeekN(1)
+	if err != nil {
+		return nil, err
+	}
 	content.Flag = next[0]
 	switch next[0] {
 	case JAVA_TC_STRING, JAVA_TC_LONGSTRING:
