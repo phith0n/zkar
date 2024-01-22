@@ -3,9 +3,10 @@ package serz
 import (
 	"bytes"
 	"fmt"
-	"github.com/phith0n/zkar/commons"
 	"io"
 	"os"
+
+	"github.com/phith0n/zkar/commons"
 )
 
 type Object interface {
@@ -64,16 +65,6 @@ func FromJDK8u20Bytes(data []byte) (*Serialization, error) {
 		1,
 	)
 	return FromBytes(data)
-}
-
-func FromJDK8u20ReadSeeker(data []byte) (*Serialization, error) {
-	data = bytes.Replace(
-		data,
-		[]byte{0x00, 0x7e, 0x00, 0x09},
-		[]byte{0x00, 0x7e, 0x00, 0x09, JAVA_TC_ENDBLOCKDATA},
-		1,
-	)
-	return FromReadSeeker(bytes.NewReader(data))
 }
 
 func (ois *Serialization) ToString() string {

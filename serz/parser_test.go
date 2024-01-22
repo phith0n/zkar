@@ -3,13 +3,14 @@ package serz
 import (
 	"bytes"
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 const existsFlag = "✅"
@@ -25,19 +26,6 @@ func extractPackage(name string) string {
 	name = filepath.Dir(name)
 	name = filepath.Base(name)
 	return name
-}
-
-func TestJDK8u20FromReadSeeker(t *testing.T) {
-	var filename = "../testcases/pwntester/JDK8u20.ser"
-	data, err := ioutil.ReadFile(filename)
-	require.Nil(t, err)
-
-	ser, err := FromJDK8u20ReadSeeker(data)
-	require.Nilf(t, err, "an error is occurred in file %v", filename)
-	serFromBytes, err := FromJDK8u20Bytes(data)
-	require.Equal(t, ser, serFromBytes)
-	require.Nilf(t, err, "an error is occurred in file %v", filename)
-	require.Truef(t, bytes.Equal(data, ser.ToJDK8u20Bytes()), "original data is different from generation data in file %v", filename)
 }
 
 func TestYsoserial(t *testing.T) {
