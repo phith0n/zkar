@@ -3,8 +3,10 @@ package serz
 import (
 	"bytes"
 	"fmt"
-	"github.com/phith0n/zkar/commons"
+	"io"
 	"os"
+
+	"github.com/phith0n/zkar/commons"
 )
 
 type Object interface {
@@ -19,14 +21,12 @@ type Serialization struct {
 	Contents      []*TCContent
 }
 
-func FromBytes(data []byte) (*Serialization, error) {
-	var bs []byte
-	var err error
-	var stream = NewObjectStream(data)
+func FromReadSeeker(r io.ReadSeeker) (*Serialization, error) {
+	var stream = NewObjectStreamFromReadSeeker(r)
 	var ser = new(Serialization)
 
 	// read magic number 0xACED
-	bs, err = stream.ReadN(2)
+	bs, err := stream.ReadN(2)
 	if err != nil || !bytes.Equal(bs, JAVA_STREAM_MAGIC) {
 		return nil, fmt.Errorf("invalid magic number")
 	}
@@ -39,17 +39,22 @@ func FromBytes(data []byte) (*Serialization, error) {
 	}
 	ser.StreamVersion = bs
 
-	for !stream.EOF() {
+	for {
 		var content *TCContent
-		content, err = readTCContent(stream)
+		content, err = ReadTCContent(stream)
 		if err != nil {
+			if err == io.EOF {
+				return ser, nil
+			}
 			return nil, err
 		}
 
 		ser.Contents = append(ser.Contents, content)
 	}
+}
 
-	return ser, nil
+func FromBytes(data []byte) (*Serialization, error) {
+	return FromReadSeeker(bytes.NewReader(data))
 }
 
 func FromJDK8u20Bytes(data []byte) (*Serialization, error) {

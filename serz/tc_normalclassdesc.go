@@ -197,7 +197,7 @@ func readTCAnnotation(stream *ObjectStream) ([]*TCContent, error) {
 			break
 		}
 
-		content, err := readTCContent(stream)
+		content, err := ReadTCContent(stream)
 		if err != nil {
 			return nil, err
 		}

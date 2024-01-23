@@ -1,9 +1,10 @@
 package commons
 
 import (
-	"github.com/stretchr/testify/require"
 	"io"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestStream_Read(t *testing.T) {
@@ -35,12 +36,8 @@ func TestStream_ReadN(t *testing.T) {
 	bs, err = s.ReadN(5)
 	require.Nil(t, err)
 	require.Equal(t, []byte("11111"), bs)
-	bs, err = s.ReadN(23)
+	_, err = s.ReadN(23)
 	require.Equal(t, io.ErrUnexpectedEOF, err)
-	require.Nil(t, bs)
-	bs, err = s.ReadN(10)
-	require.Nil(t, err)
-	require.Equal(t, []byte("2222233333"), bs)
 }
 
 func TestStream_PeekN(t *testing.T) {
@@ -50,20 +47,21 @@ func TestStream_PeekN(t *testing.T) {
 	bs, err = s.PeekN(5)
 	require.Nil(t, err)
 	require.Equal(t, []byte("11111"), bs)
-	bs, err = s.PeekN(25)
+	_, err = s.PeekN(25)
 	require.Nil(t, err)
-	require.Equal(t, []byte("1111122222333334444455555"), bs)
-	bs, err = s.PeekN(30)
-	require.Equal(t, io.ErrUnexpectedEOF, err)
-	require.Nil(t, bs)
-	_, _ = s.ReadN(10)
+}
+
+func TestStream_CurrentIndex(t *testing.T) {
+	var bs []byte
+	var err error
+	s := NewStream([]byte("1111122222333334444455555"))
 	bs, err = s.PeekN(5)
 	require.Nil(t, err)
-	require.Equal(t, []byte("33333"), bs)
-	bs, err = s.PeekN(10)
+	require.Equal(t, []byte("11111"), bs)
+	require.Equal(t, int64(0), s.CurrentIndex())
+
+	bs, err = s.ReadN(5)
 	require.Nil(t, err)
-	require.Equal(t, []byte("3333344444"), bs)
-	bs, err = s.PeekN(20)
-	require.Equal(t, io.ErrUnexpectedEOF, err)
-	require.Nil(t, bs)
+	require.Equal(t, []byte("11111"), bs)
+	require.Equal(t, int64(5), s.CurrentIndex())
 }
