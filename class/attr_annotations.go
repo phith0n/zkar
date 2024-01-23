@@ -6,12 +6,13 @@ import (
 )
 
 // AttrAnnotations
-//   https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.16
-//   https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.17
-//   https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.18
-//   https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.19
-//   https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.20
-//   https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.21
+//
+//	https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.16
+//	https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.17
+//	https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.18
+//	https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.19
+//	https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.20
+//	https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.21
 type AttrAnnotations struct {
 	*AttributeBase
 

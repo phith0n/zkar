@@ -97,7 +97,7 @@ func (c *TCContent) Walk(callback WalkCallback) error {
 }
 
 func ReadTCContent(stream *ObjectStream) (*TCContent, error) {
-	var err error = nil
+	var err error
 	var content = new(TCContent)
 
 	next, err := stream.PeekN(1)
