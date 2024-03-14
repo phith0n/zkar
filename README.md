@@ -26,20 +26,20 @@ Next, use `github.com/phith0n/zkar/*` in your application:
 package main
 
 import (
-	"fmt"
-	"github.com/phith0n/zkar/serz"
-	"io/ioutil"
-	"log"
+  "fmt"
+  "github.com/phith0n/zkar/serz"
+  "log"
+  "os"
 )
 
 func main() {
-	data, _ := ioutil.ReadFile("./testcases/ysoserial/CommonsCollections6.ser")
-	serialization, err := serz.FromBytes(data)
-	if err != nil {
-		log.Fatal("parse error")
-	}
+  data, _ := os.ReadFile("./testcases/ysoserial/CommonsCollections6.ser")
+  serialization, err := serz.FromBytes(data)
+  if err != nil {
+    log.Fatal("parse error")
+  }
 
-	fmt.Println(serialization.ToString())
+  fmt.Println(serialization.ToString())
 }
 ```
 
