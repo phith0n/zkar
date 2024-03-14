@@ -1,6 +1,6 @@
 module github.com/phith0n/zkar
 
-go 1.16
+go 1.18
 
 require (
 	github.com/kr/pretty v0.1.0 // indirect
