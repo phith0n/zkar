@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestCC6WithOverlongEncoding show how to read an exist payload and modify it to a UTF-8 overlong encoding payload.
 func TestCC6WithOverlongEncoding(t *testing.T) {
 	// read original CommonsCollections6 payload
 	data, err := os.ReadFile("../testcases/ysoserial/CommonsCollections6.ser")
