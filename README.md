@@ -26,22 +26,24 @@ Next, use `github.com/phith0n/zkar/*` in your application:
 package main
 
 import (
-	"fmt"
-	"github.com/phith0n/zkar/serz"
-	"io/ioutil"
-	"log"
+  "fmt"
+  "github.com/phith0n/zkar/serz"
+  "log"
+  "os"
 )
 
 func main() {
-	data, _ := ioutil.ReadFile("./testcases/ysoserial/CommonsCollections6.ser")
-	serialization, err := serz.FromBytes(data)
-	if err != nil {
-		log.Fatal("parse error")
-	}
+  data, _ := os.ReadFile("./testcases/ysoserial/CommonsCollections6.ser")
+  serialization, err := serz.FromBytes(data)
+  if err != nil {
+    log.Fatal("parse error")
+  }
 
-	fmt.Println(serialization.ToString())
+  fmt.Println(serialization.ToString())
 }
 ```
+
+[Here](serz/tc_utf_test.go) is an example to show how to read an exist payload and modify it to a UTF-8 overlong encoding payload.
 
 ## 💻 Command line utility tool
 
@@ -125,6 +127,7 @@ As the payload is not a valid serialized data stream, it's necessary to tell ZKa
 - [x] JDK/JRE 8u20 Gadget supporting
 - [ ] Serialization payloads generator
 - [ ] An implementation of RMI/LDAP in Go
+- [x] Support read/write UTF-8 overlong encoding feature
 
 ## ⚖️ License
 
