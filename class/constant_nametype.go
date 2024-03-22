@@ -12,7 +12,7 @@ type ConstantNameAndType struct {
 }
 
 func (c *ConstantNameAndType) ToBytes() []byte {
-	var bs = []byte{CONSTANT_NAME_AND_TYPE_INFO}
+	var bs = []byte{ConstantNameAndTypeInfo}
 	bs = append(bs, commons.NumberToBytes(c.NameIndex)...)
 	bs = append(bs, commons.NumberToBytes(c.DescriptorIndex)...)
 	return bs

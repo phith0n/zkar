@@ -12,7 +12,7 @@ type ConstantFloat struct {
 }
 
 func (c *ConstantFloat) ToBytes() []byte {
-	var bs = []byte{CONSTANT_FLOAT_INFO}
+	var bs = []byte{ConstantFloatInfo}
 	bs = append(bs, commons.NumberToBytes(c.Float)...)
 	return bs
 }

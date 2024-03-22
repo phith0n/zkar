@@ -12,7 +12,7 @@ type ConstantInvokeDynamic struct {
 }
 
 func (c *ConstantInvokeDynamic) ToBytes() []byte {
-	var bs = []byte{CONSTANT_INVOKE_DYNAMIC_INFO}
+	var bs = []byte{ConstantInvokeDynamicInfo}
 	bs = append(bs, commons.NumberToBytes(c.BootstrapMethodIndex)...)
 	bs = append(bs, commons.NumberToBytes(c.NameAndTypeIndex)...)
 	return bs

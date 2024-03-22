@@ -11,7 +11,7 @@ type ConstantInteger struct {
 }
 
 func (c *ConstantInteger) ToBytes() []byte {
-	var bs = []byte{CONSTANT_INTEGER_INFO}
+	var bs = []byte{ConstantIntegerInfo}
 	bs = append(bs, commons.NumberToBytes(c.Integer)...)
 	return bs
 }

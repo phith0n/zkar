@@ -12,7 +12,7 @@ type ConstantDouble struct {
 }
 
 func (c *ConstantDouble) ToBytes() []byte {
-	var bs = []byte{CONSTANT_DOUBLE_INFO}
+	var bs = []byte{ConstantDoubleInfo}
 	bs = append(bs, commons.NumberToBytes(c.Double)...)
 	return bs
 }

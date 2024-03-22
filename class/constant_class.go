@@ -11,7 +11,7 @@ type ConstantClass struct {
 }
 
 func (c *ConstantClass) ToBytes() []byte {
-	var bs = []byte{CONSTANT_CLASS_INFO}
+	var bs = []byte{ConstantClassInfo}
 	bs = append(bs, commons.NumberToBytes(c.NameIndex)...)
 	return bs
 }

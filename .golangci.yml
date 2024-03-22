@@ -1,14 +1,30 @@
 linters:
   disable-all: true
   enable:
-    - deadcode
+    - unused
     - errcheck
     - gosimple
     - govet
     - ineffassign
     - staticcheck
-    - structcheck
     - unused
-    - varcheck
     - gofmt
     - goconst
+    - misspell
+    - nolintlint
+    - tagliatelle
+linters-settings:
+  misspell:
+    locale: US
+  nolintlint:
+    allow-unused: false # report any unused nolint directives
+    require-explanation: false # don't require an explanation for nolint directives
+    require-specific: false # don't require nolint directives to be specific about which linter is being skipped
+  tagliatelle:
+    case:
+      rules:
+        json: snake
+        yaml: snake
+        xml: snake
+        form: snake
+        msgpack: snake

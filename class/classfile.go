@@ -13,7 +13,7 @@ type ClassFile struct {
 	MinorVersion        uint16
 	MajorVersion        uint16
 	ConstantPool        []Constant
-	AccessFlag          uint16
+	AccessFlag          ClassAccessFlag
 	ThisClassIndex      uint16
 	SuperClassIndex     uint16
 	InterfaceIndexArray []uint16
@@ -29,7 +29,7 @@ func (cf *ClassFile) readHeader(stream *commons.Stream) error {
 	}
 
 	if !bytes.Equal(bs, []byte("\xCA\xFE\xBA\xBE")) {
-		return fmt.Errorf("magic number %v is not equal to CAFEBABE", hex.EncodeToString(bs))
+		return fmt.Errorf("magic number %v is not equal to 0xCAFEBABE", hex.EncodeToString(bs))
 	}
 
 	cf.MagicNumber = bs

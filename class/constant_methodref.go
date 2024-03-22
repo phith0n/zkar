@@ -12,7 +12,7 @@ type ConstantMethodRef struct {
 }
 
 func (c *ConstantMethodRef) ToBytes() []byte {
-	var bs = []byte{CONSTANT_METHOD_REF_INFO}
+	var bs = []byte{ConstantMethodRefInfo}
 	bs = append(bs, commons.NumberToBytes(c.ClassIndex)...)
 	bs = append(bs, commons.NumberToBytes(c.NameAndTypeIndex)...)
 	return bs

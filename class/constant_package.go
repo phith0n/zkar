@@ -11,7 +11,7 @@ type ConstantPackage struct {
 }
 
 func (c *ConstantPackage) ToBytes() []byte {
-	var bs = []byte{CONSTANT_PACKAGE_INFO}
+	var bs = []byte{ConstantPackageInfo}
 	bs = append(bs, commons.NumberToBytes(c.NameIndex)...)
 	return bs
 }

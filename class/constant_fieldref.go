@@ -12,7 +12,7 @@ type ConstantFieldRef struct {
 }
 
 func (c *ConstantFieldRef) ToBytes() []byte {
-	var bs = []byte{CONSTANT_FIELD_REF_INFO}
+	var bs = []byte{ConstantFieldRefInfo}
 	bs = append(bs, commons.NumberToBytes(c.ClassIndex)...)
 	bs = append(bs, commons.NumberToBytes(c.NameAndTypeIndex)...)
 	return bs

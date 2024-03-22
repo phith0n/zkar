@@ -11,7 +11,7 @@ type ConstantUTF8 struct {
 }
 
 func (c *ConstantUTF8) ToBytes() []byte {
-	var bs = []byte{CONSTANT_UTF8_INFO}
+	var bs = []byte{ConstantUtf8Info}
 
 	// integer overflow
 	bs = append(bs, commons.NumberToBytes(uint16(len(c.Data)))...)

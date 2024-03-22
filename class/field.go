@@ -7,7 +7,7 @@ import (
 )
 
 type Field struct {
-	AccessFlag      uint16
+	AccessFlag      AttrAccessFlag
 	NameIndex       uint16
 	DescriptorIndex uint16
 	Attributes      []Attribute
@@ -38,7 +38,7 @@ func (cf *ClassFile) readField(stream *commons.Stream) (*Field, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read field access flag failed, no enough data in the stream")
 	}
-	field.AccessFlag = binary.BigEndian.Uint16(bs[:2])
+	field.AccessFlag = AttrAccessFlag(binary.BigEndian.Uint16(bs[:2]))
 	field.NameIndex = binary.BigEndian.Uint16(bs[2:4])
 	field.DescriptorIndex = binary.BigEndian.Uint16(bs[4:6])
 	var size = binary.BigEndian.Uint16(bs[6:])

@@ -11,7 +11,7 @@ type ConstantLong struct {
 }
 
 func (c *ConstantLong) ToBytes() []byte {
-	var bs = []byte{CONSTANT_LONG_INFO}
+	var bs = []byte{ConstantLongInfo}
 	bs = append(bs, commons.NumberToBytes(c.Long)...)
 	return bs
 }

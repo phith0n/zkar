@@ -11,7 +11,7 @@ type ConstantMethodType struct {
 }
 
 func (c *ConstantMethodType) ToBytes() []byte {
-	var bs = []byte{CONSTANT_METHOD_TYPE_INFO}
+	var bs = []byte{ConstantMethodTypeInfo}
 	bs = append(bs, commons.NumberToBytes(c.DescriptorIndex)...)
 	return bs
 }

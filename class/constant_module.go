@@ -11,7 +11,7 @@ type ConstantModule struct {
 }
 
 func (c *ConstantModule) ToBytes() []byte {
-	var bs = []byte{CONSTANT_MODULE_INFO}
+	var bs = []byte{ConstantModuleInfo}
 	bs = append(bs, commons.NumberToBytes(c.NameIndex)...)
 	return bs
 }
