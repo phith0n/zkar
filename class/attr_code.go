@@ -7,7 +7,7 @@ import (
 )
 
 // AttrCode attribute of Method
-// https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.3
+// https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html#jvms-4.7.3
 type AttrCode struct {
 	*AttributeBase
 

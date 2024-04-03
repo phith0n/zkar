@@ -6,7 +6,7 @@ import (
 	"github.com/phith0n/zkar/commons"
 )
 
-// AttrLineNumberTable https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.12
+// AttrLineNumberTable https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html#jvms-4.7.12
 type AttrLineNumberTable struct {
 	*AttributeBase
 

@@ -6,7 +6,7 @@ import (
 	"github.com/phith0n/zkar/commons"
 )
 
-// AttrSignature https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.9
+// AttrSignature https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html#jvms-4.7.9
 type AttrSignature struct {
 	*AttributeBase
 

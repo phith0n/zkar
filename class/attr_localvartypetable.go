@@ -6,7 +6,7 @@ import (
 	"github.com/phith0n/zkar/commons"
 )
 
-// AttrLocalVariableTypeTable https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.14
+// AttrLocalVariableTypeTable https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html#jvms-4.7.14
 type AttrLocalVariableTypeTable struct {
 	*AttributeBase
 

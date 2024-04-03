@@ -5,7 +5,7 @@ import (
 	"github.com/phith0n/zkar/commons"
 )
 
-// AttrSourceDebugExtension https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.11
+// AttrSourceDebugExtension https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html#jvms-4.7.11
 type AttrSourceDebugExtension struct {
 	*AttributeBase
 

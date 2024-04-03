@@ -6,7 +6,7 @@ import (
 	"github.com/phith0n/zkar/commons"
 )
 
-// AttrExceptions https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.5
+// AttrExceptions https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html#jvms-4.7.5
 type AttrExceptions struct {
 	*AttributeBase
 

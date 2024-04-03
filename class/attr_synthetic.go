@@ -2,7 +2,7 @@ package class
 
 import "github.com/phith0n/zkar/commons"
 
-// AttrSynthetic https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.8
+// AttrSynthetic https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html#jvms-4.7.8
 type AttrSynthetic struct {
 	*AttributeBase
 }

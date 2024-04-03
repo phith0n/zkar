@@ -6,8 +6,8 @@ import (
 	"github.com/phith0n/zkar/commons"
 )
 
-// AttrInnerClass https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.6
-type AttrInnerClass struct {
+// AttrInnerClasses https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html#jvms-4.7.6
+type AttrInnerClasses struct {
 	*AttributeBase
 
 	InnerClasses []*InnerClass
@@ -28,10 +28,10 @@ type InnerClass struct {
 	InnerClassAccessFlags uint16
 }
 
-func (a *AttrInnerClass) readInfo(stream *commons.Stream) error {
+func (a *AttrInnerClasses) readInfo(stream *commons.Stream) error {
 	bs, err := stream.ReadN(2)
 	if err != nil {
-		return fmt.Errorf("read AttrInnerClass failed, no enough data in the stream")
+		return fmt.Errorf("read AttrInnerClasses failed, no enough data in the stream")
 	}
 
 	for i := uint16(0); i < binary.BigEndian.Uint16(bs); i++ {
@@ -46,10 +46,10 @@ func (a *AttrInnerClass) readInfo(stream *commons.Stream) error {
 	return nil
 }
 
-func (a *AttrInnerClass) readInnerClass(stream *commons.Stream) (*InnerClass, error) {
+func (a *AttrInnerClasses) readInnerClass(stream *commons.Stream) (*InnerClass, error) {
 	bs, err := stream.ReadN(8)
 	if err != nil {
-		return nil, fmt.Errorf("read AttrInnerClass InnerClass failed, no enough data in the stream")
+		return nil, fmt.Errorf("read AttrInnerClasses InnerClass failed, no enough data in the stream")
 	}
 
 	c := &InnerClass{

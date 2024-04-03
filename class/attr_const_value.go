@@ -7,7 +7,7 @@ import (
 )
 
 // AttrConstValue attribute of Field
-// https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.7.2
+// https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html#jvms-4.7.2
 type AttrConstValue struct {
 	*AttributeBase
 
