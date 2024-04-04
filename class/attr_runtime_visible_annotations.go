@@ -6,6 +6,7 @@ import (
 	"github.com/phith0n/zkar/commons"
 )
 
+// AttrRuntimeVisibleAnnotations https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html#jvms-4.7.16
 type AttrRuntimeVisibleAnnotations struct {
 	*AttributeBase
 

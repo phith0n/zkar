@@ -11,14 +11,14 @@ type ElementValue struct {
 	Tag byte
 
 	ConstValueIndex uint16
-	EnumConstValue *EnumConstValue
-	ClassInfoIndex uint16
+	EnumConstValue  *EnumConstValue
+	ClassInfoIndex  uint16
 	AnnotationValue *Annotation
-	ArrayValue []*ElementValue
+	ArrayValue      []*ElementValue
 }
 
 type EnumConstValue struct {
-	TypeNameIndex uint16
+	TypeNameIndex  uint16
 	ConstNameIndex uint16
 }
 
@@ -47,7 +47,7 @@ func NewElementValue(stream *commons.Stream) (*ElementValue, error) {
 		}
 
 		element.EnumConstValue = &EnumConstValue{
-			TypeNameIndex: binary.BigEndian.Uint16(bs[:2]),
+			TypeNameIndex:  binary.BigEndian.Uint16(bs[:2]),
 			ConstNameIndex: binary.BigEndian.Uint16(bs[2:]),
 		}
 	case 'c':
@@ -78,6 +78,8 @@ func NewElementValue(stream *commons.Stream) (*ElementValue, error) {
 
 			element.ArrayValue = append(element.ArrayValue, subElement)
 		}
+	default:
+		return nil, fmt.Errorf("read ElementValue tag failed, tag %v not supported", element.Tag)
 	}
 
 	return element, nil
