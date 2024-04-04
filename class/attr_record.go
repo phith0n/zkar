@@ -47,7 +47,7 @@ func (a *AttrRecord) readInfo(stream *commons.Stream) error {
 func (a *AttrRecord) readComponent(stream *commons.Stream) (*RecordComponentInfo, error) {
 	bs, err := stream.ReadN(4)
 	if err != nil {
-		return nil, fmt.Errorf("read AttrRecord Component[%d] failed, no enough data in the stream", i)
+		return nil, fmt.Errorf("read AttrRecord Component failed, no enough data in the stream")
 	}
 
 	component := &RecordComponentInfo{
