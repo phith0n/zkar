@@ -11,7 +11,7 @@ type ConstantString struct {
 }
 
 func (c *ConstantString) ToBytes() []byte {
-	var bs = []byte{CONSTANT_STRING_INGFO}
+	var bs = []byte{ConstantStringInfo}
 	bs = append(bs, commons.NumberToBytes(c.StringIndex)...)
 	return bs
 }

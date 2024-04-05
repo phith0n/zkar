@@ -7,13 +7,13 @@ import (
 )
 
 type Annotation struct {
-	TypeIndex uint16
+	TypeIndex         uint16
 	ElementValuePairs []*ElementValuePair
 }
 
 type ElementValuePair struct {
 	ElementNameIndex uint16
-	ElementValue     *ElementValue
+	Value            *ElementValue
 }
 
 func NewAnnotation(stream *commons.Stream) (*Annotation, error) {
@@ -22,11 +22,11 @@ func NewAnnotation(stream *commons.Stream) (*Annotation, error) {
 		return nil, fmt.Errorf("read Annotation failed, no enough data in the stream")
 	}
 
+	length := binary.BigEndian.Uint16(bs[2:])
 	a := &Annotation{
 		TypeIndex: binary.BigEndian.Uint16(bs[:2]),
 	}
-
-	for i := uint16(0); i < binary.BigEndian.Uint16(bs[2:]); i++ {
+	for i := uint16(0); i < length; i++ {
 		bs, err = stream.ReadN(2)
 		if err != nil {
 			return nil, fmt.Errorf("read Annotation ElementValuePair[%d] failed, no enough data in the stream", i)
@@ -35,7 +35,7 @@ func NewAnnotation(stream *commons.Stream) (*Annotation, error) {
 		pair := &ElementValuePair{
 			ElementNameIndex: binary.BigEndian.Uint16(bs),
 		}
-		pair.ElementValue, err = NewElementValue(stream)
+		pair.Value, err = NewElementValue(stream)
 		if err != nil {
 			return nil, fmt.Errorf("read Annotation ElementValuePair[%d] failed, caused by: %v", i, err)
 		}

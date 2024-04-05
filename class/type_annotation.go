@@ -7,22 +7,22 @@ import (
 
 // TypeAnnotation https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html#jvms-4.7.20
 type TypeAnnotation struct {
-	TargetType uint8
-	TypeParameterTarget *TypeParameterTarget
-	SuperTypeTarget *SuperTypeTarget
+	TargetType               uint8
+	TypeParameterTarget      *TypeParameterTarget
+	SuperTypeTarget          *SuperTypeTarget
 	TypeParameterBoundTarget *TypeParameterBoundTarget
-	EmptyTarget *EmptyTarget
-	FormalParameterTarget *FormalParameterTarget
-	ThrowsTarget *ThrowsTarget
-	LocalVarTarget *LocalVarTarget
-	CatchTarget *CatchTarget
-	OffsetTarget *OffsetTarget
-	TypeArgumentTarget *TypeArgumentTarget
+	EmptyTarget              *EmptyTarget
+	FormalParameterTarget    *FormalParameterTarget
+	ThrowsTarget             *ThrowsTarget
+	LocalVarTarget           *LocalVarTarget
+	CatchTarget              *CatchTarget
+	OffsetTarget             *OffsetTarget
+	TypeArgumentTarget       *TypeArgumentTarget
 
 	TargetPath *TypePath
 
 	// same as Annotation
-	TypeIndex uint16
+	TypeIndex         uint16
 	ElementValuePairs []*ElementValuePair
 }
 

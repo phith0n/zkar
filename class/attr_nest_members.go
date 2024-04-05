@@ -21,7 +21,8 @@ func (a *AttrNestMembers) readInfo(stream *commons.Stream) error {
 		return fmt.Errorf("read AttrNestMembers failed, no enough data in the stream")
 	}
 
-	for i := uint16(0); i < binary.BigEndian.Uint16(bs); i++ {
+	length := binary.BigEndian.Uint16(bs)
+	for i := uint16(0); i < length; i++ {
 		bs, err = stream.ReadN(2)
 		if err != nil {
 			return fmt.Errorf("read AttrNestMembers class[%d] failed, no enough data in the stream", i)

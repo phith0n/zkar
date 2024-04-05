@@ -12,7 +12,7 @@ type ConstantInterfaceMethodRef struct {
 }
 
 func (c *ConstantInterfaceMethodRef) ToBytes() []byte {
-	var bs = []byte{CONSTANT_INTERFACE_METHOD_REF}
+	var bs = []byte{ConstantInterfaceMethodRefInfo}
 	bs = append(bs, commons.NumberToBytes(c.ClassIndex)...)
 	bs = append(bs, commons.NumberToBytes(c.NameAndTypeIndex)...)
 	return bs

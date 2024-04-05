@@ -35,7 +35,7 @@ func NewSuperTypeTarget(stream *commons.Stream) (*SuperTypeTarget, error) {
 
 type TypeParameterBoundTarget struct {
 	TypeParameterIndex uint8
-	BoundIndex uint8
+	BoundIndex         uint8
 }
 
 func NewTypeParameterBoundTarget(stream *commons.Stream) (*TypeParameterBoundTarget, error) {
@@ -48,7 +48,6 @@ func NewTypeParameterBoundTarget(stream *commons.Stream) (*TypeParameterBoundTar
 }
 
 type EmptyTarget struct {
-
 }
 
 type FormalParameterTarget struct {
@@ -83,8 +82,8 @@ type LocalVarTarget struct {
 
 type LocalVarTargetTable struct {
 	StartPC uint16
-	Length uint16
-	Index uint16
+	Length  uint16
+	Index   uint16
 }
 
 func NewLocalVarTarget(stream *commons.Stream) (*LocalVarTarget, error) {
@@ -94,7 +93,8 @@ func NewLocalVarTarget(stream *commons.Stream) (*LocalVarTarget, error) {
 	}
 
 	target := &LocalVarTarget{}
-	for i := uint16(0); i < binary.BigEndian.Uint16(bs); i++ {
+	length := binary.BigEndian.Uint16(bs)
+	for i := uint16(0); i < length; i++ {
 		bs, err = stream.ReadN(6)
 		if err != nil {
 			return nil, fmt.Errorf("read LocalVarTarget Table[%d] failed, no enough data in the stream", i)
@@ -137,7 +137,7 @@ func NewOffsetTarget(stream *commons.Stream) (*OffsetTarget, error) {
 }
 
 type TypeArgumentTarget struct {
-	Offset uint16
+	Offset            uint16
 	TypeArgumentIndex uint8
 }
 
@@ -148,7 +148,7 @@ func NewTypeArgumentTarget(stream *commons.Stream) (*TypeArgumentTarget, error) 
 	}
 
 	return &TypeArgumentTarget{
-		Offset: binary.BigEndian.Uint16(bs[:2]),
+		Offset:            binary.BigEndian.Uint16(bs[:2]),
 		TypeArgumentIndex: bs[2],
 	}, nil
 }

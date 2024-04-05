@@ -47,10 +47,11 @@ func (a *AttrBootstrapMethods) readBootstrapMethod(stream *commons.Stream) (*Boo
 		return nil, fmt.Errorf("read AttrBootstrapMethods BootstrapMethod failed, no enough data in the stream")
 	}
 
+	length := binary.BigEndian.Uint16(bs[2:])
 	method := &BootstrapMethod{
 		BootstrapMethodRef: binary.BigEndian.Uint16(bs[:2]),
 	}
-	for i := uint16(0); i < binary.BigEndian.Uint16(bs[2:]); i++ {
+	for i := uint16(0); i < length; i++ {
 		bs, err = stream.ReadN(2)
 		if err != nil {
 			return nil, fmt.Errorf("read AttrBootstrapMethods BootstrapMethod argument[%d] failed, no enough data in the stream", i)

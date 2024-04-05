@@ -25,7 +25,7 @@ type InnerClass struct {
 
 	// The value of the InnerClassAccessFlags item is a mask of flags used to denote access permissions to
 	//  and properties of class or interface C as declared in the source code from which this class file was compiled.
-	InnerClassAccessFlags uint16
+	InnerClassAccessFlags ClassAccessFlag
 }
 
 func (a *AttrInnerClasses) readInfo(stream *commons.Stream) error {
@@ -56,11 +56,11 @@ func (a *AttrInnerClasses) readInnerClass(stream *commons.Stream) (*InnerClass, 
 		InnerClassInfo:        binary.BigEndian.Uint16(bs[:2]),
 		OuterClassInfo:        binary.BigEndian.Uint16(bs[2:4]),
 		InnerClassIndex:       binary.BigEndian.Uint16(bs[4:6]),
-		InnerClassAccessFlags: binary.BigEndian.Uint16(bs[6:]),
+		InnerClassAccessFlags: ClassAccessFlag(binary.BigEndian.Uint16(bs[6:])),
 	}
 	return c, nil
 }
 
-func (ic *InnerClass) HasFlag(flag uint16) bool {
-	return (flag & ic.InnerClassAccessFlags) == flag
+func (ic *InnerClass) HasFlag(flag ClassAccessFlag) bool {
+	return ic.InnerClassAccessFlags.HasAccessFlag(flag)
 }
