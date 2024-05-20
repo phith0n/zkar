@@ -14,6 +14,6 @@ func (J JSR_W) FetchOperands(reader *BytecodeReader) {
 
 func (self *JSR_W) GetOperands() []string {
 	ret := make([]string, 1)
-	ret[0] = "[not support]"
+	ret[0] = NotSupport
 	return ret
 }

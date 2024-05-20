@@ -15,6 +15,6 @@ func (self *LOOKUPSWITCH) FetchOperands(reader *BytecodeReader) {
 
 func (self *LOOKUPSWITCH) GetOperands() []string {
 	ret := make([]string, 1)
-	ret[0] = "[not support]"
+	ret[0] = NotSupport
 	return ret
 }

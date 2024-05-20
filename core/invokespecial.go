@@ -21,10 +21,10 @@ func (self *INVOKESPECIAL) GetOperands() []string {
 	)
 
 	switch typeName {
-	case "*classfile.ConstantInterfaceMethodRefInfo":
+	case InterfaceMethodType:
 		className = name.(*classfile.ConstantInterfaceMethodRefInfo).ClassName()
 		methodName, desc = name.(*classfile.ConstantInterfaceMethodRefInfo).NameAndDescriptor()
-	case "*classfile.ConstantMethodRefInfo":
+	case MethodType:
 		className = name.(*classfile.ConstantMethodRefInfo).ClassName()
 		methodName, desc = name.(*classfile.ConstantMethodRefInfo).NameAndDescriptor()
 	default:

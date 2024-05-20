@@ -10,6 +10,6 @@ func (self *GOTO_W) FetchOperands(reader *BytecodeReader) {
 
 func (self *GOTO_W) GetOperands() []string {
 	ret := make([]string, 1)
-	ret[0] = "[not support]"
+	ret[0] = NotSupport
 	return ret
 }

@@ -62,6 +62,11 @@ func main() {
 						Usage:    "serz data as Base64 format string",
 						Required: false,
 					},
+					&cli.BoolFlag{
+						Name:     "only-class",
+						Usage:    "only export class file",
+						Required: false,
+					},
 				},
 				Action: func(context *cli.Context) error {
 					var filename = context.String("file")
@@ -110,6 +115,7 @@ func main() {
 					}
 
 					if len(bytesCodes) > 0 {
+
 						for _, v := range bytesCodes {
 							classData, err := classfile.Parse(v)
 							if err != nil {
@@ -117,6 +123,16 @@ func main() {
 							}
 							global.CP = classData.ConstantPool()
 							name := classData.ClassName()
+							classTemp := strings.Split(name, "/")
+							class := classTemp[len(classTemp)-1] + ".class"
+							if context.Bool("only-class") {
+								err = os.WriteFile(class, v, 0644)
+								fmt.Println("[*] write class: " + class)
+								if err != nil {
+									fmt.Println("[!] write file error: " + err.Error())
+								}
+								continue
+							}
 							fmt.Println("[*] find java class: " + name)
 							for _, m := range classData.Methods() {
 								methodName := m.Name()
