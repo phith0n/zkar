@@ -2,7 +2,6 @@ package serz
 
 import (
 	"github.com/phith0n/zkar/commons"
-	"io"
 )
 
 type ReferenceClassInformation struct {
@@ -107,7 +106,7 @@ func readTCClassData(stream *ObjectStream, desc *TCClassDesc) (*TCClassData, err
 				// So we should clear the classData.FieldDatas and reset the position of stream
 				// Then everything will be read from objectAnnotation
 				// Example: ysoserial C3O0
-				_, _ = stream.Seek(current, io.SeekStart)
+				stream.Seek(current)
 				classData.FieldDatas = []*TCValue{}
 				break
 			} else if err != nil {

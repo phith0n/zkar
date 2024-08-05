@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/phith0n/zkar/serz"
 	"github.com/urfave/cli/v2"
-	"io/ioutil"
 	"log"
 	"os"
 )
@@ -79,7 +78,7 @@ func main() {
 					}
 
 					if filename != "" {
-						data, err = ioutil.ReadFile(filename)
+						data, err = os.ReadFile(filename)
 					} else {
 						data, err = base64.StdEncoding.DecodeString(b64data)
 					}

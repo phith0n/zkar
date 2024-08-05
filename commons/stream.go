@@ -6,38 +6,55 @@ import (
 )
 
 type Stream struct {
-	io.ReadSeeker
+	reader io.Reader
+
+	buf    []byte
+	index  int
 }
 
-func (s *Stream) ReadN(n int) (bs []byte, err error) {
-	bs = make([]byte, n)
-	_, err = io.ReadFull(s, bs)
-	return
-}
-
-func (s *Stream) CurrentIndex() int64 {
-	n, _ := s.Seek(0, io.SeekCurrent)
-	return n
-}
-
-func (s *Stream) PeekN(n int) (bs []byte, err error) {
-	bs, err = s.ReadN(n)
-	if err != nil {
-		return
+func (s *Stream) ReadN(n int) ([]byte, error) {
+	if n > len(s.buf)-s.index {
+		buf := make([]byte, n-(len(s.buf)-s.index))
+		read, err := io.ReadFull(s.reader, buf)
+		s.buf = append(s.buf, buf[0:read]...)
+		if err != nil {
+			return nil, err
+		}
 	}
-	_, err = s.Seek(int64(-n), io.SeekCurrent)
-	if err != nil {
-		return
+
+	start := s.index
+	s.index += n
+	return s.buf[start:s.index], nil
+}
+
+func (s *Stream) CurrentIndex() int {
+	return s.index
+}
+
+func (s *Stream) PeekN(n int) ([]byte, error) {
+	current := s.index
+	defer func() {
+		s.index = current
+	}()
+	return s.ReadN(n)
+}
+
+func (s *Stream) Seek(index int) {
+	s.index = index
+}
+
+func NewStreamFromReader(reader io.Reader) *Stream {
+	return &Stream{
+		reader: reader,
+		buf:    make([]byte, 0),
+		index:  0,
 	}
-	return
 }
 
 func NewStreamFromReadSeeker(rs io.ReadSeeker) *Stream {
-	return &Stream{
-		ReadSeeker: rs,
-	}
+	return NewStreamFromReader(rs)
 }
 
 func NewStream(bs []byte) *Stream {
-	return NewStreamFromReadSeeker(bytes.NewReader(bs))
+	return NewStreamFromReader(bytes.NewReader(bs))
 }

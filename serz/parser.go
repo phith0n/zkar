@@ -21,8 +21,8 @@ type Serialization struct {
 	Contents      []*TCContent
 }
 
-func FromReadSeeker(r io.ReadSeeker) (*Serialization, error) {
-	var stream = NewObjectStreamFromReadSeeker(r)
+func FromReader(r io.Reader) (*Serialization, error) {
+	var stream = NewObjectStreamFromReader(r)
 	var ser = new(Serialization)
 
 	// read magic number 0xACED
@@ -53,8 +53,12 @@ func FromReadSeeker(r io.ReadSeeker) (*Serialization, error) {
 	}
 }
 
+func FromReadSeeker(r io.ReadSeeker) (*Serialization, error) {
+	return FromReader(r)
+}
+
 func FromBytes(data []byte) (*Serialization, error) {
-	return FromReadSeeker(bytes.NewReader(data))
+	return FromReader(bytes.NewReader(data))
 }
 
 func FromJDK8u20Bytes(data []byte) (*Serialization, error) {

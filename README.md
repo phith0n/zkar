@@ -33,8 +33,9 @@ import (
 )
 
 func main() {
-  data, _ := os.ReadFile("./testcases/ysoserial/CommonsCollections6.ser")
-  serialization, err := serz.FromBytes(data)
+  fs, _ := os.Open("./testcases/ysoserial/CommonsCollections6.ser")
+  defer fs.Close()
+  serialization, err := serz.FromReader(fs)
   if err != nil {
     log.Fatal("parse error")
   }
