@@ -20,9 +20,9 @@ func NewObjectStream(bs []byte) *ObjectStream {
 	}
 }
 
-func NewObjectStreamFromReadSeeker(r io.ReadSeeker) *ObjectStream {
+func NewObjectStreamFromReader(r io.Reader) *ObjectStream {
 	return &ObjectStream{
-		Stream:     commons.NewStreamFromReadSeeker(r),
+		Stream:     commons.NewStreamFromReader(r),
 		handler:    JAVA_BASE_WRITE_HANDLE,
 		references: make(map[uint32]Object),
 	}

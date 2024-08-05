@@ -3,13 +3,18 @@ package main
 import (
 	"fmt"
 	"github.com/phith0n/zkar/serz"
-	"io/ioutil"
 	"log"
+	"os"
 )
 
 func main() {
-	data, _ := ioutil.ReadFile("./testcases/ysoserial/Jdk7u21.ser")
-	serialization, err := serz.FromBytes(data)
+	fs, err := os.Open("./testcases/ysoserial/Jdk7u21.ser")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer fs.Close()
+
+	serialization, err := serz.FromReader(fs)
 	if err != nil {
 		log.Fatal("parse error")
 	}
