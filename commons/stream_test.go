@@ -75,17 +75,17 @@ func TestStreamReader(t *testing.T) {
 	data, err = s.ReadN(3)
 	require.NoError(t, err)
 	require.Equal(t, []byte("eee"), data)
-	data, err = s.PeekN(4)
+	_, err = s.PeekN(4)
 	require.Error(t, err)
 	data, err = s.PeekN(1)
 	require.NoError(t, err)
 	require.Equal(t, []byte("e"), data)
-	data, err = s.ReadN(2)
+	_, err = s.ReadN(2)
 	require.Error(t, err)
 	data, err = s.ReadN(1)
 	require.NoError(t, err)
 	require.Equal(t, []byte("e"), data)
-	data, err = s.ReadN(1)
+	_, err = s.ReadN(1)
 	require.Error(t, err)
 }
 
@@ -99,11 +99,11 @@ func TestEmptyStream(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, data)
 
-	data, err = s.PeekN(1)
+	_, err = s.PeekN(1)
 	require.Error(t, err)
 
 	s = NewStreamFromReader(bytes.NewReader(nil))
-	data, err = s.ReadN(1)
+	_, err = s.ReadN(1)
 	require.Error(t, err)
 }
 
@@ -113,7 +113,7 @@ func TestStreamBuf(t *testing.T) {
 	var err error
 
 	s = NewStreamFromReader(bytes.NewReader([]byte("abbcccddddeeeee")))
-	data, err = s.PeekN(20)
+	_, err = s.PeekN(20)
 	require.Error(t, err)
 
 	data, err = s.PeekN(3)
@@ -128,4 +128,3 @@ func TestStreamBuf(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, []byte("cddddeeeee"), data)
 }
-

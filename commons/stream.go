@@ -8,8 +8,8 @@ import (
 type Stream struct {
 	reader io.Reader
 
-	buf    []byte
-	index  int
+	buf   []byte
+	index int
 }
 
 func (s *Stream) ReadN(n int) ([]byte, error) {
