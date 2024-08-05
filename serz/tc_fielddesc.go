@@ -3,7 +3,7 @@ package serz
 import (
 	"fmt"
 	"github.com/phith0n/zkar/commons"
-	"github.com/thoas/go-funk"
+	"github.com/samber/lo"
 )
 
 var PrimitiveTypecode = []string{"B", "C", "D", "F", "I", "J", "S", "Z"}
@@ -82,7 +82,7 @@ func readTCField(stream *ObjectStream) (*TCFieldDesc, error) {
 	}
 
 	fieldDesc.TypeCode = string(typeCode)
-	if !funk.ContainsString(AllTypecode, fieldDesc.TypeCode) { // prim typecode
+	if !lo.Contains(AllTypecode, fieldDesc.TypeCode) { // prim typecode
 		return nil, fmt.Errorf("read FieldDesc failed on index %v, type code %v is invalid",
 			stream.CurrentIndex(),
 			fieldDesc.TypeCode,
@@ -93,7 +93,7 @@ func readTCField(stream *ObjectStream) (*TCFieldDesc, error) {
 		return nil, err
 	}
 
-	if funk.ContainsString(ObjectTypecode, fieldDesc.TypeCode) {
+	if lo.Contains(ObjectTypecode, fieldDesc.TypeCode) {
 		fieldDesc.ClassName, err = readTCStringPointer(stream)
 		if err != nil {
 			return nil, err

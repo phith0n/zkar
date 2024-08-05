@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/phith0n/zkar/commons"
-	"github.com/thoas/go-funk"
+	"github.com/samber/lo"
 	"math"
 )
 
@@ -105,7 +105,7 @@ func (t *TCValue) Walk(callback WalkCallback) error {
 }
 
 func readTCValue(stream *ObjectStream, typeCode string) (*TCValue, error) {
-	if funk.ContainsString(PrimitiveTypecode, typeCode) {
+	if lo.Contains(PrimitiveTypecode, typeCode) {
 		return readTCValueFromPrimitive(stream, typeCode)
 	} else {
 		return readTCValueFromObject(stream, typeCode)
