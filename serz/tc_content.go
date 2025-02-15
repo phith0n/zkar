@@ -126,6 +126,8 @@ func ReadTCContent(stream *ObjectStream) (*TCContent, error) {
 		content.Array, err = readTCArray(stream)
 	case JAVA_TC_ENUM:
 		content.Enum, err = readTCEnum(stream)
+	case JAVA_TC_RESET:
+		_, err = stream.ReadN(1)
 	default:
 		err = fmt.Errorf("illegal character %v found on index %v", next, stream.CurrentIndex())
 	}
