@@ -1,6 +1,9 @@
 package serz
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/phith0n/zkar/commons"
+)
 
 type TCContent struct {
 	Flag            byte
@@ -62,7 +65,7 @@ func (c *TCContent) ToString() string {
 	case JAVA_TC_ARRAY:
 		bs = c.Array.ToString()
 	case JAVA_TC_RESET:
-		bs = "TC_RESET"
+		bs = fmt.Sprintf("TC_RESET - %s", commons.Hexify(JAVA_TC_RESET))
 	}
 
 	return bs
