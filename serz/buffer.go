@@ -28,6 +28,24 @@ func NewObjectStreamFromReader(r io.Reader) *ObjectStream {
 	}
 }
 
+// NewObjectStreamFromStream wraps an existing *commons.Stream so the embedded
+// serialization parse shares byte-cursor state with its caller. This is the
+// constructor the rmi streaming parser uses: an outer commons.Stream reads
+// framing (handshake, message flags) from a live io.Reader, and each Call's
+// embedded parse gets its own ObjectStream (fresh handler table + references)
+// that sees the same buffered bytes instead of ending up out of sync with the
+// underlying reader.
+//
+// The returned ObjectStream shares the caller's Stream pointer, so advancing
+// one advances both.
+func NewObjectStreamFromStream(s *commons.Stream) *ObjectStream {
+	return &ObjectStream{
+		Stream:     s,
+		handler:    JAVA_BASE_WRITE_HANDLE,
+		references: make(map[uint32]Object),
+	}
+}
+
 func (s *ObjectStream) AddReference(obj Object) {
 	switch obj := obj.(type) {
 	case *TCObject:

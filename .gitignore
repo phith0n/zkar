@@ -1,6 +1,7 @@
 .idea
 *.poc
 *.exe
+*.class
 /target/
 
 dist/
