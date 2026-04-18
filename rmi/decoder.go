@@ -25,11 +25,11 @@ import (
 //     NormalReturn's payload is 0 TCContents (void method: bind / rebind /
 //     unbind) or 1 (list / lookup / any ExceptionalReturn), because that
 //     depends on the originating Call. readReturn uses a sentinel peek
-//     after the primitive header that blocks until one of:
-//       - the next frame's flag byte arrives → current frame returns
-//       - the peer closes (io.EOF) → current frame returns; next Next()
-//         returns io.EOF
-//       - the reader's deadline fires → Next() returns the deadline error
+//     after the primitive header that blocks until one of: (a) the next
+//     frame's flag byte arrives → current frame returns; (b) the peer
+//     closes with io.EOF → current frame returns and the next Next()
+//     returns io.EOF; (c) the reader's deadline fires → Next() returns
+//     the deadline error.
 //   - Ping / PingAck / DgcAck / handshake frames: all bounded, no
 //     between-frame blocking.
 //
