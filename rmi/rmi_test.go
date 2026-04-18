@@ -1,0 +1,445 @@
+package rmi
+
+import (
+	"bytes"
+	"encoding/binary"
+	"testing"
+
+	"github.com/phith0n/zkar/serz"
+	"github.com/stretchr/testify/require"
+)
+
+// ---------- fixture builders ----------
+//
+// These produce the exact byte layouts of JRMP frames. The parser is
+// adversarial against its own builders: we construct bytes from scratch
+// (not via a Go JRMP client) so a bug in one direction can't hide a
+// symmetric bug in the other.
+
+func buildHandshake() []byte {
+	var buf bytes.Buffer
+	buf.Write(JRMI_MAGIC)
+	_ = binary.Write(&buf, binary.BigEndian, uint16(2))
+	buf.WriteByte(ProtocolStream)
+	return buf.Bytes()
+}
+
+func buildClientEndpointEcho(host string, port int32) []byte {
+	var buf bytes.Buffer
+	_ = binary.Write(&buf, binary.BigEndian, uint16(len(host)))
+	buf.WriteString(host)
+	_ = binary.Write(&buf, binary.BigEndian, port)
+	return buf.Bytes()
+}
+
+func buildAck(host string, port int32) []byte {
+	var buf bytes.Buffer
+	buf.WriteByte(AckFlag)
+	_ = binary.Write(&buf, binary.BigEndian, uint16(len(host)))
+	buf.WriteString(host)
+	_ = binary.Write(&buf, binary.BigEndian, port)
+	return buf.Bytes()
+}
+
+func buildPing() []byte    { return []byte{MsgPing} }
+func buildPingAck() []byte { return []byte{MsgPingAck} }
+
+func buildUIDBytes(u UID) []byte {
+	var buf bytes.Buffer
+	_ = binary.Write(&buf, binary.BigEndian, u.Unique)
+	_ = binary.Write(&buf, binary.BigEndian, u.Time)
+	_ = binary.Write(&buf, binary.BigEndian, u.Count)
+	return buf.Bytes()
+}
+
+func buildDgcAck(u UID) []byte {
+	var buf bytes.Buffer
+	buf.WriteByte(MsgDgcAck)
+	buf.Write(buildUIDBytes(u))
+	return buf.Bytes()
+}
+
+func buildObjIDBytes(id ObjID) []byte {
+	var buf bytes.Buffer
+	_ = binary.Write(&buf, binary.BigEndian, id.ObjNum)
+	buf.Write(buildUIDBytes(id.UID))
+	return buf.Bytes()
+}
+
+func buildTCString(s string) []byte {
+	var buf bytes.Buffer
+	buf.WriteByte(serz.JAVA_TC_STRING)
+	_ = binary.Write(&buf, binary.BigEndian, uint16(len(s)))
+	buf.WriteString(s)
+	return buf.Bytes()
+}
+
+func buildTCNull() []byte { return []byte{serz.JAVA_TC_NULL} }
+
+func buildCall(objID ObjID, op int32, methodHash int64, objArgs ...[]byte) []byte {
+	var buf bytes.Buffer
+	buf.WriteByte(MsgCall)
+	buf.Write(serz.JAVA_STREAM_MAGIC)
+	buf.Write(serz.JAVA_STREAM_VERSION)
+
+	// TC_BLOCKDATA carrying ObjID(22) + op(4) + hash(8) = 34 bytes.
+	buf.WriteByte(serz.JAVA_TC_BLOCKDATA)
+	buf.WriteByte(callPrimitiveLen)
+	buf.Write(buildObjIDBytes(objID))
+	_ = binary.Write(&buf, binary.BigEndian, op)
+	_ = binary.Write(&buf, binary.BigEndian, methodHash)
+
+	for _, a := range objArgs {
+		buf.Write(a)
+	}
+	return buf.Bytes()
+}
+
+func buildReturn(returnType byte, ackUID UID, payload []byte) []byte {
+	var buf bytes.Buffer
+	buf.WriteByte(MsgReturnData)
+	buf.Write(serz.JAVA_STREAM_MAGIC)
+	buf.Write(serz.JAVA_STREAM_VERSION)
+
+	// TC_BLOCKDATA carrying returnType(1) + UID(14) = 15 bytes.
+	buf.WriteByte(serz.JAVA_TC_BLOCKDATA)
+	buf.WriteByte(returnPrimitiveLen)
+	buf.WriteByte(returnType)
+	buf.Write(buildUIDBytes(ackUID))
+
+	if payload != nil {
+		buf.Write(payload)
+	}
+	return buf.Bytes()
+}
+
+// ---------- handshake / acknowledge ----------
+
+func TestHandshakeClientToServer(t *testing.T) {
+	tr, err := FromBytes(buildHandshake())
+	require.NoError(t, err)
+	require.NotNil(t, tr.Handshake)
+	require.Equal(t, JRMI_MAGIC, tr.Handshake.Magic)
+	require.Equal(t, uint16(2), tr.Handshake.Version)
+	require.Equal(t, ProtocolStream, tr.Handshake.Protocol)
+	require.Nil(t, tr.Acknowledge)
+	require.Empty(t, tr.Messages)
+}
+
+func TestHandshakeBadMagic(t *testing.T) {
+	// First byte 0x4A triggers the handshake path; bytes 2-4 mismatch,
+	// so readHandshake's magic check fires with a specific error.
+	bad := []byte{0x4A, 0xDE, 0xAD, 0xBE, 0x00, 0x02, 0x4B}
+	_, err := FromBytes(bad)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JRMI magic")
+}
+
+func TestHandshakeUnsupportedProtocol(t *testing.T) {
+	bad := append([]byte{}, buildHandshake()...)
+	bad[6] = ProtocolSingleOp
+	_, err := FromBytes(bad)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unsupported JRMP sub-protocol")
+}
+
+func TestAcknowledge(t *testing.T) {
+	tr, err := FromBytes(buildAck("localhost", 12345))
+	require.NoError(t, err)
+	require.Nil(t, tr.Handshake)
+	require.NotNil(t, tr.Acknowledge)
+	require.Equal(t, AckFlag, tr.Acknowledge.Flag)
+	require.Equal(t, "localhost", tr.Acknowledge.Host)
+	require.Equal(t, int32(12345), tr.Acknowledge.Port)
+}
+
+// ---------- ping / pingack / dgcack ----------
+
+func TestPing(t *testing.T) {
+	tr, err := FromBytes(buildPing())
+	require.NoError(t, err)
+	require.Len(t, tr.Messages, 1)
+	_, ok := tr.Messages[0].(*PingMessage)
+	require.True(t, ok)
+	require.Equal(t, MsgPing, tr.Messages[0].Op())
+}
+
+func TestPingAck(t *testing.T) {
+	tr, err := FromBytes(buildPingAck())
+	require.NoError(t, err)
+	require.Len(t, tr.Messages, 1)
+	_, ok := tr.Messages[0].(*PingAckMessage)
+	require.True(t, ok)
+}
+
+func TestDgcAck(t *testing.T) {
+	uid := UID{Unique: 42, Time: 1700000000, Count: 7}
+	tr, err := FromBytes(buildDgcAck(uid))
+	require.NoError(t, err)
+	require.Len(t, tr.Messages, 1)
+	m, ok := tr.Messages[0].(*DgcAckMessage)
+	require.True(t, ok)
+	require.Equal(t, uid, m.UID)
+}
+
+// ---------- call / registry decoding ----------
+
+// registryCallFrame wraps the three-part prelude (handshake + echo + call)
+// that a real client would send, so the full stream exercises every top-level
+// parser path.
+func registryCallFrame(op int32, args ...[]byte) []byte {
+	var buf bytes.Buffer
+	buf.Write(buildHandshake())
+	buf.Write(buildClientEndpointEcho("myhost", 4444))
+	buf.Write(buildCall(ObjID{}, op, RegistryInterfaceHash, args...))
+	return buf.Bytes()
+}
+
+func TestParseLookup(t *testing.T) {
+	tr, err := FromBytes(registryCallFrame(LookupOpIndex, buildTCString("foo")))
+	require.NoError(t, err)
+
+	require.NotNil(t, tr.Handshake)
+	require.NotNil(t, tr.ClientEndpoint)
+	require.Equal(t, "myhost", tr.ClientEndpoint.Host)
+	require.Equal(t, int32(4444), tr.ClientEndpoint.Port)
+
+	require.Len(t, tr.Messages, 1)
+	call, ok := tr.Messages[0].(*CallMessage)
+	require.True(t, ok)
+	require.True(t, call.ObjID.IsRegistry())
+	require.Equal(t, LookupOpIndex, call.Operation)
+	require.Equal(t, RegistryInterfaceHash, call.MethodHash)
+	require.NotNil(t, call.Decoded)
+	require.Equal(t, "Registry.lookup", call.Decoded.Method)
+	require.Len(t, call.Decoded.Args, 1)
+	require.Equal(t, "name", call.Decoded.Args[0].Name)
+	require.Equal(t, "foo", call.Decoded.Args[0].Value)
+
+	// Smoke-test the ToString rendering so we catch nil-deref / indent regressions.
+	s := tr.ToString()
+	require.Contains(t, s, "Registry.lookup")
+	require.Contains(t, s, `"foo"`)
+	require.Contains(t, s, "REGISTRY_ID")
+}
+
+func TestParseUnbind(t *testing.T) {
+	tr, err := FromBytes(registryCallFrame(UnbindOpIndex, buildTCString("bar")))
+	require.NoError(t, err)
+	call := tr.Messages[0].(*CallMessage)
+	require.Equal(t, "Registry.unbind", call.Decoded.Method)
+	require.Equal(t, "bar", call.Decoded.Args[0].Value)
+}
+
+func TestParseBind(t *testing.T) {
+	tr, err := FromBytes(registryCallFrame(BindOpIndex, buildTCString("svc"), buildTCNull()))
+	require.NoError(t, err)
+	call := tr.Messages[0].(*CallMessage)
+	require.Equal(t, "Registry.bind", call.Decoded.Method)
+	require.Len(t, call.Decoded.Args, 2)
+	require.Equal(t, "svc", call.Decoded.Args[0].Value)
+	// Remote arg is preserved as the raw TCContent so users can drill in.
+	c, ok := call.Decoded.Args[1].Value.(*serz.TCContent)
+	require.True(t, ok)
+	require.Equal(t, serz.JAVA_TC_NULL, c.Flag)
+}
+
+func TestParseRebind(t *testing.T) {
+	tr, err := FromBytes(registryCallFrame(RebindOpIndex, buildTCString("svc2"), buildTCNull()))
+	require.NoError(t, err)
+	call := tr.Messages[0].(*CallMessage)
+	require.Equal(t, "Registry.rebind", call.Decoded.Method)
+	require.Equal(t, "svc2", call.Decoded.Args[0].Value)
+}
+
+func TestParseList(t *testing.T) {
+	tr, err := FromBytes(registryCallFrame(ListOpIndex))
+	require.NoError(t, err)
+	call := tr.Messages[0].(*CallMessage)
+	require.Equal(t, "Registry.list", call.Decoded.Method)
+	require.Empty(t, call.Decoded.Args)
+}
+
+func TestCallNonRegistryObjIDLeavesDecodedNil(t *testing.T) {
+	// ObjNum != 0 → not the well-known Registry. Decoded must stay nil even
+	// if op + hash look like a valid Registry call.
+	nonReg := ObjID{ObjNum: 99, UID: UID{Unique: 1, Time: 2, Count: 3}}
+	var buf bytes.Buffer
+	buf.Write(buildCall(nonReg, LookupOpIndex, RegistryInterfaceHash, buildTCString("x")))
+	tr, err := FromBytes(buf.Bytes())
+	require.NoError(t, err)
+	call := tr.Messages[0].(*CallMessage)
+	require.False(t, call.ObjID.IsRegistry())
+	require.Nil(t, call.Decoded)
+	require.Len(t, call.ObjectArgs, 1)
+}
+
+func TestCallRegistryWrongInterfaceHashLeavesDecodedNil(t *testing.T) {
+	// ObjID is Registry but methodHash isn't the interface hash → we refuse
+	// to dispatch. Guards against false-positive decoding of remotes that
+	// coincidentally reuse ObjNum 0.
+	const bogusHash int64 = 0x1234567890ABCDEF
+	tr, err := FromBytes(buildCall(ObjID{}, LookupOpIndex, bogusHash, buildTCString("x")))
+	require.NoError(t, err)
+	call := tr.Messages[0].(*CallMessage)
+	require.True(t, call.ObjID.IsRegistry())
+	require.Equal(t, bogusHash, call.MethodHash)
+	require.Nil(t, call.Decoded)
+}
+
+func TestCallRegistryUnknownOpIndexLeavesDecodedNil(t *testing.T) {
+	// Correct Registry ObjID and interface hash but an out-of-range op-index
+	// (5+ doesn't exist in the stub's operations table).
+	tr, err := FromBytes(buildCall(ObjID{}, 99, RegistryInterfaceHash, buildTCString("x")))
+	require.NoError(t, err)
+	call := tr.Messages[0].(*CallMessage)
+	require.True(t, call.ObjID.IsRegistry())
+	require.Equal(t, int32(99), call.Operation)
+	require.Equal(t, RegistryInterfaceHash, call.MethodHash)
+	require.Nil(t, call.Decoded)
+}
+
+// TestCallWithPrimitiveArgsInLeadingBlock covers non-Registry remotes whose
+// method signature includes primitive params — e.g. remote.foo(int x). Java
+// appends writeInt(x) to the block buffer that already holds ObjID+op+hash,
+// producing a single TC_BLOCKDATA larger than 34 bytes.
+func TestCallWithPrimitiveArgsInLeadingBlock(t *testing.T) {
+	nonReg := ObjID{ObjNum: 7, UID: UID{Unique: 1, Time: 2, Count: 3}}
+	const extra = 4 // one int32 primitive arg
+	var buf bytes.Buffer
+	buf.WriteByte(MsgCall)
+	buf.Write(serz.JAVA_STREAM_MAGIC)
+	buf.Write(serz.JAVA_STREAM_VERSION)
+	buf.WriteByte(serz.JAVA_TC_BLOCKDATA)
+	buf.WriteByte(callPrimitiveLen + extra)
+	buf.Write(buildObjIDBytes(nonReg))
+	_ = binary.Write(&buf, binary.BigEndian, int32(42))                 // op
+	_ = binary.Write(&buf, binary.BigEndian, int64(0x1122334455667788)) // hash
+	_ = binary.Write(&buf, binary.BigEndian, int32(1337))               // primitive arg
+
+	tr, err := FromBytes(buf.Bytes())
+	require.NoError(t, err)
+	call := tr.Messages[0].(*CallMessage)
+	require.Equal(t, int32(42), call.Operation)
+	require.Equal(t, int64(0x1122334455667788), call.MethodHash)
+	// The single leading TC_BLOCKDATA is preserved intact in Raw, carrying
+	// both the 34-byte header and the 4-byte primitive tail.
+	require.Len(t, call.Raw.Contents, 1)
+	require.Equal(t, serz.JAVA_TC_BLOCKDATA, call.Raw.Contents[0].Flag)
+	require.Len(t, call.Raw.Contents[0].BlockData.Data, callPrimitiveLen+extra)
+	require.Empty(t, call.ObjectArgs)
+}
+
+// ---------- return ----------
+
+func TestNormalReturnWithPayload(t *testing.T) {
+	uid := UID{Unique: 10, Time: 20, Count: 30}
+	tr, err := FromBytes(buildReturn(NormalReturn, uid, buildTCString("result")))
+	require.NoError(t, err)
+	ret, ok := tr.Messages[0].(*ReturnMessage)
+	require.True(t, ok)
+	require.Equal(t, NormalReturn, ret.ReturnType)
+	require.Equal(t, uid, ret.AckUID)
+	require.NotNil(t, ret.Payload)
+	require.Equal(t, serz.JAVA_TC_STRING, ret.Payload.Flag)
+}
+
+func TestVoidReturn(t *testing.T) {
+	uid := UID{Unique: 1, Time: 2, Count: 3}
+	tr, err := FromBytes(buildReturn(NormalReturn, uid, nil))
+	require.NoError(t, err)
+	ret := tr.Messages[0].(*ReturnMessage)
+	require.Nil(t, ret.Payload)
+}
+
+func TestExceptionalReturn(t *testing.T) {
+	uid := UID{Unique: 99, Time: 100, Count: 1}
+	// TC_NULL stands in for the Throwable so the fixture stays hand-crafted;
+	// real streams would have a TC_OBJECT, but that path is already covered
+	// by the TCContent dispatcher in serz.
+	tr, err := FromBytes(buildReturn(ExceptionalReturn, uid, buildTCNull()))
+	require.NoError(t, err)
+	ret := tr.Messages[0].(*ReturnMessage)
+	require.Equal(t, ExceptionalReturn, ret.ReturnType)
+	require.NotNil(t, ret.Payload)
+	require.Equal(t, serz.JAVA_TC_NULL, ret.Payload.Flag)
+}
+
+// TestReturnWithPrimitiveValueInLeadingBlock covers methods with primitive
+// return types — e.g. int someMethod(). The server writes the returnType+UID
+// header and then writeInt(value) into the same block buffer, producing a
+// single TC_BLOCKDATA longer than 15 bytes with no TCContent payload to follow.
+func TestReturnWithPrimitiveValueInLeadingBlock(t *testing.T) {
+	uid := UID{Unique: 10, Time: 20, Count: 30}
+	const extra = 4 // one int32 primitive return value
+	var buf bytes.Buffer
+	buf.WriteByte(MsgReturnData)
+	buf.Write(serz.JAVA_STREAM_MAGIC)
+	buf.Write(serz.JAVA_STREAM_VERSION)
+	buf.WriteByte(serz.JAVA_TC_BLOCKDATA)
+	buf.WriteByte(returnPrimitiveLen + extra)
+	buf.WriteByte(NormalReturn)
+	buf.Write(buildUIDBytes(uid))
+	_ = binary.Write(&buf, binary.BigEndian, int32(99)) // primitive return value
+
+	tr, err := FromBytes(buf.Bytes())
+	require.NoError(t, err)
+	ret := tr.Messages[0].(*ReturnMessage)
+	require.Equal(t, NormalReturn, ret.ReturnType)
+	require.Equal(t, uid, ret.AckUID)
+	// No TCContent payload: the primitive value is carried inside the leading
+	// block and preserved in Raw for callers that want to decode it manually.
+	require.Nil(t, ret.Payload)
+	require.Len(t, ret.Raw.Contents, 1)
+	require.Equal(t, serz.JAVA_TC_BLOCKDATA, ret.Raw.Contents[0].Flag)
+	require.Len(t, ret.Raw.Contents[0].BlockData.Data, returnPrimitiveLen+extra)
+}
+
+// ---------- direction-agnostic / sequencing / empty ----------
+
+func TestDirectionAgnosticPureMessages(t *testing.T) {
+	// Bytes starting with a JRMP message flag, no handshake or ack — mimics
+	// resuming parse mid-stream.
+	tr, err := FromBytes(buildPing())
+	require.NoError(t, err)
+	require.Nil(t, tr.Handshake)
+	require.Nil(t, tr.Acknowledge)
+	require.Len(t, tr.Messages, 1)
+}
+
+func TestMessageSequence(t *testing.T) {
+	var buf bytes.Buffer
+	buf.Write(buildHandshake())
+	buf.Write(buildClientEndpointEcho("h", 1))
+	buf.Write(buildCall(ObjID{}, LookupOpIndex, RegistryInterfaceHash, buildTCString("a")))
+	buf.Write(buildPing())
+	buf.Write(buildCall(ObjID{}, UnbindOpIndex, RegistryInterfaceHash, buildTCString("b")))
+	buf.Write(buildDgcAck(UID{Unique: 1, Time: 2, Count: 3}))
+
+	tr, err := FromBytes(buf.Bytes())
+	require.NoError(t, err)
+	require.Len(t, tr.Messages, 4)
+	require.Equal(t, MsgCall, tr.Messages[0].Op())
+	require.Equal(t, MsgPing, tr.Messages[1].Op())
+	require.Equal(t, MsgCall, tr.Messages[2].Op())
+	require.Equal(t, MsgDgcAck, tr.Messages[3].Op())
+
+	// The two calls must round-trip to Registry.lookup and Registry.unbind
+	// respectively — regression guard against frame-boundary bleeding.
+	require.Equal(t, "Registry.lookup", tr.Messages[0].(*CallMessage).Decoded.Method)
+	require.Equal(t, "Registry.unbind", tr.Messages[2].(*CallMessage).Decoded.Method)
+}
+
+func TestEmptyInput(t *testing.T) {
+	tr, err := FromBytes(nil)
+	require.NoError(t, err)
+	require.NotNil(t, tr)
+	require.Nil(t, tr.Handshake)
+	require.Empty(t, tr.Messages)
+}
+
+func TestUnknownMessageFlag(t *testing.T) {
+	_, err := FromBytes([]byte{0x66})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unknown JRMP message flag")
+}

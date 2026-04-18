@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/phith0n/zkar/rmi"
 	"github.com/phith0n/zkar/serz"
 	"github.com/urfave/cli/v2"
 	"log"
@@ -104,6 +105,50 @@ func main() {
 						fmt.Println(obj.ToString())
 					}
 
+					return nil
+				},
+			},
+			{
+				Name:  "rmi",
+				Usage: "parse a JRMP (RMI) byte stream and dump the struct",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "file",
+						Aliases:  []string{"f"},
+						Usage:    "JRMP capture filepath",
+						Required: false,
+					},
+					&cli.StringFlag{
+						Name:     "base64",
+						Aliases:  []string{"B"},
+						Usage:    "JRMP capture as Base64 format string",
+						Required: false,
+					},
+				},
+				Action: func(context *cli.Context) error {
+					var filename = context.String("file")
+					var b64data = context.String("base64")
+					var data []byte
+					var err error
+					if (filename == "" && b64data == "") || (filename != "" && b64data != "") {
+						return fmt.Errorf("one \"file\" or \"base64\" flag must be specified, and not both")
+					}
+
+					if filename != "" {
+						data, err = os.ReadFile(filename)
+					} else {
+						data, err = base64.StdEncoding.DecodeString(b64data)
+					}
+					if err != nil {
+						return err
+					}
+
+					t, err := rmi.FromBytes(data)
+					if err != nil {
+						log.Fatalln(err)
+						return nil
+					}
+					fmt.Println(t.ToString())
 					return nil
 				},
 			},
