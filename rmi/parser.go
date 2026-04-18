@@ -1,6 +1,7 @@
 package rmi
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -52,25 +53,29 @@ type Transmission struct {
 // Not suitable for a live net.Conn: after the last frame of a typical
 // request/response the peer keeps the connection open waiting for the
 // reply, and the loop would block forever on the next PeekN. Use Decoder
-// for live connections.
+// directly for live connections.
+//
+// Implementation-wise this is a thin wrapper over Decoder — Decoder is the
+// single primitive that owns the readMessage loop, FromBytes just drains
+// it to EOF and reassembles the Transmission struct.
 func FromBytes(data []byte) (*Transmission, error) {
-	stream := commons.NewStream(data)
-	t := &Transmission{}
-	if err := readOpening(stream, t); err != nil {
+	d := NewDecoder(bytes.NewReader(data))
+	opening, err := d.Opening()
+	if err != nil {
 		return nil, err
 	}
-
+	t := &Transmission{
+		Handshake:      opening.Handshake,
+		Acknowledge:    opening.Acknowledge,
+		ClientEndpoint: opening.ClientEndpoint,
+	}
 	for {
-		_, err := stream.PeekN(1)
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				return t, nil
-			}
-			return nil, fmt.Errorf("peek next message: %w", err)
+		msg, err := d.Next()
+		if errors.Is(err, io.EOF) {
+			return t, nil
 		}
-		msg, merr := readMessage(stream)
-		if merr != nil {
-			return nil, merr
+		if err != nil {
+			return nil, err
 		}
 		t.Messages = append(t.Messages, msg)
 	}
