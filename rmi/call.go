@@ -88,15 +88,14 @@ func readCall(outer *commons.Stream, streaming bool) (*CallMessage, error) {
 
 	// Read leading TC_BLOCKDATA(s) until we have ≥ 34 primitive bytes. Each
 	// block's explicit length prefix keeps this bounded; we never rely on a
-	// sentinel to detect the end of the primitive region.
+	// sentinel to detect the end of the primitive region. Non-Registry remotes
+	// whose method signature includes primitive params (e.g. remote.foo(int))
+	// legally flush the ObjID+op+hash header together with those primitive args
+	// in a single block — we keep the full block in Raw and only slice the
+	// header portion for the typed fields below.
 	blocks, primitive, err := readLeadingBlocks(inner, callPrimitiveLen)
 	if err != nil {
 		return nil, err
-	}
-	if len(primitive) > callPrimitiveLen {
-		return nil, fmt.Errorf("call leading block has %d trailing primitive bytes after the 34-byte header; "+
-			"only ObjID+op+hash is expected before writeObject args",
-			len(primitive)-callPrimitiveLen)
 	}
 
 	objID, err := parseObjID(primitive[:objIDLen])

@@ -72,11 +72,12 @@ var registryDecoders = map[int32]RegistryDecoder{
 // reader waiting for "maybe more bytes".
 //
 // Counts come from sun.rmi.registry.RegistryImpl_Stub:
-//   bind(String, Remote)   → 2
-//   list()                 → 0
-//   lookup(String)         → 1
-//   rebind(String, Remote) → 2
-//   unbind(String)         → 1
+//
+//	bind(String, Remote)   → 2
+//	list()                 → 0
+//	lookup(String)         → 1
+//	rebind(String, Remote) → 2
+//	unbind(String)         → 1
 func registryArgCount(op int32) (int, bool) {
 	switch op {
 	case BindOpIndex, RebindOpIndex:

@@ -73,14 +73,13 @@ func readReturn(outer *commons.Stream, streaming bool) (*ReturnMessage, error) {
 		return nil, fmt.Errorf("read embedded serialization version: %w", err)
 	}
 
+	// Methods returning a primitive (int / long / boolean / …) legally flush
+	// the returnType+UID header together with the raw return value in the same
+	// TC_BLOCKDATA — the full block stays in Raw, we only slice the 15-byte
+	// header here.
 	blocks, primitive, err := readLeadingBlocks(inner, returnPrimitiveLen)
 	if err != nil {
 		return nil, err
-	}
-	if len(primitive) > returnPrimitiveLen {
-		return nil, fmt.Errorf("ReturnData leading blockdata has %d unexpected trailing primitive bytes; "+
-			"only the 15-byte returnType+UID is expected before the payload",
-			len(primitive)-returnPrimitiveLen)
 	}
 
 	uid, err := parseUID(primitive[1:returnPrimitiveLen])

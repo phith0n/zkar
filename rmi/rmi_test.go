@@ -299,6 +299,37 @@ func TestCallRegistryUnknownOpIndexLeavesDecodedNil(t *testing.T) {
 	require.Nil(t, call.Decoded)
 }
 
+// TestCallWithPrimitiveArgsInLeadingBlock covers non-Registry remotes whose
+// method signature includes primitive params — e.g. remote.foo(int x). Java
+// appends writeInt(x) to the block buffer that already holds ObjID+op+hash,
+// producing a single TC_BLOCKDATA larger than 34 bytes.
+func TestCallWithPrimitiveArgsInLeadingBlock(t *testing.T) {
+	nonReg := ObjID{ObjNum: 7, UID: UID{Unique: 1, Time: 2, Count: 3}}
+	const extra = 4 // one int32 primitive arg
+	var buf bytes.Buffer
+	buf.WriteByte(MsgCall)
+	buf.Write(serz.JAVA_STREAM_MAGIC)
+	buf.Write(serz.JAVA_STREAM_VERSION)
+	buf.WriteByte(serz.JAVA_TC_BLOCKDATA)
+	buf.WriteByte(callPrimitiveLen + extra)
+	buf.Write(buildObjIDBytes(nonReg))
+	_ = binary.Write(&buf, binary.BigEndian, int32(42))                 // op
+	_ = binary.Write(&buf, binary.BigEndian, int64(0x1122334455667788)) // hash
+	_ = binary.Write(&buf, binary.BigEndian, int32(1337))               // primitive arg
+
+	tr, err := FromBytes(buf.Bytes())
+	require.NoError(t, err)
+	call := tr.Messages[0].(*CallMessage)
+	require.Equal(t, int32(42), call.Operation)
+	require.Equal(t, int64(0x1122334455667788), call.MethodHash)
+	// The single leading TC_BLOCKDATA is preserved intact in Raw, carrying
+	// both the 34-byte header and the 4-byte primitive tail.
+	require.Len(t, call.Raw.Contents, 1)
+	require.Equal(t, serz.JAVA_TC_BLOCKDATA, call.Raw.Contents[0].Flag)
+	require.Len(t, call.Raw.Contents[0].BlockData.Data, callPrimitiveLen+extra)
+	require.Empty(t, call.ObjectArgs)
+}
+
 // ---------- return ----------
 
 func TestNormalReturnWithPayload(t *testing.T) {
@@ -332,6 +363,36 @@ func TestExceptionalReturn(t *testing.T) {
 	require.Equal(t, ExceptionalReturn, ret.ReturnType)
 	require.NotNil(t, ret.Payload)
 	require.Equal(t, serz.JAVA_TC_NULL, ret.Payload.Flag)
+}
+
+// TestReturnWithPrimitiveValueInLeadingBlock covers methods with primitive
+// return types — e.g. int someMethod(). The server writes the returnType+UID
+// header and then writeInt(value) into the same block buffer, producing a
+// single TC_BLOCKDATA longer than 15 bytes with no TCContent payload to follow.
+func TestReturnWithPrimitiveValueInLeadingBlock(t *testing.T) {
+	uid := UID{Unique: 10, Time: 20, Count: 30}
+	const extra = 4 // one int32 primitive return value
+	var buf bytes.Buffer
+	buf.WriteByte(MsgReturnData)
+	buf.Write(serz.JAVA_STREAM_MAGIC)
+	buf.Write(serz.JAVA_STREAM_VERSION)
+	buf.WriteByte(serz.JAVA_TC_BLOCKDATA)
+	buf.WriteByte(returnPrimitiveLen + extra)
+	buf.WriteByte(NormalReturn)
+	buf.Write(buildUIDBytes(uid))
+	_ = binary.Write(&buf, binary.BigEndian, int32(99)) // primitive return value
+
+	tr, err := FromBytes(buf.Bytes())
+	require.NoError(t, err)
+	ret := tr.Messages[0].(*ReturnMessage)
+	require.Equal(t, NormalReturn, ret.ReturnType)
+	require.Equal(t, uid, ret.AckUID)
+	// No TCContent payload: the primitive value is carried inside the leading
+	// block and preserved in Raw for callers that want to decode it manually.
+	require.Nil(t, ret.Payload)
+	require.Len(t, ret.Raw.Contents, 1)
+	require.Equal(t, serz.JAVA_TC_BLOCKDATA, ret.Raw.Contents[0].Flag)
+	require.Len(t, ret.Raw.Contents[0].BlockData.Data, returnPrimitiveLen+extra)
 }
 
 // ---------- direction-agnostic / sequencing / empty ----------
