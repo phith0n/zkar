@@ -260,74 +260,49 @@ func TestParseList(t *testing.T) {
 	require.Empty(t, call.Decoded.Args)
 }
 
-func TestCallNonRegistryObjIDLeavesDecodedNil(t *testing.T) {
-	// ObjNum != 0 → not the well-known Registry. Decoded must stay nil even
-	// if op + hash look like a valid Registry call.
-	nonReg := ObjID{ObjNum: 99, UID: UID{Unique: 1, Time: 2, Count: 3}}
-	var buf bytes.Buffer
-	buf.Write(buildCall(nonReg, LookupOpIndex, RegistryInterfaceHash, buildTCString("x")))
-	tr, err := FromBytes(buf.Bytes())
-	require.NoError(t, err)
-	call := tr.Messages[0].(*CallMessage)
-	require.False(t, call.ObjID.IsRegistry())
-	require.Nil(t, call.Decoded)
-	require.Len(t, call.ObjectArgs, 1)
-}
-
-func TestCallRegistryWrongInterfaceHashLeavesDecodedNil(t *testing.T) {
-	// ObjID is Registry but methodHash isn't the interface hash → we refuse
-	// to dispatch. Guards against false-positive decoding of remotes that
-	// coincidentally reuse ObjNum 0.
-	const bogusHash int64 = 0x1234567890ABCDEF
-	tr, err := FromBytes(buildCall(ObjID{}, LookupOpIndex, bogusHash, buildTCString("x")))
-	require.NoError(t, err)
-	call := tr.Messages[0].(*CallMessage)
-	require.True(t, call.ObjID.IsRegistry())
-	require.Equal(t, bogusHash, call.MethodHash)
-	require.Nil(t, call.Decoded)
-}
-
-func TestCallRegistryUnknownOpIndexLeavesDecodedNil(t *testing.T) {
-	// Correct Registry ObjID and interface hash but an out-of-range op-index
-	// (5+ doesn't exist in the stub's operations table).
-	tr, err := FromBytes(buildCall(ObjID{}, 99, RegistryInterfaceHash, buildTCString("x")))
-	require.NoError(t, err)
-	call := tr.Messages[0].(*CallMessage)
-	require.True(t, call.ObjID.IsRegistry())
-	require.Equal(t, int32(99), call.Operation)
-	require.Equal(t, RegistryInterfaceHash, call.MethodHash)
-	require.Nil(t, call.Decoded)
-}
-
-// TestCallWithPrimitiveArgsInLeadingBlock covers non-Registry remotes whose
-// method signature includes primitive params — e.g. remote.foo(int x). Java
-// appends writeInt(x) to the block buffer that already holds ObjID+op+hash,
-// producing a single TC_BLOCKDATA larger than 34 bytes.
-func TestCallWithPrimitiveArgsInLeadingBlock(t *testing.T) {
-	nonReg := ObjID{ObjNum: 7, UID: UID{Unique: 1, Time: 2, Count: 3}}
-	const extra = 4 // one int32 primitive arg
-	var buf bytes.Buffer
-	buf.WriteByte(MsgCall)
-	buf.Write(serz.JAVA_STREAM_MAGIC)
-	buf.Write(serz.JAVA_STREAM_VERSION)
-	buf.WriteByte(serz.JAVA_TC_BLOCKDATA)
-	buf.WriteByte(callPrimitiveLen + extra)
-	buf.Write(buildObjIDBytes(nonReg))
-	_ = binary.Write(&buf, binary.BigEndian, int32(42))                 // op
-	_ = binary.Write(&buf, binary.BigEndian, int64(0x1122334455667788)) // hash
-	_ = binary.Write(&buf, binary.BigEndian, int32(1337))               // primitive arg
-
-	tr, err := FromBytes(buf.Bytes())
-	require.NoError(t, err)
-	call := tr.Messages[0].(*CallMessage)
-	require.Equal(t, int32(42), call.Operation)
-	require.Equal(t, int64(0x1122334455667788), call.MethodHash)
-	// The single leading TC_BLOCKDATA is preserved intact in Raw, carrying
-	// both the 34-byte header and the 4-byte primitive tail.
-	require.Len(t, call.Raw.Contents, 1)
-	require.Equal(t, serz.JAVA_TC_BLOCKDATA, call.Raw.Contents[0].Flag)
-	require.Len(t, call.Raw.Contents[0].BlockData.Data, callPrimitiveLen+extra)
-	require.Empty(t, call.ObjectArgs)
+// TestCallRejectsNonRegistry covers every way a Call's header can fail the
+// Registry dispatch gate: non-zero ObjNum, wrong interface hash, unknown
+// op-index. Each branch must error at parse time with a message that
+// identifies the specific mismatch.
+func TestCallRejectsNonRegistry(t *testing.T) {
+	cases := []struct {
+		name    string
+		objID   ObjID
+		op      int32
+		hash    int64
+		errFrag string
+	}{
+		{
+			name:    "non_registry_objid",
+			objID:   ObjID{ObjNum: 99, UID: UID{Unique: 1, Time: 2, Count: 3}},
+			op:      LookupOpIndex,
+			hash:    RegistryInterfaceHash,
+			errFrag: "ObjID.ObjNum=99",
+		},
+		{
+			name:    "wrong_interface_hash",
+			objID:   ObjID{}, // REGISTRY_ID
+			op:      LookupOpIndex,
+			hash:    0x1234567890ABCDEF,
+			errFrag: "methodHash=0x1234567890ABCDEF",
+		},
+		{
+			name:    "unknown_op_index",
+			objID:   ObjID{},
+			op:      99,
+			hash:    RegistryInterfaceHash,
+			errFrag: "unknown Registry op-index 99",
+		},
+	}
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			data := buildCall(tc.objID, tc.op, tc.hash, buildTCString("x"))
+			_, err := FromBytes(data)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.errFrag)
+		})
+	}
 }
 
 // ---------- return ----------
@@ -363,36 +338,6 @@ func TestExceptionalReturn(t *testing.T) {
 	require.Equal(t, ExceptionalReturn, ret.ReturnType)
 	require.NotNil(t, ret.Payload)
 	require.Equal(t, serz.JAVA_TC_NULL, ret.Payload.Flag)
-}
-
-// TestReturnWithPrimitiveValueInLeadingBlock covers methods with primitive
-// return types — e.g. int someMethod(). The server writes the returnType+UID
-// header and then writeInt(value) into the same block buffer, producing a
-// single TC_BLOCKDATA longer than 15 bytes with no TCContent payload to follow.
-func TestReturnWithPrimitiveValueInLeadingBlock(t *testing.T) {
-	uid := UID{Unique: 10, Time: 20, Count: 30}
-	const extra = 4 // one int32 primitive return value
-	var buf bytes.Buffer
-	buf.WriteByte(MsgReturnData)
-	buf.Write(serz.JAVA_STREAM_MAGIC)
-	buf.Write(serz.JAVA_STREAM_VERSION)
-	buf.WriteByte(serz.JAVA_TC_BLOCKDATA)
-	buf.WriteByte(returnPrimitiveLen + extra)
-	buf.WriteByte(NormalReturn)
-	buf.Write(buildUIDBytes(uid))
-	_ = binary.Write(&buf, binary.BigEndian, int32(99)) // primitive return value
-
-	tr, err := FromBytes(buf.Bytes())
-	require.NoError(t, err)
-	ret := tr.Messages[0].(*ReturnMessage)
-	require.Equal(t, NormalReturn, ret.ReturnType)
-	require.Equal(t, uid, ret.AckUID)
-	// No TCContent payload: the primitive value is carried inside the leading
-	// block and preserved in Raw for callers that want to decode it manually.
-	require.Nil(t, ret.Payload)
-	require.Len(t, ret.Raw.Contents, 1)
-	require.Equal(t, serz.JAVA_TC_BLOCKDATA, ret.Raw.Contents[0].Flag)
-	require.Len(t, ret.Raw.Contents[0].BlockData.Data, returnPrimitiveLen+extra)
 }
 
 // ---------- direction-agnostic / sequencing / empty ----------

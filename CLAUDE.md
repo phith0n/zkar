@@ -53,36 +53,51 @@ Key contracts:
 
 ### `rmi` — JRMP (Java RMI) wire-protocol parser
 
-Read-only parser for a single direction of a JRMP Stream-protocol (`0x4B`) byte stream. Consumes either a client→server or server→client capture and produces a `Transmission` tree: optional `Handshake` (client side) or `Acknowledge` (server side), optional `ClientEndpoint` echo, then a `Messages []Message` list.
+Read-only parser for a single direction of a JRMP Stream-protocol (`0x4B`) byte stream **addressed at `java.rmi.registry.Registry`**. Consumes either a client→server or server→client capture and produces a `Transmission` tree: optional `Handshake` (client side) or `Acknowledge` (server side), optional `ClientEndpoint` echo, then a `Messages []Message` list.
 
-**Two entry points, one parser.** Both `FromBytes(data []byte)` and `FromStream(r io.Reader)` delegate to the same `parseTransmission(stream, streaming bool)`. The `streaming` flag propagates down into `readCall` and `readReturn` and picks the arg-reading strategy; every other step (handshake, ack, primitive header via `readLeadingBlocks`, Registry decoder lookup) is shared.
-- `rmi.FromBytes(data []byte)` — buffered. Sentinel-based arg loop (reads TCContents until non-TC_* byte or `io.EOF`). Safe on any input that eventually EOFs; supports non-Registry calls and Return messages because EOF reliably terminates the sentinel.
-- `rmi.FromStream(io.Reader)` — streaming. Exact-count arg loop (reads exactly `registryArgCount(op)` TCContents). Won't block on a live reader between frames, but is deliberately narrower — see "streaming scope" below. Registry calls only; Return returns an error.
+**Scope: Registry only.** This module deliberately supports only one Remote interface — the well-known `sun.rmi.registry.RegistryImpl_Stub`. Any `MsgCall` whose header doesn't pass the dispatch gate (ObjID == `REGISTRY_ID` **and** methodHash == `RegistryInterfaceHash` **and** op ∈ [0..4]) is rejected at parse time in `readCall`. Non-Registry Remote interfaces each have their own method-hash table that we don't carry, and the project's use case (intercepting `rmiregistry` traffic for exploitation or analysis) is fully served by Registry coverage. If you need a general JRMP parser, this is not it.
 
-Both rely on `serz.NewObjectStreamFromStream(*commons.Stream)` so the embedded serialization parse shares a byte cursor with the outer framing reader — no double-buffering, no peeked-byte loss at handoff.
+**Three entry points, one parser.** `FromBytes(data []byte)`, `FromStream(r io.Reader)`, and `Decoder` (via `NewDecoder(r)` + `Opening()` + `Next()`) all delegate to the same underlying `readMessage` / `readOpening` primitives. Each frame's arg strategy is picked from the frame's own header, not from the input source.
+- `rmi.FromBytes(data []byte)` — whole-Transmission, buffered input. Loops until `io.EOF`.
+- `rmi.FromStream(io.Reader)` — whole-Transmission, live input. Loops until the reader returns `io.EOF`.
+- `rmi.Decoder` (`rmi/decoder.go`) — frame-by-frame, live input. `Opening()` reads the optional handshake prefix; `Next()` returns one `Message` per call or `io.EOF`. The idiomatic API for live `net.Conn` consumers who want to apply `SetReadDeadline` between frames.
+
+All three rely on `serz.NewObjectStreamFromStream(*commons.Stream)` so the embedded serialization parse shares a byte cursor with the outer framing reader — no double-buffering, no peeked-byte loss at handoff.
+
+**Arg/payload-reading strategy.**
+- `readCallArgs` — **exact count, no peek**. Once `readCall` passes the Registry dispatch gate, `registryArgCount(op)` gives the stub method's known arity, and `readCallArgs` reads precisely that many TCContents. The parser returns as soon as the frame's own bytes arrive — critical on a live TCP reader where a Registry client sends one Call and then waits for the server's response before sending anything else. A peek-ahead scheme would deadlock.
+- `readReturn` — **sentinel**. Payload count is 0 (void method: bind/rebind/unbind) or 1 (list/lookup value / exception Throwable), and that choice depends on the originating Call's return type. Direction-agnostic parsing can't correlate Returns to outstanding Calls, so we fall back to a sentinel: read TCContents until `PeekN(1)` yields a byte outside `[JAVA_TC_BASE, JAVA_TC_MAX]` (= `[0x70, 0x7F]`) or `io.EOF`; assert count ≤ 1. TC_* and JRMP-flag (`[0x50, 0x54]`) ranges are disjoint, so the check is unambiguous. **On a live reader the terminating peek blocks** until the next frame's flag byte arrives, the peer closes (`io.EOF`), or the reader's deadline fires. Callers that process Returns over a live connection must set `SetReadDeadline` on the underlying `net.Conn`.
 
 Every JRMP frame implements `Message` (`Op() byte` + `ToString() string`). Five frame types:
 
-- **`CallMessage`** (0x50) — wraps an embedded serialization stream. The first `TC_BLOCKDATA` holds 34 bytes of primitive writes (`ObjID(22) + int32 op + int64 methodHash`). Remaining `TCContent` entries are `writeObject` arguments. `Decoded` is filled when `ObjID.IsRegistry()` **and** `methodHash == RegistryInterfaceHash`, dispatching via the int32 op-index (see Registry note below); otherwise `Raw` and `ObjectArgs` hold the untouched tree. `ToString()` renders the stream in wireshark-dissector style — see the rendering note below.
+- **`CallMessage`** (0x50) — wraps an embedded serialization stream. The first `TC_BLOCKDATA` holds 34 bytes of primitive writes (`ObjID(22) + int32 op + int64 methodHash`). Remaining `TCContent` entries are the method arguments. On a successful parse, `Operation` is always one of the five `{Bind, List, Lookup, Rebind, Unbind}OpIndex` constants and `Decoded` is populated; a non-fatal decoder error (e.g. malformed string arg) can still leave `Decoded` nil while `Raw` / `ObjectArgs` hold the raw tree. `ToString()` renders the stream in wireshark-dissector style — see the rendering note below.
 - **`ReturnMessage`** (0x51) — same embedded-stream shape, 15 bytes of primitives (`returnType + UID`) then ≤1 payload `TCContent` (value / exception / none-for-void).
 - **`PingMessage`** (0x52), **`PingAckMessage`** (0x53) — single-byte frames, no payload.
 - **`DgcAckMessage`** (0x54) — raw 14-byte UID written outside any `ObjectOutputStream` framing (the only JRMP frame that does *not* go through `serz`).
 
-**The critical design point worth internalizing**: a single Java serialization stream has no explicit end marker — `serz.FromReader` terminates only on `io.EOF`. Inside JRMP, the next byte after a Call/Return body is the next message's flag (`0x50..0x54`), which is neither `io.EOF` nor a valid `TC_*` tag. The buffered-mode branches of `readCallArgs` (`rmi/call.go`) and `readReturn` (`rmi/return.go`) walk `serz.ReadTCContent` in a loop and stop when `PeekN(1)` returns a byte outside `[serz.JAVA_TC_BASE, serz.JAVA_TC_MAX]` = `[0x70, 0x7F]`. TC_* and JRMP-flag ranges are disjoint, so the check is unambiguous. **Do not refactor this to use `serz.FromBytes`** — doing so would fail on any stream with more than one frame.
+**The critical design point worth internalizing**: a single Java serialization stream has no explicit end marker — `serz.FromReader` terminates only on `io.EOF`. Inside JRMP, the next byte after a Return body is the next message's flag (`0x50..0x54`), which is neither `io.EOF` nor a valid `TC_*` tag. The sentinel in `readReturn` (`rmi/return.go`) walks `serz.ReadTCContent` and stops when `PeekN(1)` returns a byte outside `[serz.JAVA_TC_BASE, serz.JAVA_TC_MAX]`. **Do not refactor this to use `serz.FromBytes`** — doing so would fail on any stream with more than one frame. (Calls don't need the sentinel because `registryArgCount` gives the exact count.)
 
-**Registry dispatch is op-index + interface hash, not per-method hash.** The JDK ships a precompiled `sun.rmi.registry.RegistryImpl_Stub` whose wire format is `operation = 0..4` (indexing into `{bind, list, lookup, rebind, unbind}`) paired with a single `int64 RegistryInterfaceHash` shared by all five methods. Modern JRMP's `operation = -1 + per-method hash` pattern applies only to dynamic-proxy stubs and is NOT used by Registry. `rmi/model.go` exposes the five op-index constants (`LookupOpIndex`, etc.) and the `RegistryInterfaceHash` constant (calibrated against a live Zulu OpenJDK 17 capture; see `testcases/rmi/*.bin` and `_tools/rmi-capture/`). If a real capture's `CallMessage.Decoded` is nil for an obvious Registry call, print `MethodHash` as hex and compare — recalibration is a one-line edit.
+**Registry dispatch is op-index + interface hash, not per-method hash.** The JDK ships a precompiled `sun.rmi.registry.RegistryImpl_Stub` whose wire format is `operation = 0..4` (indexing into `{bind, list, lookup, rebind, unbind}`) paired with a single `int64 RegistryInterfaceHash` shared by all five methods. Modern JRMP's `operation = -1 + per-method hash` pattern applies only to dynamic-proxy stubs and is NOT used by Registry. `rmi/model.go` exposes the five op-index constants (`LookupOpIndex`, etc.) and the `RegistryInterfaceHash` constant (calibrated against a live Zulu OpenJDK 17 capture; see `testcases/rmi/*.bin` and `_tools/rmi-capture/`). If a real Registry capture starts failing the hash check after a JDK upgrade, print `MethodHash` as hex and recalibrate — it's a one-line edit.
 
 Adding a new message type (e.g. if SingleOp/Multiplex support is ever added): extend the `MsgXxx` constants in `model.go`, define `*XxxMessage` implementing `Message`, add a case to the `switch` in `rmi/message.go:readMessage`. The dispatcher is the single extension point.
 
 The endpoint-echo heuristic in `parser.go:maybeReadClientEndpoint` peeks the byte right after the handshake: if it falls in `[0x50, 0x54]` (JRMP message flag range) we skip the echo, otherwise read `writeUTF + int32`. This lets hand-crafted test fixtures omit the echo. The ambiguity only collides on pathological (≥ 20480-char) hostnames.
 
-**Streaming scope (`FromStream`).** A live TCP reader doesn't EOF at a message boundary — it just waits for the next byte that may never come. The sentinel approach `FromBytes` uses (loop `ReadTCContent` until `PeekN` returns a non-`TC_*` byte) would block forever on such a reader. `FromStream` instead derives each Call's arg count from the method's protocol signature and reads exactly that many TCContents — self-delimiting TCContent parsing guarantees the byte boundary is exact. This requires external schema for arbitrary Remote interfaces, which we don't have, so:
-- **Registry Calls** (ObjID == `REGISTRY_ID` AND `MethodHash == RegistryInterfaceHash`): `registryArgCount(op)` returns the known `{bind:2, list:0, lookup:1, rebind:2, unbind:1}`; streaming parser reads exactly that many.
-- **Non-Registry Calls**: deliberately return an error. Buffer the stream and use `FromBytes` for full parsing.
-- **ReturnData (0x51)**: not supported in streaming mode either — a `NormalReturn`'s 0-vs-1 payload count depends on the originating Call's return type, which requires call/response correlation we don't track. Error and direct caller to `FromBytes`.
-- **Handshake / Acknowledge / Ping / PingAck / DgcAck**: all bounded-length frames, always supported.
+**Live-TCP ergonomics.** `FromStream` loops internally until `io.EOF` — fine for bounded streams (`io.Pipe`, `bytes.Reader`) but a trap on a long-lived `net.Conn` where the peer keeps the connection open between frames. For live connections, use `Decoder` (`rmi/decoder.go`):
 
-`serz.NewObjectStreamFromStream(s *commons.Stream) *ObjectStream` is the primitive both modes stand on — it lets an embedded serialization parse share a `commons.Stream` byte cursor with its caller, avoiding the double-buffering trap where bytes peeked into one layer get lost at handoff.
+```go
+d := rmi.NewDecoder(conn)
+opening, _ := d.Opening()       // optional — read handshake/ack/endpoint
+for {
+    _ = conn.SetReadDeadline(time.Now().Add(30 * time.Second))
+    msg, err := d.Next()
+    if errors.Is(err, io.EOF) { break }
+    if err != nil { return err }
+    handle(msg)
+}
+```
+
+`Decoder.Next()` returns one frame per call. Registry Calls return as soon as their own bytes arrive (no peek past last arg). ReturnData uses the sentinel and may block between frames on a live reader until the next flag byte arrives or the reader's deadline fires — the caller is responsible for the deadline. `Opening()` is optional; if omitted, the first `Next()` transparently consumes and discards any handshake prefix. Calling `Opening()` twice, or after `Next()`, returns an error.
 
 **`ToString()` rendering is wireshark-dissector style — every byte is printed exactly once, with semantic labels inline.** `Call/ReturnMessage.ToString()` emits a compact `@Decoded` summary (method + scalar args; complex args referenced by handler) at the top, then `@Serialization` with a custom walk (`rmi/printer.go`):
 

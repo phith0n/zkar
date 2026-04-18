@@ -38,18 +38,19 @@ func (r *ReturnMessage) ToString() string {
 	return b.String()
 }
 
-// readReturn consumes one MsgReturnData frame. In streaming mode we refuse
-// immediately: a NormalReturn's 0-vs-1 payload count depends on the
-// originating Call's return type, and we don't track call/response state.
-// Buffered mode uses a sentinel payload read (0 or 1 TCContent) — the sentinel
-// works there because the input eventually EOFs.
-func readReturn(outer *commons.Stream, streaming bool) (*ReturnMessage, error) {
-	if streaming {
-		return nil, fmt.Errorf("streaming parser does not support ReturnData (0x51) on index %v: "+
-			"void-vs-value payload requires call/response correlation; buffer the stream and use FromBytes instead",
-			outer.CurrentIndex())
-	}
-
+// readReturn consumes one MsgReturnData frame.
+//
+// A ReturnData carries 0 or 1 payload TCContent after the 15-byte primitive
+// header — 0 for void methods, 1 for value/exception returns. Which of the
+// two depends on the originating Call's return type, which we don't track.
+// We use a sentinel payload read: keep reading TCContents until PeekN yields
+// a byte outside the TC_* range or io.EOF, assert the count is ≤ 1.
+//
+// On a live reader this means the peek after the payload (or after the
+// header, for a void return) blocks until the next frame's flag byte
+// arrives, the peer closes, or the reader's deadline fires. Callers that
+// need responsiveness should set SetReadDeadline on their net.Conn.
+func readReturn(outer *commons.Stream) (*ReturnMessage, error) {
 	flagBs, err := outer.ReadN(1)
 	if err != nil {
 		return nil, fmt.Errorf("read ReturnData flag on index %v: %w", outer.CurrentIndex(), err)
