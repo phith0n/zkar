@@ -21,10 +21,13 @@ import (
 // consequence worth remembering: Operation is always one of the five
 // {Bind, List, Lookup, Rebind, Unbind}OpIndex constants.
 //
-// Decoded is always non-nil for a successfully parsed CallMessage. Its
-// Args slice is the human-oriented view (scalar values inlined, stub
-// subtrees referenced by handler). ObjectArgs and Raw expose the raw
-// TCContent tree for callers that want to walk the embedded stream.
+// Decoded holds the semantic view of the call (method name + typed args);
+// it's populated for every successfully parsed CallMessage unless the
+// Registry decoder itself returned a non-fatal error (e.g. the name arg
+// is not a well-formed TC_STRING). Callers that care about Decoded must
+// nil-check it and fall back to Raw / ObjectArgs for the raw tree. The
+// Args slice inlines scalar values and references complex args (e.g.
+// Remote stubs for bind/rebind) by handler — the full subtree is in Raw.
 type CallMessage struct {
 	ObjID      ObjID
 	Operation  int32

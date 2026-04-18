@@ -13,9 +13,11 @@ type Message interface {
 }
 
 // readMessage peeks the next byte and dispatches to the matching reader.
-// Works identically for buffered and streaming input — the per-reader arg
-// strategies (exact-count-for-Registry vs sentinel) are chosen internally
-// based on each frame's header, not on the input source.
+// Works identically for buffered and streaming input: Call frames read
+// exactly registryArgCount(op) TCContents (no peek past the last arg, so
+// no blocking between frames on a live reader); Return frames use a
+// sentinel peek to detect the 0-or-1 payload count because direction-
+// agnostic parsing can't correlate the Return to its originating Call.
 func readMessage(outer *commons.Stream) (Message, error) {
 	next, err := outer.PeekN(1)
 	if err != nil {
