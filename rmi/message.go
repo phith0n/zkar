@@ -13,19 +13,21 @@ type Message interface {
 }
 
 // readMessage peeks the next byte and dispatches to the matching reader.
-// `streaming` picks the arg-reading strategy for Call (exact-count-for-
-// Registry vs sentinel) and the gating for Return (refused in streaming
-// mode because payload count needs call/response correlation we don't keep).
-func readMessage(outer *commons.Stream, streaming bool) (Message, error) {
+// Works identically for buffered and streaming input: Call frames read
+// exactly registryArgCount(op) TCContents (no peek past the last arg, so
+// no blocking between frames on a live reader); Return frames use a
+// sentinel peek to detect the 0-or-1 payload count because direction-
+// agnostic parsing can't correlate the Return to its originating Call.
+func readMessage(outer *commons.Stream) (Message, error) {
 	next, err := outer.PeekN(1)
 	if err != nil {
 		return nil, err
 	}
 	switch next[0] {
 	case MsgCall:
-		return readCall(outer, streaming)
+		return readCall(outer)
 	case MsgReturnData:
-		return readReturn(outer, streaming)
+		return readReturn(outer)
 	case MsgPing:
 		return readPing(outer)
 	case MsgPingAck:

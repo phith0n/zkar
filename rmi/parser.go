@@ -1,6 +1,7 @@
 package rmi
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -8,6 +9,17 @@ import (
 
 	"github.com/phith0n/zkar/commons"
 )
+
+// Entry points:
+//
+//   - FromBytes — parse a fully-buffered JRMP capture (bytes read from a
+//     .bin file, an http.Response body you've ReadAll'd, etc.). Loops until
+//     io.EOF and returns the whole Transmission.
+//   - Decoder (rmi/decoder.go) — read one frame at a time from any
+//     io.Reader. The only sensible choice for a live net.Conn: FromBytes
+//     needs the bytes in advance, and a message-loop over a live reader
+//     would deadlock on the first PeekN(1) between frames (the peer is
+//     typically waiting for a reply and sends nothing).
 
 // Endpoint is one side's view of a TCP endpoint, written as
 // DataOutput.writeUTF(host) + writeInt(port) on the raw stream (no
@@ -34,62 +46,61 @@ type Transmission struct {
 	Messages       []Message
 }
 
-// FromBytes parses a fully-buffered JRMP byte slice (a .ser-style capture,
-// an io.ReadAll result, etc.). The buffered parser uses a sentinel-based
-// arg loop that terminates on io.EOF or a next-frame flag — safe on any
-// input that eventually reaches EOF, but would block forever on a live
-// reader that keeps the connection open between frames. For live streams
-// (net.Conn, pipes) use FromStream instead.
+// FromBytes parses a fully-buffered JRMP byte slice (a .bin capture, an
+// io.ReadAll result, etc.). Reads frames until io.EOF and returns the
+// whole Transmission.
+//
+// Not suitable for a live net.Conn: after the last frame of a typical
+// request/response the peer keeps the connection open waiting for the
+// reply, and the loop would block forever on the next PeekN. Use Decoder
+// directly for live connections.
+//
+// Implementation-wise this is a thin wrapper over Decoder — Decoder is the
+// single primitive that owns the readMessage loop, FromBytes just drains
+// it to EOF and reassembles the Transmission struct.
 func FromBytes(data []byte) (*Transmission, error) {
-	return parseTransmission(commons.NewStream(data), false)
+	d := NewDecoder(bytes.NewReader(data))
+	opening, err := d.Opening()
+	if err != nil {
+		return nil, err
+	}
+	t := &Transmission{
+		Handshake:      opening.Handshake,
+		Acknowledge:    opening.Acknowledge,
+		ClientEndpoint: opening.ClientEndpoint,
+	}
+	for {
+		msg, err := d.Next()
+		if errors.Is(err, io.EOF) {
+			return t, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		t.Messages = append(t.Messages, msg)
+	}
 }
 
-// FromStream parses JRMP traffic from a live io.Reader (e.g. net.Conn)
-// without io.ReadAll-ing the whole stream first. Each message's byte
-// boundary is derived from protocol framing alone, so the parser won't
-// block on an idle connection after finishing one message but before the
-// next arrives.
-//
-// Scope (intentionally narrow):
-//
-//   - Handshake / Acknowledge / ClientEndpoint echo — bounded reads, fine.
-//   - MsgCall — supported ONLY for java.rmi.registry.Registry (ObjID ==
-//     REGISTRY_ID AND methodHash == RegistryInterfaceHash). Registry's
-//     op-index yields exact arg count via registryArgCount; non-Registry
-//     Calls return an error because we cannot know their arg count without
-//     external method-signature info.
-//   - MsgPing / MsgPingAck / MsgDgcAck — bounded, always supported.
-//   - MsgReturnData — not supported. NormalReturn's 0-vs-1 payload count
-//     needs call/response correlation we don't track; use FromBytes on a
-//     buffered copy of the full conversation for return parsing.
-//
-// Loop exits on io.EOF (caller closed the reader) or the first error from
-// a message reader.
-func FromStream(r io.Reader) (*Transmission, error) {
-	return parseTransmission(commons.NewStreamFromReader(r), true)
-}
-
-// parseTransmission is the single implementation behind both FromBytes and
-// FromStream. The `streaming` flag propagates down into readCall / readReturn
-// where it picks the arg-reading strategy.
-func parseTransmission(stream *commons.Stream, streaming bool) (*Transmission, error) {
-	t := &Transmission{}
-
-	// Direction-agnostic opening: peek the first byte to decide what (if
-	// anything) precedes the message loop.
+// readOpening consumes the optional handshake-phase prefix (handshake OR
+// acknowledge, plus the client's endpoint echo when a handshake is present).
+// It peeks the first byte to decide what — if anything — precedes the
+// message loop. Populates the given Transmission's Handshake / Acknowledge /
+// ClientEndpoint fields in place. An empty (EOF) stream is a (degenerate)
+// valid Transmission and leaves t untouched.
+func readOpening(stream *commons.Stream, t *Transmission) error {
 	first, err := stream.PeekN(1)
 	if err != nil {
 		if errors.Is(err, io.EOF) {
-			return t, nil // empty input is a (degenerate) valid Transmission
+			return nil
 		}
-		return nil, fmt.Errorf("peek first byte: %w", err)
+		return fmt.Errorf("peek first byte: %w", err)
 	}
 
 	switch first[0] {
 	case JRMI_MAGIC[0]: // 0x4A — client→server handshake
 		h, herr := readHandshake(stream)
 		if herr != nil {
-			return nil, herr
+			return herr
 		}
 		t.Handshake = h
 
@@ -98,36 +109,21 @@ func parseTransmission(stream *commons.Stream, streaming bool) (*Transmission, e
 		// hand-crafted fixtures skip this; peek and decide.
 		ep, eerr := maybeReadClientEndpoint(stream)
 		if eerr != nil {
-			return nil, fmt.Errorf("client endpoint echo: %w", eerr)
+			return fmt.Errorf("client endpoint echo: %w", eerr)
 		}
 		t.ClientEndpoint = ep
 
 	case AckFlag: // 0x4E — server→client ProtocolAck
 		a, aerr := readAcknowledge(stream)
 		if aerr != nil {
-			return nil, aerr
+			return aerr
 		}
 		t.Acknowledge = a
 
 		// No further server-side echo: Acknowledge already carries
 		// the server's view of the client endpoint.
 	}
-
-	// Message loop until EOF.
-	for {
-		_, err := stream.PeekN(1)
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				return t, nil
-			}
-			return nil, fmt.Errorf("peek next message: %w", err)
-		}
-		msg, merr := readMessage(stream, streaming)
-		if merr != nil {
-			return nil, merr
-		}
-		t.Messages = append(t.Messages, msg)
-	}
+	return nil
 }
 
 // maybeReadClientEndpoint reads the client's post-handshake endpoint echo
