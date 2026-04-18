@@ -82,7 +82,7 @@ Adding a new message type (e.g. if SingleOp/Multiplex support is ever added): ex
 
 The endpoint-echo heuristic in `parser.go:maybeReadClientEndpoint` peeks the byte right after the handshake: if it falls in `[0x50, 0x54]` (JRMP message flag range) we skip the echo, otherwise read `writeUTF + int32`. This lets hand-crafted test fixtures omit the echo. The ambiguity only collides on pathological (≥ 20480-char) hostnames.
 
-**Live-TCP ergonomics.** On a long-lived `net.Conn` a typical Registry session has the shape handshake → Call → (peer waits for Return) → Return → close. `FromBytes` would deadlock on the second peek after the first frame; `Decoder` is the only viable choice:
+**Live-TCP ergonomics.** On a long-lived `net.Conn` a typical Registry session has the shape handshake → Call → (peer waits for Return) → Return → close. `FromBytes` would deadlock on the second peek after the first frame; `Decoder` is the only viable choice. For *client-side* reading (capture already in hand, or reading responses from a server), the one-shot `Opening()` is fine:
 
 ```go
 d := rmi.NewDecoder(conn)
@@ -96,7 +96,27 @@ for {
 }
 ```
 
-`Decoder.Next()` returns one frame per call. Registry Calls return as soon as their own bytes arrive (no peek past last arg). ReturnData uses the sentinel and may block between frames on a live reader until the next flag byte arrives or the reader's deadline fires — the caller is responsible for the deadline. `Opening()` is optional; if omitted, the first `Next()` transparently consumes and discards any handshake prefix. Calling `Opening()` twice, or after `Next()`, returns an error.
+*Server-side `Opening()` deadlocks.* A conforming Java client (`sun.rmi.transport.tcp.TCPChannel`) writes the 7-byte handshake and then blocks reading the server's `ProtocolAck` before writing its `ClientEndpoint` echo. `Opening()` consumes handshake + endpoint in one call, so its second peek waits for bytes the client refuses to send until the server writes the Ack. For servers (and any caller that must inject writes into the handshake phase), use the fine-grained primitives:
+
+```go
+d := rmi.NewDecoder(conn)
+hs, err := d.ReadHandshake()      // consumes only the 7-byte handshake
+// ... write the Ack to conn before reading further ...
+remote := conn.RemoteAddr().(*net.TCPAddr)
+_, _ = conn.Write((&rmi.Acknowledge{Host: remote.IP.String(), Port: int32(remote.Port)}).ToBytes())
+ep, err := d.ReadClientEndpoint() // now safe: client unblocks after reading Ack
+for {
+    _ = conn.SetReadDeadline(time.Now().Add(30 * time.Second))
+    msg, err := d.Next()
+    ...
+}
+```
+
+`ReadAcknowledge()` is the symmetric client-side primitive. The three opening primitives and `Opening()` are **mutually exclusive** — the Decoder tracks a stage (`stageInitial` → `stageAfterHandshake` → `stageReady`) and refuses out-of-order calls. `Next()` auto-advances to `stageReady` from either earlier stage (auto-consuming a `ClientEndpoint` after `ReadHandshake` if the caller skipped `ReadClientEndpoint`), so omitting the opening entirely still works for bare captures.
+
+`Handshake`, `Acknowledge`, and `Endpoint` all expose `ToBytes()` for writing: zero-valued `Magic`/`Protocol`/`Flag` fields default to `JRMI_MAGIC` / `ProtocolStream` / `AckFlag`, so server code can usually construct with just `Host` + `Port` (see `TestOpeningEncodersRoundTrip` for the exact layouts).
+
+`Decoder.Next()` returns one frame per call. Registry Calls return as soon as their own bytes arrive (no peek past last arg). ReturnData uses the sentinel and may block between frames on a live reader until the next flag byte arrives or the reader's deadline fires — the caller is responsible for the deadline.
 
 **`ToString()` rendering is wireshark-dissector style — every byte is printed exactly once, with semantic labels inline.** `Call/ReturnMessage.ToString()` emits a compact `@Decoded` summary (method + scalar args; complex args referenced by handler) at the top, then `@Serialization` with a custom walk (`rmi/printer.go`):
 

@@ -153,6 +153,18 @@ func TestAcknowledge(t *testing.T) {
 	require.Equal(t, int32(12345), tr.Acknowledge.Port)
 }
 
+// TestEndpointToString covers the @Endpoint dump — every piece of state
+// (host length, host value, port) must appear with both decimal and hex,
+// matching the wireshark-dissector style of Handshake/Acknowledge.
+func TestEndpointToString(t *testing.T) {
+	s := (&Endpoint{Host: "client.local", Port: 55555}).ToString()
+	require.Contains(t, s, "@Endpoint")
+	require.Contains(t, s, "@Host")
+	require.Contains(t, s, "@Length - 12 - 0x00 0c")
+	require.Contains(t, s, "@Value - client.local - 0x63 6c 69 65 6e 74 2e 6c 6f 63 61 6c")
+	require.Contains(t, s, "@Port - 55555 - 0x00 00 d9 03")
+}
+
 // ---------- ping / pingack / dgcack ----------
 
 func TestPing(t *testing.T) {
