@@ -52,38 +52,6 @@ func ExampleFromBytes() {
 	// arg: name="ghost"
 }
 
-// ExampleFromStream parses JRMP bytes from any io.Reader without first
-// io.ReadAll-ing them. Here the "stream" is a bytes.Reader standing in for
-// a net.Conn; the same API accepts a real TCP connection as-is.
-//
-// FromStream loops until the reader EOFs, so it's most useful when the
-// caller controls the end of input — e.g. a pipe, a file, or a request
-// whose boundary you close explicitly. For long-lived connections where
-// the peer stays open between frames, use Decoder instead (see below).
-func ExampleFromStream() {
-	// A minimal hand-crafted transmission: JRMI handshake followed by one
-	// Ping frame. No endpoint echo — the heuristic in the parser sees the
-	// Ping flag (0x52) immediately after the handshake and skips the echo.
-	data := []byte{
-		0x4A, 0x52, 0x4D, 0x49, // "JRMI"
-		0x00, 0x02, // protocol version 2
-		0x4B, // ProtocolStream
-		0x52, // MsgPing
-	}
-
-	tr, err := rmi.FromStream(bytes.NewReader(data))
-	if err != nil {
-		fmt.Println("parse:", err)
-		return
-	}
-	fmt.Println("messages:", len(tr.Messages))
-	fmt.Printf("op: 0x%02X\n", tr.Messages[0].Op())
-
-	// Output:
-	// messages: 1
-	// op: 0x52
-}
-
 // ExampleNewDecoder demonstrates the frame-by-frame API — the right choice
 // for long-lived connections where the caller wants to apply
 // SetReadDeadline between frames or process one message before the next
@@ -129,11 +97,11 @@ func ExampleNewDecoder() {
 }
 
 // ExampleDecoder_liveConnection sketches the pattern for reading JRMP
-// traffic off a live net.Conn. The key points — compared to FromStream —
-// are (a) the caller applies SetReadDeadline between frames to bound how
-// long to wait for the next one, and (b) non-Registry Call headers and
-// Return sentinel timeouts surface as normal errors the caller can
-// inspect.
+// traffic off a live net.Conn — the only supported way to parse from a
+// long-lived TCP connection. The two things to notice are (a) the caller
+// applies SetReadDeadline between frames to bound how long to wait for
+// the next one, and (b) non-Registry Call headers and Return sentinel
+// timeouts surface as normal errors the caller can inspect.
 //
 // This example does not connect to a real server; it's structured as a
 // compile-check so the idiom stays accurate as the API evolves.

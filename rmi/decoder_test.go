@@ -156,3 +156,51 @@ func TestDecoderRejectsNonRegistryCall(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "not a Registry call")
 }
+
+// TestDecoderChunkedDelivery feeds a real rmiregistry capture through an
+// io.Pipe in 7-byte chunks with tiny sleeps between, mimicking TCP
+// segmentation where bytes arrive across multiple Read calls. A Decoder
+// reading from the pipe must stitch the chunks together correctly across
+// message-internal boundaries. A 5s guard catches any accidental block.
+func TestDecoderChunkedDelivery(t *testing.T) {
+	data := loadRMIFixture(t, "jdk17", "lookup-c2s.bin")
+	pr, pw := io.Pipe()
+
+	go func() {
+		defer func() { _ = pw.Close() }()
+		for i := 0; i < len(data); i += 7 {
+			end := i + 7
+			if end > len(data) {
+				end = len(data)
+			}
+			_, _ = pw.Write(data[i:end])
+			time.Sleep(1 * time.Millisecond)
+		}
+	}()
+
+	type result struct {
+		opening *Opening
+		msg     Message
+		err     error
+	}
+	done := make(chan result, 1)
+	go func() {
+		d := NewDecoder(pr)
+		o, oerr := d.Opening()
+		if oerr != nil {
+			done <- result{err: oerr}
+			return
+		}
+		m, merr := d.Next()
+		done <- result{opening: o, msg: m, err: merr}
+	}()
+
+	select {
+	case r := <-done:
+		require.NoError(t, r.err)
+		require.NotNil(t, r.opening.Handshake)
+		require.Equal(t, MsgCall, r.msg.Op())
+	case <-time.After(5 * time.Second):
+		t.Fatal("Decoder did not return within 5s — likely blocked reading past the frame boundary")
+	}
+}

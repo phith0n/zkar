@@ -57,12 +57,11 @@ Read-only parser for a single direction of a JRMP Stream-protocol (`0x4B`) byte 
 
 **Scope: Registry only.** This module deliberately supports only one Remote interface — the well-known `sun.rmi.registry.RegistryImpl_Stub`. Any `MsgCall` whose header doesn't pass the dispatch gate (ObjID == `REGISTRY_ID` **and** methodHash == `RegistryInterfaceHash` **and** op ∈ [0..4]) is rejected at parse time in `readCall`. Non-Registry Remote interfaces each have their own method-hash table that we don't carry, and the project's use case (intercepting `rmiregistry` traffic for exploitation or analysis) is fully served by Registry coverage. If you need a general JRMP parser, this is not it.
 
-**Three entry points, one parser.** `FromBytes(data []byte)`, `FromStream(r io.Reader)`, and `Decoder` (via `NewDecoder(r)` + `Opening()` + `Next()`) all delegate to the same underlying `readMessage` / `readOpening` primitives. Each frame's arg strategy is picked from the frame's own header, not from the input source.
-- `rmi.FromBytes(data []byte)` — whole-Transmission, buffered input. Loops until `io.EOF`.
-- `rmi.FromStream(io.Reader)` — whole-Transmission, live input. Loops until the reader returns `io.EOF`.
-- `rmi.Decoder` (`rmi/decoder.go`) — frame-by-frame, live input. `Opening()` reads the optional handshake prefix; `Next()` returns one `Message` per call or `io.EOF`. The idiomatic API for live `net.Conn` consumers who want to apply `SetReadDeadline` between frames.
+**Two entry points.** Pick by input shape, not by input source:
+- `rmi.FromBytes(data []byte)` — for bytes already in memory (`.bin` captures, `io.ReadAll` of an HTTP body, etc.). Loops until `io.EOF` and returns the whole `Transmission`. **Never use with a live `net.Conn`**: the loop blocks on the next `PeekN(1)` after the last frame and deadlocks when the peer stays open waiting for a reply — which is the typical synchronous-RPC pattern.
+- `rmi.Decoder` (`rmi/decoder.go`) — frame-by-frame, for live readers. `NewDecoder(r)` wraps any `io.Reader`; `Opening()` consumes the optional handshake prefix; `Next()` returns one `Message` per call or `io.EOF`. This is the only sensible choice for a long-lived TCP connection: callers apply `SetReadDeadline` on the underlying `net.Conn` between `Next()` calls to bound how long they wait for the next frame.
 
-All three rely on `serz.NewObjectStreamFromStream(*commons.Stream)` so the embedded serialization parse shares a byte cursor with the outer framing reader — no double-buffering, no peeked-byte loss at handoff.
+Both rely on `serz.NewObjectStreamFromStream(*commons.Stream)` so the embedded serialization parse shares a byte cursor with the outer framing reader — no double-buffering, no peeked-byte loss at handoff.
 
 **Arg/payload-reading strategy.**
 - `readCallArgs` — **exact count, no peek**. Once `readCall` passes the Registry dispatch gate, `registryArgCount(op)` gives the stub method's known arity, and `readCallArgs` reads precisely that many TCContents. The parser returns as soon as the frame's own bytes arrive — critical on a live TCP reader where a Registry client sends one Call and then waits for the server's response before sending anything else. A peek-ahead scheme would deadlock.
@@ -83,7 +82,7 @@ Adding a new message type (e.g. if SingleOp/Multiplex support is ever added): ex
 
 The endpoint-echo heuristic in `parser.go:maybeReadClientEndpoint` peeks the byte right after the handshake: if it falls in `[0x50, 0x54]` (JRMP message flag range) we skip the echo, otherwise read `writeUTF + int32`. This lets hand-crafted test fixtures omit the echo. The ambiguity only collides on pathological (≥ 20480-char) hostnames.
 
-**Live-TCP ergonomics.** `FromStream` loops internally until `io.EOF` — fine for bounded streams (`io.Pipe`, `bytes.Reader`) but a trap on a long-lived `net.Conn` where the peer keeps the connection open between frames. For live connections, use `Decoder` (`rmi/decoder.go`):
+**Live-TCP ergonomics.** On a long-lived `net.Conn` a typical Registry session has the shape handshake → Call → (peer waits for Return) → Return → close. `FromBytes` would deadlock on the second peek after the first frame; `Decoder` is the only viable choice:
 
 ```go
 d := rmi.NewDecoder(conn)

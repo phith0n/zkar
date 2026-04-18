@@ -9,11 +9,15 @@ import (
 )
 
 // Decoder reads a JRMP byte stream frame-by-frame from an io.Reader (e.g. a
-// live net.Conn). Unlike FromStream — which loops internally until the
-// reader EOFs — Decoder returns each frame as soon as it's parsed, so
-// callers can process one message before the next arrives, and can apply
-// SetReadDeadline on the underlying net.Conn between calls to bound how
-// long they wait for the next frame.
+// live net.Conn). It's the only supported way to parse from a long-lived
+// TCP connection: FromBytes needs the whole capture in a []byte, and a
+// message-loop-until-EOF would deadlock between frames because the peer
+// typically keeps the connection open waiting for a reply before sending
+// anything else.
+//
+// Decoder returns each frame as soon as it's parsed, so callers can process
+// one message before the next arrives and can apply SetReadDeadline on the
+// underlying net.Conn between calls to bound how long they wait.
 //
 // Blocking semantics:
 //

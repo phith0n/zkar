@@ -9,6 +9,17 @@ import (
 	"github.com/phith0n/zkar/commons"
 )
 
+// Entry points:
+//
+//   - FromBytes — parse a fully-buffered JRMP capture (bytes read from a
+//     .bin file, an http.Response body you've ReadAll'd, etc.). Loops until
+//     io.EOF and returns the whole Transmission.
+//   - Decoder (rmi/decoder.go) — read one frame at a time from any
+//     io.Reader. The only sensible choice for a live net.Conn: FromBytes
+//     needs the bytes in advance, and a message-loop over a live reader
+//     would deadlock on the first PeekN(1) between frames (the peer is
+//     typically waiting for a reply and sends nothing).
+
 // Endpoint is one side's view of a TCP endpoint, written as
 // DataOutput.writeUTF(host) + writeInt(port) on the raw stream (no
 // ObjectOutputStream framing).
@@ -34,40 +45,21 @@ type Transmission struct {
 	Messages       []Message
 }
 
-// FromBytes parses a fully-buffered JRMP byte slice (a .ser-style capture,
-// an io.ReadAll result, etc.). The parser loops readMessage until io.EOF,
-// returning the full Transmission.
+// FromBytes parses a fully-buffered JRMP byte slice (a .bin capture, an
+// io.ReadAll result, etc.). Reads frames until io.EOF and returns the
+// whole Transmission.
+//
+// Not suitable for a live net.Conn: after the last frame of a typical
+// request/response the peer keeps the connection open waiting for the
+// reply, and the loop would block forever on the next PeekN. Use Decoder
+// for live connections.
 func FromBytes(data []byte) (*Transmission, error) {
-	return parseTransmission(commons.NewStream(data))
-}
-
-// FromStream parses JRMP traffic from an io.Reader (net.Conn, io.Pipe, etc.)
-// without io.ReadAll-ing the whole stream first. It loops readMessage until
-// the reader returns io.EOF.
-//
-// Blocking semantics: the message loop blocks on the reader between frames.
-// Call frames are exact-count (Registry fast path) and return as soon as
-// their bytes arrive; ReturnData uses a sentinel that blocks after the
-// primitive header until the next frame's flag byte arrives, the peer
-// closes (io.EOF), or the reader's deadline fires. Non-Registry Call
-// headers fail fast — this parser only handles Registry stubs.
-//
-// For live TCP servers that need to process frames as they arrive — or for
-// any caller that wants to apply a SetReadDeadline between frames — use
-// Decoder instead; its Next() method returns one message at a time.
-func FromStream(r io.Reader) (*Transmission, error) {
-	return parseTransmission(commons.NewStreamFromReader(r))
-}
-
-// parseTransmission is the single implementation behind both FromBytes and
-// FromStream.
-func parseTransmission(stream *commons.Stream) (*Transmission, error) {
+	stream := commons.NewStream(data)
 	t := &Transmission{}
 	if err := readOpening(stream, t); err != nil {
 		return nil, err
 	}
 
-	// Message loop until EOF.
 	for {
 		_, err := stream.PeekN(1)
 		if err != nil {

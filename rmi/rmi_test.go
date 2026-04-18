@@ -375,6 +375,28 @@ func TestMessageSequence(t *testing.T) {
 	require.Equal(t, "Registry.unbind", tr.Messages[2].(*CallMessage).Decoded.Method)
 }
 
+// TestBackToBackRegistryCallsNoSeparator is a regression guard: a Registry
+// Call uses exact-count reading, so after its last arg the parser must NOT
+// peek at the next byte. If it did, two Calls concatenated without any
+// intervening frame would read through frame 1's last arg into frame 2's
+// flag byte (0x50) and mis-parse. With exact count both Calls parse
+// cleanly.
+func TestBackToBackRegistryCallsNoSeparator(t *testing.T) {
+	var buf bytes.Buffer
+	buf.Write(buildHandshake())
+	buf.Write(buildClientEndpointEcho("h", 1))
+	buf.Write(buildCall(ObjID{}, LookupOpIndex, RegistryInterfaceHash, buildTCString("first")))
+	buf.Write(buildCall(ObjID{}, UnbindOpIndex, RegistryInterfaceHash, buildTCString("second")))
+
+	tr, err := FromBytes(buf.Bytes())
+	require.NoError(t, err)
+	require.Len(t, tr.Messages, 2)
+	require.Equal(t, "Registry.lookup", tr.Messages[0].(*CallMessage).Decoded.Method)
+	require.Equal(t, "first", tr.Messages[0].(*CallMessage).Decoded.Args[0].Value)
+	require.Equal(t, "Registry.unbind", tr.Messages[1].(*CallMessage).Decoded.Method)
+	require.Equal(t, "second", tr.Messages[1].(*CallMessage).Decoded.Args[0].Value)
+}
+
 func TestEmptyInput(t *testing.T) {
 	tr, err := FromBytes(nil)
 	require.NoError(t, err)
