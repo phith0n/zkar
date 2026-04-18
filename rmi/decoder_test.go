@@ -157,6 +157,172 @@ func TestDecoderRejectsNonRegistryCall(t *testing.T) {
 	require.Contains(t, err.Error(), "not a Registry call")
 }
 
+// TestDecoderServerFlowWithInterleavedAck reproduces the real rmiregistry
+// server timing: a standard Java client sends its 7-byte handshake and
+// then BLOCKS until the server writes a ProtocolAck — only after reading
+// the Ack does it send its ClientEndpoint echo. Opening() would deadlock
+// on this shape because it reads handshake and endpoint in a single call.
+// The server-side flow (ReadHandshake → write Ack → ReadClientEndpoint →
+// Next) must complete without blocking past what the client will send at
+// each step.
+func TestDecoderServerFlowWithInterleavedAck(t *testing.T) {
+	// c2s: what the client writes. s2c: what the server writes (captured
+	// here so we can assert the Ack bytes the server produced).
+	c2sRead, c2sWrite := io.Pipe()
+	s2cRead, s2cWrite := io.Pipe()
+
+	clientDone := make(chan error, 1)
+	// Client goroutine: mimic sun.rmi.transport.tcp.TCPChannel — write
+	// handshake, read ack in full, then write endpoint + a Ping so the
+	// server has a message to parse and we can verify the whole flow.
+	go func() {
+		defer func() { _ = c2sWrite.Close() }()
+		if _, err := c2sWrite.Write(buildHandshake()); err != nil {
+			clientDone <- err
+			return
+		}
+		// Drain the server's Ack before writing anything else — this is
+		// the critical ordering constraint. Ack = 1 flag + 2 length +
+		// len("127.0.0.1")=9 + 4 port = 16 bytes for the fixture below.
+		ack := make([]byte, 16)
+		if _, err := io.ReadFull(s2cRead, ack); err != nil {
+			clientDone <- err
+			return
+		}
+		if _, err := c2sWrite.Write(buildClientEndpointEcho("client.local", 55555)); err != nil {
+			clientDone <- err
+			return
+		}
+		if _, err := c2sWrite.Write(buildPing()); err != nil {
+			clientDone <- err
+			return
+		}
+		clientDone <- nil
+	}()
+
+	d := NewDecoder(c2sRead)
+
+	// Stage 1: read just the handshake. Must return as soon as 7 bytes
+	// arrive — a peek past that would block.
+	hs, err := d.ReadHandshake()
+	require.NoError(t, err)
+	require.Equal(t, uint16(2), hs.Version)
+	require.Equal(t, ProtocolStream, hs.Protocol)
+
+	// Stage 2: server writes its Ack. Without this step the client will
+	// sit forever on its io.ReadFull and the next ReadClientEndpoint
+	// would deadlock.
+	ack := &Acknowledge{Host: "127.0.0.1", Port: 1234}
+	go func() {
+		_, _ = s2cWrite.Write(ack.ToBytes())
+		_ = s2cWrite.Close()
+	}()
+
+	// Stage 3: consume the post-Ack endpoint echo.
+	ep, err := d.ReadClientEndpoint()
+	require.NoError(t, err)
+	require.NotNil(t, ep)
+	require.Equal(t, "client.local", ep.Host)
+	require.Equal(t, int32(55555), ep.Port)
+
+	// Stage 4: messages flow normally from here.
+	msg, err := d.Next()
+	require.NoError(t, err)
+	require.Equal(t, MsgPing, msg.Op())
+
+	select {
+	case err := <-clientDone:
+		require.NoError(t, err)
+	case <-time.After(2 * time.Second):
+		t.Fatal("client goroutine stalled — server flow did not advance as expected")
+	}
+}
+
+// TestDecoderOpeningAfterReadHandshakeErrors: the three opening-phase
+// entry points are mutually exclusive. Once ReadHandshake has committed
+// the Decoder to the fine-grained flow, Opening() is no longer valid.
+func TestDecoderOpeningAfterReadHandshakeErrors(t *testing.T) {
+	d := NewDecoder(bytes.NewReader(buildHandshake()))
+	_, err := d.ReadHandshake()
+	require.NoError(t, err)
+	_, err = d.Opening()
+	require.Error(t, err)
+}
+
+// TestDecoderReadHandshakeAfterOpeningErrors: symmetric — once Opening has
+// finished the opening phase, none of the Read* primitives may run.
+func TestDecoderReadHandshakeAfterOpeningErrors(t *testing.T) {
+	var buf bytes.Buffer
+	buf.Write(buildHandshake())
+	buf.Write(buildClientEndpointEcho("h", 1))
+	d := NewDecoder(&buf)
+	_, err := d.Opening()
+	require.NoError(t, err)
+	_, err = d.ReadHandshake()
+	require.Error(t, err)
+}
+
+// TestDecoderReadClientEndpointRequiresHandshake: the endpoint primitive
+// has no way to locate itself in the stream without the preceding
+// handshake read — guard against callers skipping the prerequisite.
+func TestDecoderReadClientEndpointRequiresHandshake(t *testing.T) {
+	d := NewDecoder(bytes.NewReader(buildClientEndpointEcho("h", 1)))
+	_, err := d.ReadClientEndpoint()
+	require.Error(t, err)
+}
+
+// TestDecoderNextAutoConsumesClientEndpoint: if a server calls
+// ReadHandshake but then skips ReadClientEndpoint (e.g. doesn't care
+// about the echo), Next() should transparently consume the echo before
+// parsing the first message.
+func TestDecoderNextAutoConsumesClientEndpoint(t *testing.T) {
+	var buf bytes.Buffer
+	buf.Write(buildHandshake())
+	buf.Write(buildClientEndpointEcho("h", 1))
+	buf.Write(buildPing())
+
+	d := NewDecoder(&buf)
+	_, err := d.ReadHandshake()
+	require.NoError(t, err)
+
+	msg, err := d.Next()
+	require.NoError(t, err)
+	require.Equal(t, MsgPing, msg.Op())
+}
+
+// TestDecoderReadAcknowledge: client-side flow — read the server's Ack
+// as the first call, then message traffic.
+func TestDecoderReadAcknowledge(t *testing.T) {
+	var buf bytes.Buffer
+	buf.Write(buildAck("1.2.3.4", 4242))
+	buf.Write(buildPing())
+
+	d := NewDecoder(&buf)
+	ack, err := d.ReadAcknowledge()
+	require.NoError(t, err)
+	require.Equal(t, "1.2.3.4", ack.Host)
+	require.Equal(t, int32(4242), ack.Port)
+
+	msg, err := d.Next()
+	require.NoError(t, err)
+	require.Equal(t, MsgPing, msg.Op())
+}
+
+// TestOpeningEncodersRoundTrip: the new ToBytes encoders must produce the
+// exact layout the fixture builders produce (and therefore the exact
+// layout the parsers consume).
+func TestOpeningEncodersRoundTrip(t *testing.T) {
+	// Handshake: defaults on zero-valued Magic/Protocol.
+	require.Equal(t, buildHandshake(), (&Handshake{Version: 2}).ToBytes())
+	// Acknowledge: default-Flag path and explicit-Flag path both emit
+	// the buildAck layout.
+	require.Equal(t, buildAck("127.0.0.1", 1234), (&Acknowledge{Host: "127.0.0.1", Port: 1234}).ToBytes())
+	require.Equal(t, buildAck("host", 9), (&Acknowledge{Flag: AckFlag, Host: "host", Port: 9}).ToBytes())
+	// Endpoint: matches buildClientEndpointEcho.
+	require.Equal(t, buildClientEndpointEcho("client.local", 55555),
+		(&Endpoint{Host: "client.local", Port: 55555}).ToBytes())
+}
+
 // TestDecoderChunkedDelivery feeds a real rmiregistry capture through an
 // io.Pipe in 7-byte chunks with tiny sleeps between, mimicking TCP
 // segmentation where bytes arrive across multiple Read calls. A Decoder

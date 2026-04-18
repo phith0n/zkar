@@ -97,11 +97,17 @@ func ExampleNewDecoder() {
 }
 
 // ExampleDecoder_liveConnection sketches the pattern for reading JRMP
-// traffic off a live net.Conn — the only supported way to parse from a
-// long-lived TCP connection. The two things to notice are (a) the caller
-// applies SetReadDeadline between frames to bound how long to wait for
-// the next one, and (b) non-Registry Call headers and Return sentinel
-// timeouts surface as normal errors the caller can inspect.
+// traffic off a live net.Conn — the client→server reading direction, or
+// any case where every byte is already available before parsing starts.
+// The two things to notice are (a) the caller applies SetReadDeadline
+// between frames to bound how long to wait for the next one, and (b)
+// non-Registry Call headers and Return sentinel timeouts surface as
+// normal errors the caller can inspect.
+//
+// For the server-side reading direction — where the server must write a
+// ProtocolAck between reading the client's handshake and the client's
+// endpoint echo — see ExampleDecoder_serverFlow. Opening() is NOT safe
+// on a server-side live reader.
 //
 // This example does not connect to a real server; it's structured as a
 // compile-check so the idiom stays accurate as the API evolves.
@@ -140,4 +146,61 @@ func ExampleDecoder_liveConnection() {
 	// Output:
 	// got frame 0x52
 	// peer closed
+}
+
+// ExampleDecoder_serverFlow demonstrates the server-side read ordering:
+// ReadHandshake → write Acknowledge → ReadClientEndpoint → Next. A
+// conforming Java client (sun.rmi.transport.tcp.TCPChannel) blocks after
+// its 7-byte handshake until it has read the server's ProtocolAck, only
+// then writing its endpoint echo. Opening() would deadlock on this
+// ordering because it peeks past the handshake before the client has
+// unblocked.
+//
+// Here the client's bytes are pre-buffered for determinism; on a real
+// net.Conn the Ack write (conn.Write(ack.ToBytes())) is what actually
+// lets the client's ReadClientEndpoint bytes reach us.
+func ExampleDecoder_serverFlow() {
+	// Bytes the client sends across the two handshake halves plus one
+	// Ping. Constructed with the new ToBytes encoders so the example
+	// doubles as their usage demo.
+	var clientBytes bytes.Buffer
+	clientBytes.Write((&rmi.Handshake{Version: 2}).ToBytes())
+	clientBytes.Write((&rmi.Endpoint{Host: "client.local", Port: 55555}).ToBytes())
+	clientBytes.WriteByte(0x52) // MsgPing
+
+	d := rmi.NewDecoder(&clientBytes)
+
+	hs, err := d.ReadHandshake()
+	if err != nil {
+		fmt.Println("handshake:", err)
+		return
+	}
+	fmt.Println("handshake version:", hs.Version)
+
+	// Server-side Ack. In real code:
+	//   remote := conn.RemoteAddr().(*net.TCPAddr)
+	//   _, _ = conn.Write((&rmi.Acknowledge{Host: remote.IP.String(), Port: int32(remote.Port)}).ToBytes())
+	// Zero-valued Flag defaults to AckFlag, so Host/Port is all we need.
+	ack := (&rmi.Acknowledge{Host: "127.0.0.1", Port: 1234}).ToBytes()
+	fmt.Println("ack byte count:", len(ack))
+
+	ep, err := d.ReadClientEndpoint()
+	if err != nil {
+		fmt.Println("endpoint:", err)
+		return
+	}
+	fmt.Printf("client endpoint: %s:%d\n", ep.Host, ep.Port)
+
+	msg, err := d.Next()
+	if err != nil {
+		fmt.Println("next:", err)
+		return
+	}
+	fmt.Printf("got frame 0x%02X\n", msg.Op())
+
+	// Output:
+	// handshake version: 2
+	// ack byte count: 16
+	// client endpoint: client.local:55555
+	// got frame 0x52
 }

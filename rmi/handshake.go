@@ -125,3 +125,47 @@ func (a *Acknowledge) ToString() string {
 	b.Printf("@Port - %d - %s", a.Port, commons.Hexify(a.Port))
 	return b.String()
 }
+
+// ToBytes encodes the handshake for writing to a JRMP peer: JRMI magic +
+// uint16 version + 1-byte sub-protocol flag. Zero-valued Magic and Protocol
+// fields default to JRMI_MAGIC and ProtocolStream so callers can construct
+// a Handshake with only the Version field set.
+func (h *Handshake) ToBytes() []byte {
+	magic := h.Magic
+	if len(magic) == 0 {
+		magic = JRMI_MAGIC
+	}
+	proto := h.Protocol
+	if proto == 0 {
+		proto = ProtocolStream
+	}
+	var buf bytes.Buffer
+	buf.Write(magic)
+	_ = binary.Write(&buf, binary.BigEndian, h.Version)
+	buf.WriteByte(proto)
+	return buf.Bytes()
+}
+
+// ToBytes encodes the server→client acknowledgement as
+// 0x4E + writeUTF(host) + int32(port). A zero-valued Flag defaults to
+// AckFlag so a server can construct with only Host/Port.
+func (a *Acknowledge) ToBytes() []byte {
+	flag := a.Flag
+	if flag == 0 {
+		flag = AckFlag
+	}
+	var buf bytes.Buffer
+	buf.WriteByte(flag)
+	writeModifiedUTF(&buf, a.Host)
+	_ = binary.Write(&buf, binary.BigEndian, a.Port)
+	return buf.Bytes()
+}
+
+// writeModifiedUTF encodes s using the same uint16-length-prefixed modified
+// UTF-8 layout readModifiedUTF consumes. Hostnames are overwhelmingly
+// ASCII, so we emit the raw bytes unchanged — matching the lenient read
+// path.
+func writeModifiedUTF(buf *bytes.Buffer, s string) {
+	_ = binary.Write(buf, binary.BigEndian, uint16(len(s)))
+	buf.WriteString(s)
+}

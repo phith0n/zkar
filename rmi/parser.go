@@ -29,6 +29,31 @@ type Endpoint struct {
 	Port int32
 }
 
+// ToBytes encodes the endpoint as writeUTF(host) + int32(port) — the exact
+// layout a client writes immediately after receiving the server's
+// Acknowledge, and the layout ReadClientEndpoint consumes.
+func (e *Endpoint) ToBytes() []byte {
+	var buf bytes.Buffer
+	writeModifiedUTF(&buf, e.Host)
+	_ = binary.Write(&buf, binary.BigEndian, e.Port)
+	return buf.Bytes()
+}
+
+// ToString formats the endpoint as a wireshark-dissector-style block
+// headed by "@Endpoint", matching the style of Handshake/Acknowledge.
+func (e *Endpoint) ToString() string {
+	b := commons.NewPrinter()
+	b.Printf("@Endpoint")
+	b.IncreaseIndent()
+	b.Printf("@Host")
+	b.IncreaseIndent()
+	b.Printf("@Length - %d - %s", len(e.Host), commons.Hexify(uint16(len(e.Host))))
+	b.Printf("@Value - %s - %s", e.Host, commons.Hexify(e.Host))
+	b.DecreaseIndent()
+	b.Printf("@Port - %d - %s", e.Port, commons.Hexify(e.Port))
+	return b.String()
+}
+
 // Transmission is a parsed JRMP byte stream from either direction of a
 // Stream-protocol connection. The three opening fields capture the handshake
 // phase — any or all can be nil depending on which side of the conversation
@@ -167,15 +192,7 @@ func (t *Transmission) ToString() string {
 		b.Print(t.Acknowledge.ToString())
 	}
 	if t.ClientEndpoint != nil {
-		b.Printf("@ClientEndpoint")
-		b.IncreaseIndent()
-		b.Printf("@Host")
-		b.IncreaseIndent()
-		b.Printf("@Length - %d - %s", len(t.ClientEndpoint.Host), commons.Hexify(uint16(len(t.ClientEndpoint.Host))))
-		b.Printf("@Value - %s - %s", t.ClientEndpoint.Host, commons.Hexify(t.ClientEndpoint.Host))
-		b.DecreaseIndent()
-		b.Printf("@Port - %d - %s", t.ClientEndpoint.Port, commons.Hexify(t.ClientEndpoint.Port))
-		b.DecreaseIndent()
+		b.Print(t.ClientEndpoint.ToString())
 	}
 	if len(t.Messages) > 0 {
 		b.Printf("@Messages")
