@@ -46,20 +46,23 @@ func (c *CallMessage) ToString() string {
 
 // readCall consumes one MsgCall frame starting at the 0x50 flag byte.
 //
-// Two arg-reading strategies share everything above the arg loop:
+// The arg reader picks one of two strategies based on what the header tells
+// us about the Call:
 //
-//   - streaming == false (buffered input like *.bin / bytes.Reader): sentinel
-//     — read TCContents until PeekN yields a non-TC_* byte or io.EOF. The
-//     sentinel relies on EOF or a next-frame flag (0x50..0x54) terminating
-//     the loop; safe on any input that eventually EOFs, would block forever
-//     on a live TCP reader.
+//   - Exact count (Registry fast path): when ObjID == REGISTRY_ID,
+//     hash == RegistryInterfaceHash, and op ∈ [0..4], we look up the stub's
+//     arg count via registryArgCount(op) and read precisely that many
+//     TCContents. No PeekN past the last arg, so the parser returns the
+//     frame as soon as its own bytes arrive — even on a live TCP reader
+//     where the peer is about to wait for a response before sending more.
 //
-//   - streaming == true (live io.Reader like net.Conn): exact count — we
-//     require a Registry call (ObjID=REGISTRY_ID + hash=RegistryInterfaceHash),
-//     look up the stub's arg count via registryArgCount(op), and read
-//     precisely that many TCContents. No PeekN past the last arg means no
-//     blocking on "maybe more bytes".
-func readCall(outer *commons.Stream, streaming bool) (*CallMessage, error) {
+//   - Sentinel (fallback): read TCContents until PeekN yields a non-TC_*
+//     byte or io.EOF. Correct on any input, but the peek after the last arg
+//     blocks on a live reader until the next frame's flag byte arrives, the
+//     peer closes (io.EOF), or the reader's deadline fires. Callers that
+//     need responsiveness on non-Registry Calls should set SetReadDeadline
+//     on their net.Conn.
+func readCall(outer *commons.Stream) (*CallMessage, error) {
 	flagBs, err := outer.ReadN(1)
 	if err != nil {
 		return nil, fmt.Errorf("read Call flag on index %v: %w", outer.CurrentIndex(), err)
@@ -105,7 +108,7 @@ func readCall(outer *commons.Stream, streaming bool) (*CallMessage, error) {
 	op := int32(binary.BigEndian.Uint32(primitive[objIDLen : objIDLen+4]))
 	hash := int64(binary.BigEndian.Uint64(primitive[objIDLen+4 : callPrimitiveLen]))
 
-	args, err := readCallArgs(inner, streaming, objID, op, hash)
+	args, err := readCallArgs(inner, objID, op, hash)
 	if err != nil {
 		return nil, err
 	}
@@ -164,32 +167,34 @@ func readLeadingBlocks(inner *serz.ObjectStream, want int) ([]*serz.TCContent, [
 	return blocks, primitive, nil
 }
 
-// readCallArgs returns the object-arg TCContents of a Call. Buffered mode
-// sentinel-scans until non-TC_* / EOF; streaming mode requires a Registry
-// call and reads exactly registryArgCount(op) contents.
-func readCallArgs(inner *serz.ObjectStream, streaming bool, objID ObjID, op int32, hash int64) ([]*serz.TCContent, error) {
-	if streaming {
-		if !objID.IsRegistry() || hash != RegistryInterfaceHash {
-			return nil, fmt.Errorf("streaming parser only supports Registry calls (ObjID=REGISTRY_ID + hash=RegistryInterfaceHash); "+
-				"got ObjNum=%d hash=0x%X — buffer the full stream and use FromBytes for non-Registry remotes",
-				objID.ObjNum, hash)
-		}
-		argCount, ok := registryArgCount(op)
-		if !ok {
-			return nil, fmt.Errorf("streaming parser only supports known Registry op-indices [0..4]; got op=%d", op)
-		}
-		args := make([]*serz.TCContent, 0, argCount)
-		for i := 0; i < argCount; i++ {
-			content, err := serz.ReadTCContent(inner)
-			if err != nil {
-				return nil, fmt.Errorf("read Call arg %d: %w", i, err)
+// readCallArgs returns the object-arg TCContents of a Call.
+//
+// Fast path: a conforming Registry call (matching ObjID + interface hash +
+// known op-index) has a well-defined arg count, so we read exactly that many
+// and return — no peek past the last arg, no blocking on a live reader
+// waiting for "maybe more bytes".
+//
+// Fallback: for any other Call we don't know the method signature, so we
+// fall back to a sentinel scan (read TCContents until PeekN yields a byte
+// outside the TC_* range or io.EOF). The sentinel's terminating peek blocks
+// on a live reader until the next frame's flag byte arrives, the peer
+// closes, or the reader's deadline fires.
+func readCallArgs(inner *serz.ObjectStream, objID ObjID, op int32, hash int64) ([]*serz.TCContent, error) {
+	if objID.IsRegistry() && hash == RegistryInterfaceHash {
+		if argCount, ok := registryArgCount(op); ok {
+			args := make([]*serz.TCContent, 0, argCount)
+			for i := 0; i < argCount; i++ {
+				content, err := serz.ReadTCContent(inner)
+				if err != nil {
+					return nil, fmt.Errorf("read Call arg %d: %w", i, err)
+				}
+				args = append(args, content)
 			}
-			args = append(args, content)
+			return args, nil
 		}
-		return args, nil
 	}
 
-	// Buffered sentinel: stop on next-frame flag or EOF.
+	// Sentinel: stop on next-frame flag or EOF.
 	var args []*serz.TCContent
 	for {
 		next, err := inner.PeekN(1)

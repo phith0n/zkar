@@ -10,11 +10,10 @@ import (
 )
 
 // TestStreamParsesRealCaptures runs FromStream against every real rmiregistry
-// client→server capture. Because FromStream reads exactly each message's
-// bytes (no sentinel peek at end-of-Call), feeding the exact .bin payload
-// via bytes.NewReader is the key regression: if the streaming Call reader
-// ever over-reads, it would hit io.ErrUnexpectedEOF mid-frame and fail
-// here.
+// client→server capture. Registry Calls use the exact-count fast path, so
+// feeding the exact .bin payload via bytes.NewReader — no trailing bytes —
+// must parse cleanly without the parser over-reading and hitting
+// io.ErrUnexpectedEOF mid-frame.
 func TestStreamParsesRealCaptures(t *testing.T) {
 	cases := []struct {
 		op       string
@@ -62,50 +61,85 @@ func TestStreamHandshakeOnly(t *testing.T) {
 	require.Empty(t, tr.Messages)
 }
 
-// TestStreamRejectsNonRegistryCall: the ObjID is non-zero (not Registry),
-// so we can't know the method's arg count without external schema. The
-// streaming parser must error out instead of guessing.
-func TestStreamRejectsNonRegistryCall(t *testing.T) {
+// TestStreamNonRegistryCall: a Call whose ObjID is not REGISTRY_ID (so no
+// exact-count fast path applies) must still parse via the sentinel fallback.
+// With a bounded bytes.Reader the sentinel's terminating peek gets io.EOF
+// cleanly after the last arg.
+func TestStreamNonRegistryCall(t *testing.T) {
 	nonReg := ObjID{ObjNum: 99, UID: UID{Unique: 1, Time: 2, Count: 3}}
 	data := buildCall(nonReg, LookupOpIndex, RegistryInterfaceHash, buildTCString("x"))
 
-	_, err := FromStream(bytes.NewReader(data))
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "only supports Registry")
+	tr, err := FromStream(bytes.NewReader(data))
+	require.NoError(t, err)
+	require.Len(t, tr.Messages, 1)
+	call, ok := tr.Messages[0].(*CallMessage)
+	require.True(t, ok)
+	require.False(t, call.ObjID.IsRegistry())
+	require.Len(t, call.ObjectArgs, 1)
+	// Decoder only fires for a valid Registry dispatch — non-Registry ObjID
+	// leaves call.Decoded nil even when the interface hash happens to match.
+	require.Nil(t, call.Decoded)
 }
 
-// TestStreamRejectsWrongInterfaceHash: even with Registry ObjID, a
-// mismatched interface hash means this isn't actually a Registry call.
-// Streaming must refuse.
-func TestStreamRejectsWrongInterfaceHash(t *testing.T) {
+// TestStreamWrongInterfaceHash: Registry ObjID but a bogus methodHash —
+// sentinel fallback parses the Call, and Decoded stays nil because the
+// Registry dispatch guard (ObjID + hash) doesn't match.
+func TestStreamWrongInterfaceHash(t *testing.T) {
 	const bogus int64 = 0x1234567890ABCDEF
 	data := buildCall(ObjID{}, LookupOpIndex, bogus, buildTCString("x"))
 
-	_, err := FromStream(bytes.NewReader(data))
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "only supports Registry")
+	tr, err := FromStream(bytes.NewReader(data))
+	require.NoError(t, err)
+	require.Len(t, tr.Messages, 1)
+	call := tr.Messages[0].(*CallMessage)
+	require.Equal(t, int64(bogus), call.MethodHash)
+	require.Nil(t, call.Decoded)
+	require.Len(t, call.ObjectArgs, 1)
 }
 
-// TestStreamRejectsUnknownRegistryOp: Registry ObjID + correct hash but an
-// op-index outside [0..4]. Without a known arg count we refuse to guess.
-func TestStreamRejectsUnknownRegistryOp(t *testing.T) {
+// TestStreamUnknownRegistryOp: Registry ObjID + correct hash but op=99
+// (outside the stub's op table). registryArgCount returns false, so we fall
+// back to sentinel and still parse the payload cleanly.
+func TestStreamUnknownRegistryOp(t *testing.T) {
 	data := buildCall(ObjID{}, 99, RegistryInterfaceHash, buildTCString("x"))
 
-	_, err := FromStream(bytes.NewReader(data))
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "known Registry op-indices")
+	tr, err := FromStream(bytes.NewReader(data))
+	require.NoError(t, err)
+	require.Len(t, tr.Messages, 1)
+	call := tr.Messages[0].(*CallMessage)
+	require.Equal(t, int32(99), call.Operation)
+	// Decoded keeps nil because registryDecoders has no entry for op=99.
+	require.Nil(t, call.Decoded)
+	require.Len(t, call.ObjectArgs, 1)
 }
 
-// TestStreamRejectsReturn: NormalReturn's 0-vs-1 payload depends on the
-// originating Call's return type; we have no way to know in a
-// direction-agnostic stream. Error explicitly rather than guess wrong.
-func TestStreamRejectsReturn(t *testing.T) {
-	data := buildReturn(NormalReturn, UID{Unique: 1, Time: 2, Count: 3}, nil)
+// TestStreamReturnWithPayload: ReturnData streaming via sentinel. A
+// NormalReturn with one payload TCContent parses, payload count is 1.
+func TestStreamReturnWithPayload(t *testing.T) {
+	uid := UID{Unique: 1, Time: 2, Count: 3}
+	data := buildReturn(NormalReturn, uid, buildTCString("result"))
 
-	_, err := FromStream(bytes.NewReader(data))
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "does not support ReturnData")
-	require.Contains(t, err.Error(), "FromBytes")
+	tr, err := FromStream(bytes.NewReader(data))
+	require.NoError(t, err)
+	require.Len(t, tr.Messages, 1)
+	ret, ok := tr.Messages[0].(*ReturnMessage)
+	require.True(t, ok)
+	require.Equal(t, NormalReturn, ret.ReturnType)
+	require.NotNil(t, ret.Payload)
+}
+
+// TestStreamReturnVoid: a ReturnData with no payload (void method) — the
+// sentinel reads zero payload TCContents and terminates on io.EOF.
+func TestStreamReturnVoid(t *testing.T) {
+	uid := UID{Unique: 1, Time: 2, Count: 3}
+	data := buildReturn(NormalReturn, uid, nil)
+
+	tr, err := FromStream(bytes.NewReader(data))
+	require.NoError(t, err)
+	require.Len(t, tr.Messages, 1)
+	ret := tr.Messages[0].(*ReturnMessage)
+	require.Equal(t, NormalReturn, ret.ReturnType)
+	require.Nil(t, ret.Payload)
 }
 
 // TestStreamPingPingAckDgcAck: bounded-length frames the streaming parser

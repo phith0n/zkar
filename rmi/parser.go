@@ -35,82 +35,35 @@ type Transmission struct {
 }
 
 // FromBytes parses a fully-buffered JRMP byte slice (a .ser-style capture,
-// an io.ReadAll result, etc.). The buffered parser uses a sentinel-based
-// arg loop that terminates on io.EOF or a next-frame flag — safe on any
-// input that eventually reaches EOF, but would block forever on a live
-// reader that keeps the connection open between frames. For live streams
-// (net.Conn, pipes) use FromStream instead.
+// an io.ReadAll result, etc.). The parser loops readMessage until io.EOF,
+// returning the full Transmission.
 func FromBytes(data []byte) (*Transmission, error) {
-	return parseTransmission(commons.NewStream(data), false)
+	return parseTransmission(commons.NewStream(data))
 }
 
-// FromStream parses JRMP traffic from a live io.Reader (e.g. net.Conn)
-// without io.ReadAll-ing the whole stream first. Each message's byte
-// boundary is derived from protocol framing alone, so the parser won't
-// block on an idle connection after finishing one message but before the
-// next arrives.
+// FromStream parses JRMP traffic from an io.Reader (net.Conn, io.Pipe, etc.)
+// without io.ReadAll-ing the whole stream first. It loops readMessage until
+// the reader returns io.EOF, so every frame type is supported.
 //
-// Scope (intentionally narrow):
+// Blocking semantics: the message loop blocks on the reader between frames.
+// Inside a Call/Return, the Registry fast path returns as soon as its own
+// bytes arrive; a non-Registry Call or a Return uses a sentinel that blocks
+// after the last arg/payload until the next frame's flag byte arrives, the
+// peer closes the connection (io.EOF), or the reader's deadline fires.
 //
-//   - Handshake / Acknowledge / ClientEndpoint echo — bounded reads, fine.
-//   - MsgCall — supported ONLY for java.rmi.registry.Registry (ObjID ==
-//     REGISTRY_ID AND methodHash == RegistryInterfaceHash). Registry's
-//     op-index yields exact arg count via registryArgCount; non-Registry
-//     Calls return an error because we cannot know their arg count without
-//     external method-signature info.
-//   - MsgPing / MsgPingAck / MsgDgcAck — bounded, always supported.
-//   - MsgReturnData — not supported. NormalReturn's 0-vs-1 payload count
-//     needs call/response correlation we don't track; use FromBytes on a
-//     buffered copy of the full conversation for return parsing.
-//
-// Loop exits on io.EOF (caller closed the reader) or the first error from
-// a message reader.
+// For live TCP servers that need to process frames as they arrive — or for
+// any caller that wants to apply a SetReadDeadline between frames — use
+// Decoder instead; its Next() method returns one message at a time.
 func FromStream(r io.Reader) (*Transmission, error) {
-	return parseTransmission(commons.NewStreamFromReader(r), true)
+	return parseTransmission(commons.NewStreamFromReader(r))
 }
 
 // parseTransmission is the single implementation behind both FromBytes and
-// FromStream. The `streaming` flag propagates down into readCall / readReturn
-// where it picks the arg-reading strategy.
-func parseTransmission(stream *commons.Stream, streaming bool) (*Transmission, error) {
+// FromStream.
+func parseTransmission(stream *commons.Stream) (*Transmission, error) {
 	t := &Transmission{}
-
-	// Direction-agnostic opening: peek the first byte to decide what (if
-	// anything) precedes the message loop.
-	first, err := stream.PeekN(1)
-	if err != nil {
-		if errors.Is(err, io.EOF) {
-			return t, nil // empty input is a (degenerate) valid Transmission
-		}
-		return nil, fmt.Errorf("peek first byte: %w", err)
-	}
-
-	switch first[0] {
-	case JRMI_MAGIC[0]: // 0x4A — client→server handshake
-		h, herr := readHandshake(stream)
-		if herr != nil {
-			return nil, herr
-		}
-		t.Handshake = h
-
-		// A conforming Stream-protocol client immediately follows the
-		// 7-byte handshake with its own endpoint suggestion. Some
-		// hand-crafted fixtures skip this; peek and decide.
-		ep, eerr := maybeReadClientEndpoint(stream)
-		if eerr != nil {
-			return nil, fmt.Errorf("client endpoint echo: %w", eerr)
-		}
-		t.ClientEndpoint = ep
-
-	case AckFlag: // 0x4E — server→client ProtocolAck
-		a, aerr := readAcknowledge(stream)
-		if aerr != nil {
-			return nil, aerr
-		}
-		t.Acknowledge = a
-
-		// No further server-side echo: Acknowledge already carries
-		// the server's view of the client endpoint.
+	if err := readOpening(stream, t); err != nil {
+		return nil, err
 	}
 
 	// Message loop until EOF.
@@ -122,12 +75,57 @@ func parseTransmission(stream *commons.Stream, streaming bool) (*Transmission, e
 			}
 			return nil, fmt.Errorf("peek next message: %w", err)
 		}
-		msg, merr := readMessage(stream, streaming)
+		msg, merr := readMessage(stream)
 		if merr != nil {
 			return nil, merr
 		}
 		t.Messages = append(t.Messages, msg)
 	}
+}
+
+// readOpening consumes the optional handshake-phase prefix (handshake OR
+// acknowledge, plus the client's endpoint echo when a handshake is present).
+// It peeks the first byte to decide what — if anything — precedes the
+// message loop. Populates the given Transmission's Handshake / Acknowledge /
+// ClientEndpoint fields in place. An empty (EOF) stream is a (degenerate)
+// valid Transmission and leaves t untouched.
+func readOpening(stream *commons.Stream, t *Transmission) error {
+	first, err := stream.PeekN(1)
+	if err != nil {
+		if errors.Is(err, io.EOF) {
+			return nil
+		}
+		return fmt.Errorf("peek first byte: %w", err)
+	}
+
+	switch first[0] {
+	case JRMI_MAGIC[0]: // 0x4A — client→server handshake
+		h, herr := readHandshake(stream)
+		if herr != nil {
+			return herr
+		}
+		t.Handshake = h
+
+		// A conforming Stream-protocol client immediately follows the
+		// 7-byte handshake with its own endpoint suggestion. Some
+		// hand-crafted fixtures skip this; peek and decide.
+		ep, eerr := maybeReadClientEndpoint(stream)
+		if eerr != nil {
+			return fmt.Errorf("client endpoint echo: %w", eerr)
+		}
+		t.ClientEndpoint = ep
+
+	case AckFlag: // 0x4E — server→client ProtocolAck
+		a, aerr := readAcknowledge(stream)
+		if aerr != nil {
+			return aerr
+		}
+		t.Acknowledge = a
+
+		// No further server-side echo: Acknowledge already carries
+		// the server's view of the client endpoint.
+	}
+	return nil
 }
 
 // maybeReadClientEndpoint reads the client's post-handshake endpoint echo
